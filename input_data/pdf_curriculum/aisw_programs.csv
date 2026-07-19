@@ -1,0 +1,6 @@
+﻿program_id,program_name,program_type,department,required_credits,description,source
+1,소프트웨어전공,MAJOR,소프트웨어융합학부,36,소프트웨어 개발 및 응용 분야,AISW계열 이수체계도
+2,인공지능전공,MAJOR,인공지능,36,인공지능 이론 및 응용 분야,AISW계열 이수체계도
+3,데이터사이언스전공,MAJOR,데이터사이언스,36,데이터 분석 및 활용 분야,AISW계열 이수체계도
+4,XR콘텐츠전공,MAJOR,XR콘텐츠,36,XR 기반 콘텐츠 개발 분야,AISW계열 이수체계도
+5,지능형IoT전공,MAJOR,지능형IoT,36,지능형 IoT 시스템 개발 분야,AISW계열 이수체계도

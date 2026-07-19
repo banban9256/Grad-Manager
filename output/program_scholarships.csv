@@ -1,0 +1,3 @@
+﻿scholarship_id,program_id,scholarship_name,description,amount,criteria
+1,13,SW융합장학금,SW중심대학 재학생 대상 성적 우수 장학금,등록금 50%,직전학기 평점 4.0 이상 및 관련 대회 수상
+2,5,특화전공장학금,특화전공 이수 우수학생 장학금,200만원,특화전공 12학점 이상 이수 및 평점 3.5 이상
