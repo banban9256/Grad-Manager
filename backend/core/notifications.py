@@ -1,10 +1,10 @@
-"""알림 모듈 - 키워드 매칭 + 학사일정 트리거"""
+"""알림 모듈 - 키워드 매칭 + 학사일정 트리거 (CSV 기반)"""
 
 import re
 from datetime import datetime, timedelta
 
-from .data.notices import NOTICES
-from .data.academic_schedule import ACADEMIC_SCHEDULE, get_upcoming_schedules
+from .data.notices import get_all_notices
+from .data.academic_schedule import get_all_schedules, get_upcoming_schedules
 
 
 # ==============================
@@ -20,14 +20,14 @@ def search_notices(query: str) -> list[dict]:
     - OR 로직: 하나라도 매칭되면 결과에 포함
     -levance 순 정렬 (매칭된 키워드 수 기준)
     """
-    # 입력에서 키워드 추출 (공백, 특수문자 기준 분리)
+    notices = get_all_notices()
     keywords = re.findall(r'[\w가-힣]+', query)
 
     if not keywords:
         return []
 
     results = []
-    for notice in NOTICES:
+    for notice in notices:
         searchable = (
             notice["title"].lower() + " " +
             notice["content"].lower() + " " +
@@ -49,7 +49,6 @@ def search_notices(query: str) -> list[dict]:
                 "matched_keywords": matched_keywords,
             })
 
-    # 매칭 수 기준 내림차순 정렬
     results.sort(key=lambda x: x["match_count"], reverse=True)
     return results
 
@@ -59,8 +58,9 @@ def filter_notices_by_keywords(keywords: list[str]) -> list[dict]:
     설정된 키워드 목록으로 공지사항을 필터링합니다.
     알림 시스템에서 사용.
     """
+    notices = get_all_notices()
     results = []
-    for notice in NOTICES:
+    for notice in notices:
         notice_text = (
             notice["title"] + " " +
             notice["content"] + " " +
@@ -108,7 +108,7 @@ def get_upcoming_alerts(days_ahead: int = 30) -> list[dict]:
         start_date = datetime.strptime(schedule["start_date"], "%Y-%m-%d").date()
         days_until = (start_date - today).days
 
-        # 긴급도判定
+        # 긴급도 판정
         if days_until <= 3:
             urgency = "긴급"
         elif days_until <= 7:
@@ -125,7 +125,6 @@ def get_upcoming_alerts(days_ahead: int = 30) -> list[dict]:
             "alert_message": _build_alert_message(schedule, days_until),
         }
 
-        # 선행 일정 체크
         if schedule.get("prerequisite"):
             alert["prerequisite_warning"] = (
                 f"⚠️ '{schedule['prerequisite']}'를 먼저 완료해야 합니다."
@@ -133,7 +132,6 @@ def get_upcoming_alerts(days_ahead: int = 30) -> list[dict]:
 
         alerts.append(alert)
 
-    # 긴급도 순 정렬
     urgency_order = {"긴급": 0, "주의": 1, "알림": 2, "예정": 3}
     alerts.sort(key=lambda x: (urgency_order.get(x["urgency"], 99), x["days_until"]))
 
@@ -159,20 +157,16 @@ def _build_alert_message(schedule: dict, days_until: int) -> str:
 def check_deadline_triggers(student: dict) -> list[dict]:
     """
     특정 학생에게 관련된 마감 트리거를 확인합니다.
-
-    예시:
-    - 기말 강의 평가 미완료 시 → 성적 조회 불가 경고
-    - 졸업신청 기간 → 졸업 요건 충족 여부 확인 안내
     """
     triggers = []
     today = datetime.now().date()
+    all_schedules = get_all_schedules()
 
-    for schedule in ACADEMIC_SCHEDULE:
+    for schedule in all_schedules:
         start_date = datetime.strptime(schedule["start_date"], "%Y-%m-%d").date()
         end_date = datetime.strptime(schedule["end_date"], "%Y-%m-%d").date()
 
         if start_date <= today <= end_date:
-            # 진행 중인 일정
             trigger = {
                 "schedule": schedule,
                 "status": "진행중",
@@ -187,7 +181,6 @@ def check_deadline_triggers(student: dict) -> list[dict]:
             triggers.append(trigger)
 
         elif today < start_date and (start_date - today).days <= schedule.get("alert_days_before", 7):
-            # 임박한 일정
             triggers.append({
                 "schedule": schedule,
                 "status": "임박",
