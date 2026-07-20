@@ -1,395 +1,42 @@
-"""가상 과목 데이터 - 나중에 실제 DB로 교체 예정"""
+"""과목 데이터 모듈 - CSV 기반 실제 데이터 로딩"""
 
-# 과목 타입: required(전공필수), elective(전공선택), general_required(교양필수), general_elective(교양선택)
-COURSES = {
-    # === 교양 필수 ===
-    "UNIV101": {
-        "code": "UNIV101",
-        "name": "대학과 인성",
-        "type": "general_required",
-        "credits": 1,
-        "category": "교양필수",
-        "department": "교양",
-        "professor": "홍길동",
-        "time_slots": [("월", "09:00", "10:00")],
-        "capacity": 30,
-        "enrolled": 28,
-    },
-    "UNIV102": {
-        "code": "UNIV102",
-        "name": "대학과 비전",
-        "type": "general_required",
-        "credits": 1,
-        "category": "교양필수",
-        "department": "교양",
-        "professor": "이순신",
-        "time_slots": [("화", "09:00", "10:00")],
-        "capacity": 30,
-        "enrolled": 25,
-    },
-    "ENG101": {
-        "code": "ENG101",
-        "name": "대학영어 1",
-        "type": "general_required",
-        "credits": 2,
-        "category": "교양필수",
-        "department": "교양",
-        "professor": "John Smith",
-        "time_slots": [("수", "10:00", "11:30")],
-        "capacity": 25,
-        "enrolled": 25,
-    },
-    "ENG102": {
-        "code": "ENG102",
-        "name": "대학영어 2",
-        "type": "general_required",
-        "credits": 2,
-        "category": "교양필수",
-        "department": "교양",
-        "professor": "John Smith",
-        "time_slots": [("목", "10:00", "11:30")],
-        "capacity": 25,
-        "enrolled": 22,
-    },
-    "KR101": {
-        "code": "KR101",
-        "name": "한국어와 글쓰기",
-        "type": "general_required",
-        "credits": 2,
-        "category": "교양필수",
-        "department": "교양",
-        "professor": "김영희",
-        "time_slots": [("월", "14:00", "15:30")],
-        "capacity": 30,
-        "enrolled": 20,
-    },
-    "MATH101": {
-        "code": "MATH101",
-        "name": "기초수학",
-        "type": "general_required",
-        "credits": 3,
-        "category": "교양필수",
-        "department": "수학",
-        "professor": "박수학",
-        "time_slots": [("화", "13:00", "14:30"), ("목", "13:00", "14:30")],
-        "capacity": 40,
-        "enrolled": 35,
-    },
+from .csv_loader import load_courses
 
-    # === 교양 선택 ===
-    "GEN201": {
-        "code": "GEN201",
-        "name": "철학의 이해",
-        "type": "general_elective",
-        "credits": 3,
-        "category": "인문학",
-        "department": "교양",
-        "professor": "최철학",
-        "time_slots": [("화", "11:00", "12:30")],
-        "capacity": 40,
-        "enrolled": 18,
-    },
-    "GEN202": {
-        "code": "GEN202",
-        "name": "심리학 개론",
-        "type": "general_elective",
-        "credits": 3,
-        "category": "인문학",
-        "department": "교양",
-        "professor": "정심리",
-        "time_slots": [("수", "14:00", "15:30")],
-        "capacity": 40,
-        "enrolled": 30,
-    },
-    "GEN301": {
-        "code": "GEN301",
-        "name": "경제학 원론",
-        "type": "general_elective",
-        "credits": 3,
-        "category": "사회과학",
-        "department": "교양",
-        "professor": "한경제",
-        "time_slots": [("목", "15:00", "16:30")],
-        "capacity": 40,
-        "enrolled": 25,
-    },
-    "GEN401": {
-        "code": "GEN401",
-        "name": "음악의 역사",
-        "type": "general_elective",
-        "credits": 2,
-        "category": "예술",
-        "department": "교양",
-        "professor": "강음악",
-        "time_slots": [("금", "10:00", "11:30")],
-        "capacity": 30,
-        "enrolled": 12,
-    },
-    "GEN402": {
-        "code": "GEN402",
-        "name": "스포츠와 건강",
-        "type": "general_elective",
-        "credits": 1,
-        "category": "체육",
-        "department": "교양",
-        "professor": "임체육",
-        "time_slots": [("금", "14:00", "15:00")],
-        "capacity": 25,
-        "enrolled": 20,
-    },
+# CSV에서 로드된 과목 데이터 (지연 로딩)
+COURSES = None
 
-    # === AISW 전공 기초 ===
-    "CS101": {
-        "code": "CS101",
-        "name": "프로그래밍 기초",
-        "type": "required",
-        "credits": 3,
-        "category": "전공기초",
-        "department": "AISW",
-        "professor": "김컴퓨터",
-        "time_slots": [("화", "09:00", "10:30"), ("목", "09:00", "10:30")],
-        "capacity": 40,
-        "enrolled": 38,
-    },
-    "CS102": {
-        "code": "CS102",
-        "name": "자료구조",
-        "type": "required",
-        "credits": 3,
-        "category": "전공기초",
-        "department": "AISW",
-        "professor": "김컴퓨터",
-        "time_slots": [("월", "10:00", "11:30"), ("수", "10:00", "11:30")],
-        "capacity": 40,
-        "enrolled": 36,
-    },
-    "CS201": {
-        "code": "CS201",
-        "name": "알고리즘",
-        "type": "required",
-        "credits": 3,
-        "category": "전공기초",
-        "department": "AISW",
-        "professor": "박알고",
-        "time_slots": [("화", "13:00", "14:30"), ("목", "13:00", "14:30")],
-        "capacity": 35,
-        "enrolled": 32,
-    },
-    "CS202": {
-        "code": "CS202",
-        "name": "데이터베이스",
-        "type": "required",
-        "credits": 3,
-        "category": "전공기초",
-        "department": "AISW",
-        "professor": "정데이터",
-        "time_slots": [("월", "13:00", "14:30"), ("수", "13:00", "14:30")],
-        "capacity": 35,
-        "enrolled": 30,
-    },
-    "CS203": {
-        "code": "CS203",
-        "name": "운영체제",
-        "type": "required",
-        "credits": 3,
-        "category": "전공기초",
-        "department": "AISW",
-        "professor": "한시스템",
-        "time_slots": [("화", "15:00", "16:30"), ("목", "15:00", "16:30")],
-        "capacity": 35,
-        "enrolled": 28,
-    },
 
-    # === AISW 전공 심화 ===
-    "AISW301": {
-        "code": "AISW301",
-        "name": "인공지능 개론",
-        "type": "required",
-        "credits": 3,
-        "category": "전공심화",
-        "department": "AISW",
-        "professor": "AI교수",
-        "time_slots": [("월", "10:00", "11:30")],
-        "capacity": 30,
-        "enrolled": 29,
-    },
-    "AISW302": {
-        "code": "AISW302",
-        "name": "머신러닝",
-        "type": "required",
-        "credits": 3,
-        "category": "전공심화",
-        "department": "AISW",
-        "professor": "AI교수",
-        "time_slots": [("수", "10:00", "11:30")],
-        "capacity": 30,
-        "enrolled": 27,
-    },
-    "AISW303": {
-        "code": "AISW303",
-        "name": "딥러닝",
-        "type": "required",
-        "credits": 3,
-        "category": "전공심화",
-        "department": "AISW",
-        "professor": "딥러닝 교수",
-        "time_slots": [("금", "10:00", "11:30")],
-        "capacity": 25,
-        "enrolled": 24,
-    },
-    "AISW304": {
-        "code": "AISW304",
-        "name": "소프트웨어 공학",
-        "type": "required",
-        "credits": 3,
-        "category": "전공심화",
-        "department": "AISW",
-        "professor": "소프트 교수",
-        "time_slots": [("목", "10:00", "11:30")],
-        "capacity": 30,
-        "enrolled": 22,
-    },
-    "AISW305": {
-        "code": "AISW305",
-        "name": "컴퓨터비전",
-        "type": "elective",
-        "credits": 3,
-        "category": "전공선택",
-        "department": "AISW",
-        "professor": "비전교수",
-        "time_slots": [("금", "13:00", "14:30")],
-        "capacity": 25,
-        "enrolled": 18,
-    },
-    "AISW306": {
-        "code": "AISW306",
-        "name": "자연어처리",
-        "type": "elective",
-        "credits": 3,
-        "category": "전공선택",
-        "department": "AISW",
-        "professor": "NLP교수",
-        "time_slots": [("월", "15:00", "16:30")],
-        "capacity": 25,
-        "enrolled": 20,
-    },
-    "AISW401": {
-        "code": "AISW401",
-        "name": "AI 서비스 개발",
-        "type": "elective",
-        "credits": 3,
-        "category": "전공선택",
-        "department": "AISW",
-        "professor": "AI교수",
-        "time_slots": [("화", "17:00", "18:30")],
-        "capacity": 20,
-        "enrolled": 15,
-    },
-    "AISW402": {
-        "code": "AISW402",
-        "name": "캡스톤디자인 1",
-        "type": "elective",
-        "credits": 3,
-        "category": "전공선택",
-        "department": "AISW",
-        "professor": "소프트 교수",
-        "time_slots": [("수", "15:00", "17:00")],
-        "capacity": 20,
-        "enrolled": 10,
-    },
-
-    # === 데이터사이언스 특화 전공 ===
-    "DS301": {
-        "code": "DS301",
-        "name": "데이터 분석",
-        "type": "elective",
-        "credits": 3,
-        "category": "특화전공",
-        "department": "데이터사이언스",
-        "professor": "데이터교수",
-        "time_slots": [("화", "10:00", "11:30")],
-        "capacity": 30,
-        "enrolled": 22,
-    },
-    "DS302": {
-        "code": "DS302",
-        "name": "빅데이터 처리",
-        "type": "elective",
-        "credits": 3,
-        "category": "특화전공",
-        "department": "데이터사이언스",
-        "professor": "빅데이터교수",
-        "time_slots": [("목", "14:00", "15:30")],
-        "capacity": 25,
-        "enrolled": 18,
-    },
-    "DS401": {
-        "code": "DS401",
-        "name": "데이터 시각화",
-        "type": "elective",
-        "credits": 3,
-        "category": "특화전공",
-        "department": "데이터사이언스",
-        "professor": "시각화교수",
-        "time_slots": [("금", "15:00", "16:30")],
-        "capacity": 25,
-        "enrolled": 15,
-    },
-
-    # === 추가 과목 (시간표 조합용) ===
-    "GEN501": {
-        "code": "GEN501",
-        "name": "글로벌 리더십",
-        "type": "general_elective",
-        "credits": 2,
-        "category": "인문학",
-        "department": "교양",
-        "professor": "리더십교수",
-        "time_slots": [("수", "09:00", "10:30")],
-        "capacity": 30,
-        "enrolled": 14,
-    },
-    "GEN502": {
-        "code": "GEN502",
-        "name": "환경과 에너지",
-        "type": "general_elective",
-        "credits": 2,
-        "category": "자연과학",
-        "department": "교양",
-        "professor": "환경교수",
-        "time_slots": [("월", "16:00", "17:30")],
-        "capacity": 35,
-        "enrolled": 20,
-    },
-}
+def _ensure_loaded():
+    """필요시 CSV에서 과목 데이터 로드"""
+    global COURSES
+    if COURSES is None:
+        COURSES = load_courses()
 
 
 def get_course(course_code: str) -> dict | None:
     """과목 코드로 과목 정보 조회"""
+    _ensure_loaded()
     return COURSES.get(course_code)
 
 
 def get_available_courses(student: dict) -> list[dict]:
     """학생이 아직 수강하지 않은 과목 중 수강 가능 과목 반환"""
+    _ensure_loaded()
     completed = set(student.get("completed_courses", []))
     in_progress = set(student.get("in_progress_courses", []))
     taken = completed | in_progress
 
-    available = []
-    for code, course in COURSES.items():
-        if code not in taken:
-            available.append(course)
-    return available
+    return [course for code, course in COURSES.items() if code not in taken]
 
 
 def get_required_remaining(student: dict) -> list[dict]:
     """졸업에 필요한 필수 과목 중 미이수 과목 반환"""
+    _ensure_loaded()
     completed = set(student.get("completed_courses", []))
     in_progress = set(student.get("in_progress_courses", []))
     taken = completed | in_progress
 
-    remaining = []
-    for code, course in COURSES.items():
-        if code not in taken and course["type"] == "required":
-            remaining.append(course)
-    return remaining
+    return [
+        course for code, course in COURSES.items()
+        if code not in taken and course["type"] in ("전공필수", "required")
+    ]

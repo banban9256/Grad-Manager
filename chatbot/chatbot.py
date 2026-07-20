@@ -1,22 +1,26 @@
 """
-OpenAI API 연동 챗봇 모듈
+Groq API 연동 챗봇 모듈
 
-사용자 메시지를 받아 시스템 프롬프트와 함께 OpenAI API에 전달하고,
-챗봇 응답을 반환합니다.
+사용자 메시지를 받아 시스템 프롬프트와 함께 Groq API에 전달하고,
+챗봇 응답을 반환
 """
 
-from openai import OpenAI
+import os
+from dotenv import load_dotenv
+from groq import Groq
 from .persona import SYSTEM_PROMPT
-import config
- 
+
+# .env 파일 로드
+load_dotenv()
 
 class GradChatBot:
     """졸업을 부탁해 AI 챗봇"""
 
     def __init__(self, api_key: str = None, model: str = None):
-        self.client = OpenAI(api_key=api_key or config.OPENAI_API_KEY)
-        self.model = model or config.OPENAI_MODEL
-        self.system_prompt = SYSTEM_PROMPT
+        # config 모듈 대신 os.environ.get으로 .env 파일의 값을 직접 가져옴
+        self.client = Groq(api_key=api_key or os.environ.get("GROQ_API_KEY"))
+        # 환경 변수에 모델이 없으면 기본값으로 'llama3-70b-8192' 사용
+        self.model = model or os.environ.get("GROQ_MODEL", "llama-3.3-70b-versatile")        self.system_prompt = SYSTEM_PROMPT
         self.conversation_history: list[dict] = []
 
     def reset(self):

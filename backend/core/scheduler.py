@@ -1,8 +1,8 @@
-"""시간표 시뮬레이션 모듈 - 선호 시간대 기반 조합 알고리즘"""
+"""시간표 시뮬레이션 모듈 - 선호 시간대 기반 조합 알고리즘 (대용량 데이터 최적화)"""
 
 from itertools import combinations
 
-from .data.courses import COURSES, get_required_remaining, get_available_courses
+from .data.courses import get_required_remaining, get_available_courses, get_course
 
 
 def _time_to_minutes(time_str: str) -> int:
@@ -13,8 +13,8 @@ def _time_to_minutes(time_str: str) -> int:
 
 def _has_time_conflict(course_a: dict, course_b: dict) -> bool:
     """두 과목이 시간이 겹치는지 확인"""
-    for day_a, start_a, end_a in course_a["time_slots"]:
-        for day_b, start_b, end_b in course_b["time_slots"]:
+    for day_a, start_a, end_a in course_a.get("time_slots", []):
+        for day_b, start_b, end_b in course_b.get("time_slots", []):
             if day_a != day_b:
                 continue
             a_start = _time_to_minutes(start_a)
@@ -28,7 +28,11 @@ def _has_time_conflict(course_a: dict, course_b: dict) -> bool:
 
 def _fits_preferences(course: dict, preferred_days: list[str], preferred_times: list[str], avoid_times: list[str]) -> bool:
     """과목이 사용자 선호 시간대에 맞는지 확인"""
-    for day, start, end in course["time_slots"]:
+    time_slots = course.get("time_slots", [])
+    if not time_slots:
+        return False
+
+    for day, start, end in time_slots:
         if day not in preferred_days:
             return False
 
@@ -37,8 +41,9 @@ def _fits_preferences(course: dict, preferred_days: list[str], preferred_times: 
 
         # 피하는 시간대 체크
         for avoid in avoid_times:
-            if "~" in avoid:
-                avoid_start_str, avoid_end_str = avoid.split("~")
+            sep = "~" if "~" in avoid else "-"
+            if sep in avoid:
+                avoid_start_str, avoid_end_str = avoid.split(sep)
                 avoid_start = _time_to_minutes(avoid_start_str)
                 avoid_end = _time_to_minutes(avoid_end_str)
                 if start_min < avoid_end and avoid_start < end_min:
@@ -48,8 +53,9 @@ def _fits_preferences(course: dict, preferred_days: list[str], preferred_times: 
         if preferred_times:
             in_preferred = False
             for pref in preferred_times:
-                if "~" in pref:
-                    pref_start_str, pref_end_str = pref.split("~")
+                sep = "~" if "~" in pref else "-"
+                if sep in pref:
+                    pref_start_str, pref_end_str = pref.split(sep)
                     pref_start = _time_to_minutes(pref_start_str)
                     pref_end = _time_to_minutes(pref_end_str)
                     if start_min < pref_end and pref_start < end_min:
@@ -95,11 +101,11 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
     """
     학생의 선호 시간대와 남은 요건을 기반으로 시간표 조합을 생성합니다.
 
-    알고리즘:
-    1. 필수 미이수 과목을 우선 배치
-    2. 수강 가능한 과목 풀에서 선호 시간대에 맞는 과목 선별
-    3. 시간 충돌 없이 조합 탐색
-    4. 점수 기반 상위 N개 시간표 반환
+    대용량 데이터(765과목) 최적화:
+    1. 시간표가 있는 과목만 필터링
+    2. 선호 요일/시간대 기반 사전 필터링
+    3. 탐색 풀 제한 (최대 60과목)
+    4. 조기 종료
     """
     required_remaining = get_required_remaining(student)
     available = get_available_courses(student)
@@ -108,19 +114,22 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
     preferred_times = student.get("preferred_times", [])
     avoid_times = student.get("avoid_times", [])
 
-    # 선호 시간대에 맞는 과목만 필터링
+    # 1단계: 시간표가 있는 과목만 필터링
+    available_with_schedule = [c for c in available if c.get("time_slots")]
+
+    # 2단계: 선호 시간대에 맞는 과목만 필터링
     preferred_available = [
-        c for c in available
+        c for c in available_with_schedule
         if _fits_preferences(c, preferred_days, preferred_times, avoid_times)
     ]
 
-    # 필수 과목 + 선호 과목 통합 풀
+    # 3단계: 탐색 풀 구성 (필수 + 선호 + 나머지)
     course_pool = []
     seen_codes = set()
 
     # 필수 과목 먼저 (항상 포함)
     for c in required_remaining:
-        if c["code"] not in seen_codes:
+        if c["code"] not in seen_codes and c.get("time_slots"):
             course_pool.append(c)
             seen_codes.add(c["code"])
 
@@ -131,17 +140,24 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
             seen_codes.add(c["code"])
 
     # 전체 수강 가능 과목도 추가 (선호에 없지만 넓은 탐색을 위해)
-    for c in available:
+    for c in available_with_schedule:
         if c["code"] not in seen_codes:
             course_pool.append(c)
             seen_codes.add(c["code"])
 
+    # 탐색 풀 제한 (765과목 중 효율적 탐색)
+    MAX_POOL = 60
+    if len(course_pool) > MAX_POOL:
+        course_pool = course_pool[:MAX_POOL]
+
     # 필수 과목 세트
     required_codes = {c["code"] for c in required_remaining}
 
-    # 조합 생성 (3~5과목)
+    # 4단계: 조합 생성 (3~5과목)
     candidates = []
-    for size in range(3, min(6, len(course_pool) + 1)):
+    max_combo_size = min(6, len(course_pool) + 1)
+
+    for size in range(3, max_combo_size):
         for combo in combinations(course_pool, size):
             combo_list = list(combo)
 
@@ -149,7 +165,7 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
             has_conflict = False
             for i in range(len(combo_list)):
                 for j in range(i + 1, len(combo_list)):
-                    if _time_to_conflict(combo_list[i], combo_list[j]):
+                    if _has_time_conflict(combo_list[i], combo_list[j]):
                         has_conflict = True
                         break
                 if has_conflict:
@@ -176,6 +192,10 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
             if len(candidates) >= max_candidates * 10:
                 break
 
+        # 조합 크기별로 충분한 후보가 있으면 종료
+        if len(candidates) >= max_candidates:
+            break
+
     # 점수 기반 정렬
     candidates.sort(key=lambda s: _score_schedule(s["courses"], student), reverse=True)
 
@@ -191,8 +211,3 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
             break
 
     return unique
-
-
-def _time_to_conflict(course_a: dict, course_b: dict) -> bool:
-    """시간 충돌 확인 ( Alias )"""
-    return _has_time_conflict(course_a, course_b)

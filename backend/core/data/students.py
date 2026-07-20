@@ -34,7 +34,7 @@ STUDENTS = {
         "name": "박졸업",
         "student_id": "20220001",
         "department": "AISW",
-        "major_tracks": ["AISW 본전공", "데이터사이언스 특화"],
+        "major_tracks": ["AISW 본전공", "인지 감성 특화"],
         "enrolled_year": 2022,
         "current_semester": 5,
         "completed_credits": 70,

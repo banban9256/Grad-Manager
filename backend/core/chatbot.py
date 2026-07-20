@@ -1,11 +1,11 @@
-"""AI 챗봇 모듈 - OpenAI API 연동 + 시스템 프롬프트"""
+"""AI 챗봇 모듈 - Groq API 연동 + 시스템 프롬프트 (CSV 기반 데이터)"""
 
 import json
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
-from openai import OpenAI
+from groq import Groq  # OpenAI 대신 Groq 임포트
 
 from .data.students import get_student
 from .data.courses import get_required_remaining, get_available_courses
@@ -15,7 +15,8 @@ from .notifications import search_notices, get_upcoming_alerts
 # .env 로드
 load_dotenv(Path(__file__).parent.parent / ".env")
 
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+# OpenAI() 대신 Groq() 사용 및 환경 변수 이름 변경
+client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
 # ==============================
 # 시스템 프롬프트 (챗봇 페르소나)
@@ -26,7 +27,7 @@ SYSTEM_PROMPT = """당신은 '졸업을 부탁해' 서비스의 AI 졸업 도우
 
 ## 핵심 규칙
 1. 당신은 AISW(인공지능소프트웨어학부) 학생들의 졸업 요건, 수강신청, 시간표 설계를 돕습니다.
-2. 사용자가 학번을 제공하면, 해당学生的 이수 현황을 분석하고 부족한 부분을 안내합니다.
+2. 사용자가 학번을 제공하면, 해당 학생의 이수 현황을 분석하고 부족한 부분을 안내합니다.
 3. 시간표 추천 시 사용자의 선호 요일/시간대를 반드시 고려합니다.
 4. 답변은 한국어로 작성하며, 친근하고 존댓말을 사용합니다.
 5. 확실하지 않은 정보는 추측하지 말고 "정확한 확인이 필요합니다"라고 안내합니다.
@@ -57,6 +58,15 @@ def build_student_context(student_id: str) -> str:
     available = get_available_courses(student)
     credits_needed = student["required_credits"] - student["completed_credits"]
 
+    # 수강 가능한 과목 요약 (상위 20개)
+    available_summary = []
+    for c in available[:20]:
+        times = ", ".join(f"{d} {s}~{e}" for d, s, e in c.get("time_slots", []))
+        if times:
+            available_summary.append(f"- {c['code']} {c['name']} ({c['credits']}학점) [{times}]")
+        else:
+            available_summary.append(f"- {c['code']} {c['name']} ({c['credits']}학점)")
+
     context = f"""
 ## 현재 학생 정보
 - 이름: {student['name']}
@@ -73,6 +83,9 @@ def build_student_context(student_id: str) -> str:
 
 ## 수강 가능한 과목 수: {len(available)}개
 
+## 수강 가능 과목 (일부)
+{chr(10).join(available_summary) if available_summary else "없음"}
+
 ## 현재 수강 중
 {chr(10).join(f"- {code}" for code in student.get('in_progress_courses', []))}
 
@@ -85,7 +98,7 @@ def build_student_context(student_id: str) -> str:
 
 
 def chat(user_message: str, student_id: str = None, history: list = None) -> str:
-    """챗봇 대화 (OpenAI API 호출)"""
+    """챗봇 대화 (Groq API 호출)"""
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     # 이전 대화 기록 추가
@@ -114,7 +127,7 @@ def chat(user_message: str, student_id: str = None, history: list = None) -> str
         results = search_notices(user_message)
         if results:
             notice_text = "\n".join(
-                f"- [{n['date']}] {n['title']}: {n['content'][:100]}..." for n in results
+                f"- [{n['date']}] {n['title']}: {n['content'][:100]}..." for n in results[:10]
             )
             messages.append({
                 "role": "system",
@@ -136,7 +149,8 @@ def chat(user_message: str, student_id: str = None, history: list = None) -> str
 
     try:
         response = client.chat.completions.create(
-            model="gpt-4o",
+            # gpt-4o 대신 Groq 지원 모델로 변경 (환경 변수 또는 기본값 적용)
+            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"), 
             messages=messages,
             temperature=0.7,
             max_tokens=1500,
@@ -155,7 +169,7 @@ def _format_schedules(schedules: list[dict]) -> str:
     for i, schedule in enumerate(schedules, 1):
         lines.append(f"### 추천 {i} (총 {schedule['total_credits']}학점)")
         for course in schedule["courses"]:
-            times = ", ".join(f"{d} {s}~{e}" for d, s, e in course["time_slots"])
+            times = ", ".join(f"{d} {s}~{e}" for d, s, e in course.get("time_slots", []))
             lines.append(f"  - {course['code']} {course['name']} ({course['professor']}) [{times}]")
         lines.append("")
     return "\n".join(lines)
