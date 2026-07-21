@@ -25,9 +25,9 @@ const reasonIconMap: Record<string, LucideIcon> = {
 }
 
 const tagStyle: Record<string, string> = {
-  필수: "bg-primary/10 text-primary",
-  "관심사 매칭": "bg-emerald-100 text-emerald-700",
-  "특화전공 인정": "bg-amber-100 text-amber-700",
+  필수: "bg-[#e8f3ff] text-[#1b64da] dark:bg-[#1b2d45] dark:text-[#5592f2]",
+  "관심사 매칭": "bg-[#daf2ee] text-[#008f80] dark:bg-[#183531] dark:text-[#00caab]",
+  "특화전공 인정": "bg-[#fff3f5] text-[#d6284a] dark:bg-[#381e25] dark:text-[#ff6b8b]",
 }
 
 type Message = {
@@ -112,13 +112,13 @@ export function ChatTab() {
   return (
     <div className="flex h-full flex-col">
       {/* Header */}
-      <div className="border-b border-border bg-card px-4 py-3">
+      <div className="border-b border-border bg-card px-4 py-4 shrink-0">
         <div className="mx-auto w-full max-w-4xl">
           <h1 className="flex items-center gap-2 text-lg font-bold text-foreground">
             <Sparkles className="h-5 w-5 text-primary" />
             AI 수강 추천
           </h1>
-          <p className="text-xs text-muted-foreground">조건을 말하면 시간표를 설계해 드려요</p>
+          <p className="text-xs text-muted-foreground mt-0.5">조건을 말씀하시면 시간표를 설계해 드립니다</p>
         </div>
       </div>
 
@@ -132,11 +132,11 @@ export function ChatTab() {
           ))}
 
           {isLoading && (
-            <div className="flex items-start gap-2">
+            <div className="flex items-start gap-2.5">
               <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
                 <Sparkles className="h-4 w-4 text-primary" />
               </span>
-              <div className="flex items-center gap-2 max-w-[80%] rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm text-muted-foreground shadow-sm">
+              <div className="flex items-center gap-2 max-w-[80%] rounded-2xl rounded-tl-sm bg-secondary px-4 py-3 text-sm text-muted-foreground shadow-sm">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 <span>분석하는 중…</span>
               </div>
@@ -144,34 +144,34 @@ export function ChatTab() {
           )}
 
           {/* Simulation summary card */}
-          <div className="ml-9">
+          <div className="ml-9.5">
             {simLoading ? (
-              <div className="flex items-center gap-3 rounded-2xl bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-3 rounded-2xl bg-card border border-border p-5 shadow-sm">
                 <Loader2 className="h-5 w-5 animate-spin text-primary" />
                 <span className="text-sm text-muted-foreground">시뮬레이션을 실행하는 중…</span>
               </div>
             ) : simDone ? (
-              <div className="rounded-2xl border border-primary/20 bg-card p-4 shadow-sm">
-                <div className="mb-3 flex items-center justify-between">
-                  <span className="flex items-center gap-1.5 text-sm font-bold text-foreground">
-                    <CheckCircle2 className="h-4 w-4 text-primary" />
+              <div className="rounded-2xl border border-border bg-card p-4.5 shadow-sm">
+                <div className="mb-3.5 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5 text-[15px] font-bold text-foreground">
+                    <CheckCircle2 className="h-4.5 w-4.5 text-primary" />
                     추천 시간표 시뮬레이션
                   </span>
-                  <span className="rounded-full bg-primary/10 px-2 py-0.5 text-xs font-semibold text-primary">
+                  <span className="rounded-full bg-accent px-2 py-0.5 text-xs font-semibold text-primary">
                     적합도 {chatSimSummary.avgMatch}%
                   </span>
                 </div>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-3 gap-2.5">
                   <SummaryStat label="공강일" value={chatSimSummary.freeDay} />
                   <SummaryStat label="총 학점" value={`${chatSimSummary.totalCredits}학점`} />
                   <SummaryStat label="과목 수" value={`${chatSimSummary.courseCount}개`} />
                 </div>
-                <ul className="mt-3 space-y-1.5">
+                <ul className="mt-4 space-y-2">
                   {chatSimSummary.reasons.map((r, i) => {
                     const Icon = reasonIconMap[r.icon] ?? Sparkles
                     return (
                       <li key={i} className="flex items-center gap-2 text-xs text-muted-foreground">
-                        <Icon className="h-3.5 w-3.5 text-primary" />
+                        <Icon className="h-4 w-4 text-primary" />
                         {r.text}
                       </li>
                     )
@@ -183,49 +183,49 @@ export function ChatTab() {
             <button
               onClick={runSimulation}
               disabled={simLoading}
-              className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-3 text-sm font-semibold text-primary-foreground shadow-sm transition-opacity disabled:opacity-60"
+              className="mt-3.5 flex w-full items-center justify-center gap-2 rounded-2xl bg-primary py-4 text-[17px] font-semibold text-white shadow-sm transition-colors hover:bg-primary-hover disabled:opacity-60 h-[56px]"
             >
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-5 w-5" />
               AI 시뮬레이션 실행
             </button>
           </div>
 
           {/* Recommended course list */}
           {simDone && (
-            <div className="ml-9 space-y-2.5">
+            <div className="ml-9.5 space-y-3">
               <p className="text-xs font-semibold text-muted-foreground">추천 과목 목록</p>
-              <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
+              <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
                 {recommendedCourses.map((course) => (
                   <button
                     key={course.id}
                     onClick={() => handleSelect(course)}
-                    className="w-full rounded-2xl bg-card p-3.5 text-left shadow-sm transition-colors hover:bg-accent flex flex-col justify-between"
+                    className="w-full rounded-2xl bg-card border border-border p-4 text-left shadow-sm transition-all hover:bg-secondary hover:border-transparent flex flex-col justify-between"
                   >
-                    <div className="flex items-start justify-between gap-2 w-full">
-                      <div>
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-sm font-bold text-foreground">{course.name}</span>
+                    <div className="flex items-start justify-between gap-2.5 w-full">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-bold text-foreground truncate">{course.name}</span>
                           {course.retake ? (
-                            <span className="flex items-center gap-0.5 rounded-full bg-destructive/10 px-1.5 py-0.5 text-[10px] font-semibold text-destructive">
+                            <span className="flex items-center gap-0.5 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive shrink-0">
                               <RotateCcw className="h-3 w-3" />
                               재수강
                             </span>
                           ) : null}
                         </div>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground mt-1">
                           {course.professor} · {course.credit}학점 · {course.time}
                         </p>
                       </div>
                       <div className="shrink-0 text-right">
                         <p className="text-base font-bold text-primary">{course.match}%</p>
-                        <p className="text-[10px] text-muted-foreground">적합도</p>
+                        <p className="text-[10px] text-muted-foreground mt-0.5">적합도</p>
                       </div>
                     </div>
-                    <div className="mt-2 flex flex-wrap gap-1.5">
+                    <div className="mt-3.5 flex flex-wrap gap-1.5">
                       {course.tags.map((t) => (
                         <span
                           key={t}
-                          className={`rounded-full px-2 py-0.5 text-[10px] font-medium ${tagStyle[t] ?? "bg-muted text-muted-foreground"}`}
+                          className={`rounded px-2 py-0.5 text-[10px] font-bold ${tagStyle[t] ?? "bg-secondary text-muted-foreground"}`}
                         >
                           {t}
                         </span>
@@ -240,11 +240,11 @@ export function ChatTab() {
       </div>
 
       {/* Input bar */}
-      <form onSubmit={handleSendMessage} className="border-t border-border bg-card px-4 py-3 shrink-0">
-        <div className="mx-auto w-full max-w-4xl flex items-center gap-2 rounded-full bg-muted px-4 py-2.5">
+      <form onSubmit={handleSendMessage} className="border-t border-border bg-card px-4 py-3.5 shrink-0">
+        <div className="mx-auto w-full max-w-4xl flex items-center gap-2 rounded-full bg-secondary px-4.5 py-2.5">
           <input
             className="flex-1 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
-            placeholder="조건을 입력하세요…"
+            placeholder="수강 조건을 입력하세요 (예: 금요일 공강)"
             aria-label="추천 조건 입력"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
@@ -253,7 +253,7 @@ export function ChatTab() {
           <button
             type="submit"
             disabled={isLoading || !inputText.trim()}
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground transition-opacity disabled:opacity-50"
+            className="flex h-8.5 w-8.5 items-center justify-center rounded-full bg-primary text-white transition-opacity disabled:opacity-50"
             aria-label="메시지 전송"
           >
             <Send className="h-4 w-4" />
@@ -261,7 +261,7 @@ export function ChatTab() {
         </div>
       </form>
 
-      {/* Retake warning modal */}
+      {/* Retake warning modal (TDS Dialog Style) */}
       {retakeCourse ? (
         <div
           className="absolute inset-0 z-20 flex items-end md:items-center justify-center bg-black/40 p-4"
@@ -270,37 +270,37 @@ export function ChatTab() {
           onClick={() => setRetakeCourse(null)}
         >
           <div
-            className="w-full max-w-md rounded-3xl bg-card p-5 shadow-lg"
+            className="w-full max-w-md rounded-[2rem] bg-card p-6 shadow-xl border border-border"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mb-3 flex items-start justify-between">
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-destructive/10">
-                <AlertTriangle className="h-6 w-6 text-destructive" />
+            <div className="mb-4 flex items-start justify-between">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-destructive/10">
+                <AlertTriangle className="h-6.5 w-6.5 text-destructive" />
               </span>
               <button
                 onClick={() => setRetakeCourse(null)}
                 aria-label="닫기"
-                className="text-muted-foreground"
+                className="text-muted-foreground hover:text-foreground transition-colors"
               >
-                <X className="h-5 w-5" />
+                <X className="h-5.5 w-5.5" />
               </button>
             </div>
-            <h3 className="text-base font-bold text-foreground">재수강 과목 선택 확인</h3>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
-              <span className="font-semibold text-foreground">{retakeCourse.name}</span>은(는) 재수강
-              과목입니다. 수강 시 <span className="font-semibold text-destructive">이전 학점은 포기
+            <h3 className="text-lg font-bold text-foreground">재수강 과목 선택 확인</h3>
+            <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+              <span className="font-bold text-foreground">{retakeCourse.name}</span>은(는) 재수강
+              과목입니다. 수강 시 <span className="font-semibold text-destructive">이전 취득 학점은 포기
               처리됩니다.</span> 계속하시겠어요?
             </p>
-            <div className="mt-4 flex gap-2">
+            <div className="mt-6 flex gap-3">
               <button
                 onClick={() => setRetakeCourse(null)}
-                className="flex-1 rounded-2xl bg-muted py-3 text-sm font-semibold text-secondary-foreground"
+                className="flex-1 rounded-2xl bg-secondary py-3.5 text-[15px] font-semibold text-secondary-foreground hover:opacity-90 h-[48px]"
               >
                 취소
               </button>
               <button
                 onClick={() => setRetakeCourse(null)}
-                className="flex-1 rounded-2xl bg-destructive py-3 text-sm font-semibold text-white"
+                className="flex-1 rounded-2xl bg-destructive py-3.5 text-[15px] font-semibold text-white hover:opacity-90 h-[48px]"
               >
                 이해했어요
               </button>
@@ -316,18 +316,18 @@ function ChatBubble({ role, children }: { role: "ai" | "user"; children: React.R
   if (role === "user") {
     return (
       <div className="flex justify-end">
-        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-primary-foreground">
+        <div className="max-w-[80%] rounded-2xl rounded-tr-sm bg-primary px-4 py-2.5 text-sm leading-relaxed text-white shadow-sm font-medium">
           {children}
         </div>
       </div>
     )
   }
   return (
-    <div className="flex items-start gap-2">
+    <div className="flex items-start gap-2.5">
       <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10">
         <Sparkles className="h-4 w-4 text-primary" />
       </span>
-      <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-card px-4 py-2.5 text-sm leading-relaxed text-foreground shadow-sm">
+      <div className="max-w-[80%] rounded-2xl rounded-tl-sm bg-secondary px-4 py-2.5 text-sm leading-relaxed text-foreground shadow-sm">
         {children}
       </div>
     </div>
@@ -336,9 +336,9 @@ function ChatBubble({ role, children }: { role: "ai" | "user"; children: React.R
 
 function SummaryStat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-xl bg-muted p-2.5 text-center">
-      <p className="text-sm font-bold text-foreground">{value}</p>
-      <p className="text-[10px] text-muted-foreground">{label}</p>
+    <div className="rounded-2xl bg-secondary p-3 text-center border border-transparent">
+      <p className="text-[15px] font-bold text-foreground">{value}</p>
+      <p className="text-[10px] text-muted-foreground mt-0.5 font-semibold">{label}</p>
     </div>
   )
 }

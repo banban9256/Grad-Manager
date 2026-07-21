@@ -12,24 +12,24 @@ export function NoticeTab() {
   return (
     <div className="space-y-6 px-4 pb-6 pt-5 md:max-w-4xl md:mx-auto md:px-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-bold text-foreground">공지 &amp; 알림</h1>
-        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-card shadow-sm">
+        <h1 className="text-2xl font-bold text-foreground">공지 &amp; 알림</h1>
+        <span className="flex h-9.5 w-9.5 items-center justify-center rounded-full bg-card border border-border shadow-sm">
           <Bell className="h-5 w-5 text-primary" />
         </span>
       </div>
 
       {/* Interest keyword chips */}
       <section>
-        <h2 className="mb-2 text-sm font-semibold text-foreground">관심 키워드</h2>
+        <h2 className="mb-3 text-sm font-semibold text-muted-foreground">관심 키워드</h2>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
           {interestKeywords.map((k) => (
             <button
               key={k.key}
               onClick={() => showToast("준비 중인 기능입니다.")}
-              className={`flex shrink-0 items-center gap-1 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors ${
+              className={`flex shrink-0 items-center gap-1 rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                 k.urgent
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-card text-secondary-foreground shadow-sm hover:bg-accent"
+                  ? "bg-primary text-white"
+                  : "bg-secondary text-secondary-foreground hover:bg-[#e8f3ff] hover:text-primary"
               }`}
             >
               #{k.label}
@@ -37,9 +37,9 @@ export function NoticeTab() {
           ))}
           <button
             onClick={() => showToast("준비 중인 기능입니다.")}
-            className="flex shrink-0 items-center gap-1 rounded-full border border-dashed border-border px-3 py-1.5 text-sm text-muted-foreground"
+            className="flex shrink-0 items-center gap-1 rounded-full border border-dashed border-border px-3.5 py-1.5 text-xs font-semibold text-muted-foreground hover:bg-secondary transition-colors"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             추가
           </button>
         </div>
@@ -47,53 +47,55 @@ export function NoticeTab() {
 
       {/* Urgent notice matched with 특화 */}
       <section
-        className="rounded-2xl border border-destructive/30 bg-destructive/5 p-4"
+        className="rounded-2xl bg-[#fff3f5] dark:bg-[#381e25] p-5 shadow-sm"
         role="alert"
       >
-        <div className="mb-1 flex items-center gap-2">
-          <span className="flex items-center gap-1 rounded-full bg-destructive px-2 py-0.5 text-xs font-semibold text-white">
-            <AlertTriangle className="h-3.5 w-3.5" />
+        <div className="mb-2 flex items-center gap-2">
+          <span className="flex items-center gap-1 rounded-full bg-[#e42939] px-2.5 py-0.5 text-[10px] font-bold text-white">
+            <AlertTriangle className="h-3 w-3" />
             긴급 · {urgentNotice.date}
           </span>
-          <span className="rounded-full bg-destructive/10 px-2 py-0.5 text-xs font-medium text-destructive">
+          <span className="rounded-full bg-[#e42939]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#e42939] dark:text-[#ff6b8b]">
             #{urgentNotice.keyword}
           </span>
         </div>
-        <h3 className="text-sm font-bold text-foreground">{urgentNotice.title}</h3>
-        <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{urgentNotice.desc}</p>
+        <h3 className="text-[15px] font-bold text-foreground">{urgentNotice.title}</h3>
+        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{urgentNotice.desc}</p>
       </section>
 
       {/* Academic calendar timeline */}
       <section>
-        <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-foreground">
-          <CalendarDays className="h-4 w-4 text-primary" />
+        <h2 className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+          <CalendarDays className="h-4.5 w-4.5 text-primary" />
           학사 일정
         </h2>
-        <ol className="relative ml-2 border-l-2 border-border">
+        <ol className="relative ml-2.5 border-l border-border">
           {academicCalendar.map((item) => {
             const isWarning = item.type === "warning"
             return (
-              <li key={item.id} className="relative mb-4 pl-5 last:mb-0">
+              <li key={item.id} className="relative mb-5 pl-5.5 last:mb-0">
                 <span
-                  className={`absolute -left-[7px] top-1.5 h-3 w-3 rounded-full ring-4 ring-background ${
-                    isWarning ? "bg-destructive" : "bg-primary"
+                  className={`absolute -left-[6.5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-background ${
+                    isWarning ? "bg-[#ff9f1a]" : "bg-primary"
                   }`}
                 />
                 <div
-                  className={`rounded-2xl p-3.5 shadow-sm ${
-                    isWarning ? "border border-amber-300 bg-amber-50" : "bg-card"
+                  className={`rounded-2xl p-4.5 shadow-sm border ${
+                    isWarning 
+                      ? "border-transparent bg-[#fff9e6] dark:bg-[#3d321d]" 
+                      : "border-border bg-card"
                   }`}
                 >
-                  <div className="mb-1 flex items-center gap-2">
-                    <span className="text-xs font-semibold text-primary">{item.date}</span>
+                  <div className="mb-1.5 flex items-center gap-2">
+                    <span className={`text-xs font-bold ${isWarning ? "text-[#b27600] dark:text-[#ffca57]" : "text-primary"}`}>{item.date}</span>
                     {isWarning ? (
-                      <AlertTriangle className="h-4 w-4 text-amber-500" />
+                      <AlertTriangle className="h-4 w-4 text-[#ff9f1a]" />
                     ) : (
                       <Info className="h-4 w-4 text-muted-foreground" />
                     )}
                   </div>
-                  <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
-                  <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
+                  <h3 className="text-[15px] font-bold text-foreground">{item.title}</h3>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
                 </div>
               </li>
             )

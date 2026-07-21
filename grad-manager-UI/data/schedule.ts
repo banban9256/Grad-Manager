@@ -22,11 +22,11 @@ export const scheduleReasons: ScheduleReason[] = [
   { icon: "Clock", title: "1교시 최소화", desc: "오전 9시 수업을 주 1회로 줄였어요." },
 ]
 
-// 시간표 파스텔 팔레트
+// 시간표 파스텔 팔레트 (TDS Style)
 export const pastelPalette = [
-  { bg: "bg-blue-100", text: "text-blue-700", bar: "bg-blue-500" },
-  { bg: "bg-emerald-100", text: "text-emerald-700", bar: "bg-emerald-500" },
-  { bg: "bg-amber-100", text: "text-amber-700", bar: "bg-amber-500" },
-  { bg: "bg-rose-100", text: "text-rose-700", bar: "bg-rose-500" },
-  { bg: "bg-violet-100", text: "text-violet-700", bar: "bg-violet-500" },
+  { bg: "bg-[#e8f3ff] dark:bg-[#1b2d45]", text: "text-[#1b64da] dark:text-[#5592f2]", bar: "bg-[#3182f6]" }, // Toss Blue
+  { bg: "bg-[#daf2ee] dark:bg-[#183531]", text: "text-[#008f80] dark:text-[#00caab]", bar: "bg-[#00b5a3]" }, // Toss Mint (Teal)
+  { bg: "bg-[#fff3f5] dark:bg-[#381e25]", text: "text-[#d6284a] dark:text-[#ff6b8b]", bar: "bg-[#f25875]" }, // Toss Pink
+  { bg: "bg-[#f7f4fd] dark:bg-[#2c1d3c]", text: "text-[#703bc9] dark:text-[#a880f7]", bar: "bg-[#8f5cf0]" }, // Toss Violet
+  { bg: "bg-[#fff9e6] dark:bg-[#3d321d]", text: "text-[#b27600] dark:text-[#ffca57]", bar: "bg-[#ff9f1a]" }, // Toss Orange
 ]

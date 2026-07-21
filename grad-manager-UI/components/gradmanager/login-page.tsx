@@ -37,18 +37,18 @@ export function LoginPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-navy px-4 py-12 sm:px-6 lg:px-8">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
       {/* Container Card */}
-      <div className="w-full max-w-md space-y-8 rounded-3xl border border-white/10 bg-slate-900/80 p-8 shadow-2xl backdrop-blur-md">
+      <div className="w-full max-w-md space-y-8 rounded-[2rem] bg-card p-8 border border-border sm:shadow-lg transition-all duration-300">
         {/* Header Icon & Title */}
         <div className="flex flex-col items-center justify-center text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-lg">
+          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
             <GraduationCap className="h-8 w-8" />
           </span>
-          <h2 className="mt-6 text-3xl font-extrabold tracking-tight text-white">
+          <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
             GradManager
           </h2>
-          <p className="mt-2 text-sm text-slate-400">
+          <p className="mt-2 text-sm text-muted-foreground">
             졸업을 부탁해 · 한신대 학사관리 시스템
           </p>
         </div>
@@ -56,17 +56,17 @@ export function LoginPage({
         {/* Login Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-xl border border-destructive/20 bg-destructive/10 p-3 text-center text-xs font-semibold text-destructive">
+            <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-center text-xs font-semibold text-destructive">
               {error}
             </div>
           )}
 
-          <div className="space-y-4 rounded-md shadow-sm">
+          <div className="space-y-4">
             {/* Student ID input */}
             <div className="relative">
               <label htmlFor="student-id" className="sr-only">학번</label>
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <User className="h-5 w-5 text-slate-500" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <User className="h-5 w-5 text-muted-foreground" />
               </div>
               <input
                 id="student-id"
@@ -76,7 +76,7 @@ export function LoginPage({
                 disabled={loading}
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
-                className="block w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-primary focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="block w-full rounded-2xl border border-transparent bg-secondary py-3.5 pl-11 pr-4 text-sm text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="학번을 입력하세요 (예: 2022115xxx)"
               />
             </div>
@@ -84,8 +84,8 @@ export function LoginPage({
             {/* Password input */}
             <div className="relative">
               <label htmlFor="password" className="sr-only">비밀번호</label>
-              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3">
-                <Lock className="h-5 w-5 text-slate-500" />
+              <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-4">
+                <Lock className="h-5 w-5 text-muted-foreground" />
               </div>
               <input
                 id="password"
@@ -95,7 +95,7 @@ export function LoginPage({
                 disabled={loading}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="block w-full rounded-2xl border border-white/10 bg-white/5 py-3.5 pl-10 pr-3 text-sm text-white placeholder-slate-500 focus:border-primary focus:bg-white/10 focus:outline-none focus:ring-1 focus:ring-primary"
+                className="block w-full rounded-2xl border border-transparent bg-secondary py-3.5 pl-11 pr-4 text-sm text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="비밀번호를 입력하세요"
               />
             </div>
@@ -106,11 +106,11 @@ export function LoginPage({
             <button
               type="submit"
               disabled={loading}
-              className="group relative flex w-full justify-center rounded-2xl bg-primary py-3.5 text-sm font-bold text-white shadow-lg transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-slate-900 disabled:opacity-50"
+              className="group relative flex w-full justify-center items-center rounded-2xl bg-primary py-4 text-[17px] font-semibold text-white shadow-sm transition-all hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 h-[56px]"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
-                  <Loader2 className="h-4 w-4 animate-spin text-white" />
+                  <Loader2 className="h-5 w-5 animate-spin text-white" />
                   로그인 중…
                 </span>
               ) : (
@@ -124,9 +124,9 @@ export function LoginPage({
             <button
               type="button"
               onClick={onGoToSignUp}
-              className="text-xs font-semibold text-slate-400 hover:text-white transition-colors"
+              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
             >
-              아직 계정이 없으신가요? <span className="text-primary underline">회원가입</span>
+              아직 계정이 없으신가요? <span className="text-primary hover:underline ml-1">회원가입</span>
             </button>
           </div>
         </form>

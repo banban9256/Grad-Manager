@@ -8,21 +8,21 @@ export const aiColorMap: Record<
   { badge: string; border: string; banner: string; bannerText: string }
 > = {
   violet: {
-    badge: "bg-violet-500",
-    border: "border-violet-500",
-    banner: "bg-violet-50",
-    bannerText: "text-violet-700",
+    badge: "bg-[#8f5cf0]",
+    border: "border-[#8f5cf0]/30",
+    banner: "bg-[#f7f4fd] dark:bg-[#2c1d3c]",
+    bannerText: "text-[#703bc9] dark:text-[#a880f7] font-semibold",
   },
   pink: {
-    badge: "bg-pink-500",
-    border: "border-pink-500",
-    banner: "bg-pink-50",
-    bannerText: "text-pink-700",
+    badge: "bg-[#f25875]",
+    border: "border-[#f25875]/30",
+    banner: "bg-[#fff3f5] dark:bg-[#381e25]",
+    bannerText: "text-[#d6284a] dark:text-[#ff6b8b] font-semibold",
   },
   teal: {
-    badge: "bg-teal-500",
-    border: "border-teal-500",
-    banner: "bg-teal-50",
-    bannerText: "text-teal-700",
+    badge: "bg-[#00b5a3]",
+    border: "border-[#00b5a3]/30",
+    banner: "bg-[#daf2ee] dark:bg-[#183531]",
+    bannerText: "text-[#008f80] dark:text-[#00caab] font-semibold",
   },
 }
