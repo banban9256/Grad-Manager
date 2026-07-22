@@ -19,19 +19,19 @@ export function ScheduleTab() {
   return (
     <div className="space-y-6 px-4 pb-6 pt-5 md:max-w-6xl md:mx-auto md:px-6">
       <div>
-        <h1 className="text-xl font-bold text-foreground">추천 시간표</h1>
-        <p className="text-sm text-muted-foreground">금요일 공강 · 총 12학점 · 4과목</p>
+        <h1 className="text-2xl font-bold text-foreground">추천 시간표</h1>
+        <p className="text-sm text-muted-foreground mt-0.5">금요일 공강 · 총 12학점 · 4과목</p>
       </div>
 
       {/* Timetable grid */}
-      <section className="rounded-2xl bg-card p-3 shadow-sm">
+      <section className="rounded-2xl bg-card border border-border p-3.5 shadow-sm">
         <div className="grid grid-cols-[28px_repeat(5,1fr)]">
           {/* header row */}
           <div />
           {scheduleDays.map((d, i) => (
             <div
               key={d}
-              className={`pb-2 text-center text-xs font-semibold ${
+              className={`pb-2.5 text-center text-xs font-bold ${
                 i === 4 ? "text-muted-foreground/50" : "text-foreground"
               }`}
             >
@@ -44,7 +44,7 @@ export function ScheduleTab() {
             {scheduleHours.map((h) => (
               <div
                 key={h}
-                className="text-right text-[10px] text-muted-foreground"
+                className="text-right text-[10px] text-muted-foreground font-semibold"
                 style={{ height: ROW_H }}
               >
                 {h}
@@ -72,12 +72,12 @@ export function ScheduleTab() {
                   return (
                     <div
                       key={b.id}
-                      className={`absolute inset-x-0.5 overflow-hidden rounded-lg p-1.5 ${c.bg}`}
+                      className={`absolute inset-x-0.5 overflow-hidden rounded-xl p-2 ${c.bg}`}
                       style={{ top: b.start * ROW_H + 2, height: b.span * ROW_H - 4 }}
                     >
-                      <div className={`h-full border-l-2 pl-1.5 ${c.bar.replace("bg-", "border-")}`}>
+                      <div className={`h-full border-l-2 pl-2 ${c.bar.replace("bg-", "border-")}`}>
                         <p className={`text-[11px] font-bold leading-tight ${c.text}`}>{b.name}</p>
-                        <p className={`mt-0.5 text-[9px] leading-tight ${c.text} opacity-80`}>
+                        <p className={`mt-1 text-[9px] leading-tight ${c.text} opacity-80`}>
                           {b.room}
                         </p>
                       </div>
@@ -91,17 +91,17 @@ export function ScheduleTab() {
 
       {/* AI recommendation reasons */}
       <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-foreground">AI 추천 이유</h2>
+        <h2 className="text-sm font-semibold text-muted-foreground">AI 추천 이유</h2>
         {scheduleReasons.map((r, i) => {
           const Icon = reasonIconMap[r.icon] ?? BrainCircuit
           return (
-            <div key={i} className="flex items-start gap-3 rounded-2xl bg-card p-4 shadow-sm">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10">
+            <div key={i} className="flex items-start gap-3 rounded-2xl bg-card border border-border p-4.5 shadow-sm">
+              <span className="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-full bg-primary/10">
                 <Icon className="h-5 w-5 text-primary" />
               </span>
               <div>
-                <h3 className="text-sm font-semibold text-foreground">{r.title}</h3>
-                <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">{r.desc}</p>
+                <h3 className="text-sm font-bold text-foreground">{r.title}</h3>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{r.desc}</p>
               </div>
             </div>
           )

@@ -43,7 +43,7 @@ export function GradManagerApp() {
     setActive(key)
     setLoading(true)
     if (timer.current) clearTimeout(timer.current)
-    timer.current = setTimeout(() => setLoading(false), 500)
+    timer.current = setTimeout(() => setLoading(false), 300)
   }
 
   useEffect(() => {
@@ -73,17 +73,17 @@ export function GradManagerApp() {
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-navy p-0 md:p-0 sm:p-6 transition-all duration-300">
+    <main className="flex min-h-screen items-center justify-center bg-[#f2f4f6] dark:bg-[#0f151c] p-0 sm:p-6 transition-all duration-300">
       {/* Container - acts as mobile mock on mobile/tablet, expands to full-screen on desktop */}
-      <div className="relative flex h-screen w-full max-w-[420px] md:max-w-none flex-col overflow-hidden bg-background shadow-2xl sm:h-[860px] md:h-screen sm:rounded-[2.5rem] md:rounded-none sm:border-8 md:border-0 sm:border-navy transition-all duration-300">
+      <div className="relative flex h-screen w-full max-w-[420px] md:max-w-none flex-col overflow-hidden bg-background shadow-xl sm:h-[860px] md:h-screen sm:rounded-[2rem] md:rounded-none sm:border-[6px] md:border-0 sm:border-[#e5e8eb] dark:sm:border-[#273240] transition-all duration-300">
         <div className="flex h-full w-full overflow-hidden md:flex-row">
           {/* Desktop Left Sidebar (Hidden on Mobile) */}
           <aside className="hidden md:flex md:w-64 md:flex-col md:border-r md:border-border md:bg-card shrink-0">
             <div className="flex h-16 items-center gap-2.5 border-b border-border px-6">
-              <span className="flex h-9 w-9 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
+              <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-primary text-primary-foreground">
                 <GraduationCap className="h-5 w-5" />
               </span>
-              <span className="text-lg font-bold text-foreground">GradManager</span>
+              <span className="text-lg font-bold tracking-tight text-foreground">GradManager</span>
             </div>
             <nav className="flex-1 space-y-1.5 px-4 py-6">
               {sidebarTabs.map((t) => {
@@ -95,8 +95,8 @@ export function GradManagerApp() {
                     onClick={() => handleChange(t.key)}
                     className={`flex w-full items-center gap-3.5 rounded-2xl px-4.5 py-3 text-sm font-semibold transition-colors ${
                       isActive
-                        ? "bg-primary text-primary-foreground shadow-sm"
-                        : "text-muted-foreground hover:bg-accent hover:text-foreground"
+                        ? "bg-primary text-white shadow-sm"
+                        : "text-[#4e5968] dark:text-[#b0b8c1] hover:bg-[#f2f4f6] dark:hover:bg-[#212836] hover:text-foreground"
                     }`}
                   >
                     <Icon className="h-4.5 w-4.5" />
@@ -122,7 +122,7 @@ export function GradManagerApp() {
             {/* Mobile Header (Hidden on Desktop) */}
             <header className="flex items-center gap-2 border-b border-border bg-card px-4 py-3 md:hidden">
               <span className="flex h-8 w-8 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-                <GraduationCap className="h-5 w-5" />
+                <GraduationCap className="h-4.5 w-4.5" />
               </span>
               <span className="text-base font-bold text-foreground">{titles[active]}</span>
             </header>
