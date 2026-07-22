@@ -11,7 +11,7 @@ if os.path.exists("gradmanager.db"):
 with open("data/gradmanager_dump.sql", "r", encoding="utf-8-sig") as f:
     sql_text = f.read()
 
-# 3. 주석 제거 (-- 및 /* */)
+# 3. 주석 제거 
 sql_text = re.sub(r'--.*?\n', '\n', sql_text)
 sql_text = re.sub(r'/\*.*?\*/', '', sql_text, flags=re.DOTALL)
 
@@ -25,11 +25,11 @@ for stmt in raw_statements:
     if not stmt.strip():
         continue
     
-    # SET, LOCK, UNLOCK, DROP 등 불필요 제어문은 통째로 스킵
+    
     if any(stmt_upper.startswith(prefix) for prefix in ["SET", "LOCK", "UNLOCK", "DROP"]):
         continue
 
-    # --- [CREATE TABLE 정리] ---
+    
     if "CREATE TABLE" in stmt_upper:
         # 1) 백틱(`) -> 큰따옴표(")
         stmt = stmt.replace('`', '"')
@@ -94,8 +94,8 @@ cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
 tables = cursor.fetchall()
 
 print(f"\n==================================================")
-print(f"🎉 변환 완료! (성공: {success_cnt}개 / 실패: {fail_cnt}개)")
-print(f"📌 생성된 테이블 목록 ({len(tables)}개):")
+print(f" 변환 완료! (성공: {success_cnt}개 / 실패: {fail_cnt}개)")
+print(f" 생성된 테이블 목록 ({len(tables)}개):")
 for t in tables:
     try:
         cursor.execute(f'SELECT COUNT(*) FROM "{t[0]}"')
