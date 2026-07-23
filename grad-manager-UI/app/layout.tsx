@@ -2,7 +2,6 @@ import { Analytics } from '@vercel/analytics/next'
 import type { Metadata, Viewport } from 'next'
 import { Noto_Sans_KR, Poppins } from 'next/font/google'
 import './globals.css'
-import { MswProvider } from '@/components/gradmanager/msw-provider'
 
 const notoSansKr = Noto_Sans_KR({
   subsets: ['latin'],
@@ -57,9 +56,10 @@ export default function RootLayout({
   return (
     <html lang="ko" className={`${notoSansKr.variable} ${poppins.variable} bg-navy`}>
       <body className="font-sans antialiased">
-        <MswProvider>{children}</MswProvider>
+        {children}
         {process.env.NODE_ENV === 'production' && <Analytics />}
       </body>
     </html>
   )
 }
+

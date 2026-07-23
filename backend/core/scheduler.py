@@ -161,6 +161,34 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
         for combo in combinations(course_pool, size):
             combo_list = list(combo)
 
+            # 사용자가 지정한 기피 요일 및 시간대 엄격 체크
+            strict_conflict = False
+            for course in combo_list:
+                time_slots = course.get("time_slots", [])
+                for day, start, end in time_slots:
+                    # 1) 요일 기피 체크
+                    if day not in preferred_days:
+                        strict_conflict = True
+                        break
+                    # 2) 기피 시간대 체크
+                    start_min = _time_to_minutes(start)
+                    end_min = _time_to_minutes(end)
+                    for avoid in avoid_times:
+                        sep = "~" if "~" in avoid else "-"
+                        if sep in avoid:
+                            avoid_start_str, avoid_end_str = avoid.split(sep)
+                            avoid_start = _time_to_minutes(avoid_start_str)
+                            avoid_end = _time_to_minutes(avoid_end_str)
+                            if start_min < avoid_end and avoid_start < end_min:
+                                strict_conflict = True
+                                break
+                    if strict_conflict:
+                        break
+                if strict_conflict:
+                    break
+            if strict_conflict:
+                continue
+
             # 시간 충돌 체크
             has_conflict = False
             for i in range(len(combo_list)):

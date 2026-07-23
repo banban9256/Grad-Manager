@@ -11,7 +11,22 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
   const { aiRecommendation } = useGradData()
   const { showToast } = useToast()
   const { aiCourses, aiFilters } = aiRecommendation
-  const [active, setActive] = useState<string>("ai")
+  const [active, setActive] = useState<string>(aiFilters[0]?.key || "all")
+
+  // 필터 키에 따른 추천 과목 필터링 로직
+  const filteredCourses = aiCourses.filter((course) => {
+    if (active === "all" || active === "settings") return true
+    if (active === "major") {
+      return course.tags.some((tag) => tag.includes("전공"))
+    }
+    if (active === "liberal") {
+      return course.tags.some((tag) => tag.includes("교양"))
+    }
+    // 그 외 필터 키(예: "ai", "data", "ux")인 경우 해당 텍스트 매칭
+    return course.tags.some(
+      (tag) => tag.toLowerCase().includes(active.toLowerCase())
+    )
+  })
 
   return (
     <div className="flex h-full flex-col bg-background">
@@ -28,11 +43,12 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
 
           {/* Filter chips */}
           <div className="flex flex-wrap gap-2">
-            {aiFilters.map((f) => {
+            {aiFilters.map((f, idx) => {
+              const chipKey = f.key || `filter-chip-${idx}`
               if (f.addOnly) {
                 return (
                   <button
-                    key={f.key}
+                    key={chipKey}
                     onClick={() => showToast("준비 중인 기능입니다.")}
                     className="flex items-center gap-1 rounded-full border border-dashed border-border px-3.5 py-1.5 text-xs font-bold text-muted-foreground transition-colors hover:bg-secondary"
                   >
@@ -45,7 +61,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
               const isActive = active === f.key
               return (
                 <button
-                  key={f.key}
+                  key={chipKey}
                   onClick={() => setActive(f.key)}
                   className={`rounded-full px-4 py-1.5 text-xs font-bold transition-all ${
                     isActive
@@ -65,11 +81,17 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
       <div className="min-h-0 flex-1 overflow-y-auto bg-background">
         <div className="mx-auto w-full max-w-5xl px-4 pb-6 pt-4 space-y-4">
           <h2 className="text-sm font-semibold text-muted-foreground">관심분야 기반 추천</h2>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            {aiCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
+          {filteredCourses.length > 0 ? (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+              {filteredCourses.map((course) => (
+                <CourseCard key={course.id} course={course} />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12 text-center text-muted-foreground">
+              <p className="text-sm font-medium">선택한 필터에 해당하는 추천 과목이 없습니다.</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -77,7 +99,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
 }
 
 function CourseCard({ course }: { course: AiCourse }) {
-  const c = aiColorMap[course.color]
+  const c = aiColorMap[course.color] || aiColorMap.violet
   return (
     <article
       className={`overflow-hidden rounded-2xl border border-b-4 bg-card border-border shadow-sm ${c.border}`}

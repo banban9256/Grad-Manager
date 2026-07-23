@@ -6,6 +6,7 @@ from typing import Optional
 
 from app.database import get_db
 from app import models, schemas
+from app.routers import auth, graduation, timetable, notices, chatbot
 
 app = FastAPI(title="GradManager API")
 
@@ -17,6 +18,12 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
+app.include_router(graduation.router, prefix="/api/v1/graduation", tags=["graduation"])
+app.include_router(timetable.router, prefix="/api/v1/timetable", tags=["timetable"])
+app.include_router(notices.router, prefix="/api/v1/notices", tags=["notices"])
+app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["chatbot"])
 
 @app.get("/")
 def read_root():
