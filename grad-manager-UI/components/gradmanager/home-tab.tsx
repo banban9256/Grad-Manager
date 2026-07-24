@@ -10,15 +10,19 @@ import {
   PencilLine,
   Sparkles,
   Trophy,
+  Bell,
+  User,
   type LucideIcon,
 } from "lucide-react"
 import { CircularProgress } from "./circular-progress"
 import { useGradData } from "./grad-data-provider"
 import { useToast } from "./toast"
+import { motion } from "framer-motion"
 
 type HomeTabProps = {
   onOpenDigitalTwin: () => void
   onOpenRecommendations: () => void
+  onChangeTab?: (key: any) => void
 }
 
 const iconMap: Record<string, LucideIcon> = {
@@ -29,6 +33,8 @@ const iconMap: Record<string, LucideIcon> = {
   Trophy,
   MessageCircleQuestion,
   Calendar,
+  Bell,
+  User,
 }
 
 const toneVar: Record<string, string> = {
@@ -37,13 +43,18 @@ const toneVar: Record<string, string> = {
   "chart-3": "var(--chart-3)",
 }
 
-export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations }: HomeTabProps) {
+export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations, onChangeTab }: HomeTabProps) {
   const { user } = useGradData()
   const { showToast } = useToast()
   const { userInfo, creditCategories, quickMenus } = user
 
   return (
-    <div className="space-y-6 px-4 pb-6 pt-5 md:max-w-6xl md:mx-auto md:px-6">
+    <motion.div 
+      initial={{ opacity: 0, y: 15 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="space-y-6 px-4 pb-6 pt-5 md:max-w-6xl md:mx-auto md:px-6"
+    >
       {/* Greeting */}
       <div>
         <p className="text-xs text-muted-foreground md:text-sm">
@@ -91,7 +102,7 @@ export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations }: HomeTabPro
           {/* Digital Twin entry */}
           <button
             onClick={onOpenDigitalTwin}
-            className="flex w-full items-center gap-4 rounded-2xl bg-accent p-4.5 text-left transition-all hover:bg-opacity-80 border border-transparent"
+            className="flex w-full items-center gap-4 rounded-2xl bg-accent p-4.5 text-left transition-all hover:bg-opacity-85 border border-transparent cursor-pointer"
           >
             <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-primary text-white">
               <Orbit className="h-5.5 w-5.5" />
@@ -111,7 +122,7 @@ export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations }: HomeTabPro
             <h2 className="text-sm font-semibold text-muted-foreground">이수 구분별 진행률</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-1">
               {creditCategories.map((c) => {
-                const pct = Math.round((c.current / c.required) * 100)
+                const pct = Math.min(100, Math.round((c.current / c.required) * 100))
                 return (
                   <div key={c.key} className="rounded-2xl bg-card border border-border p-4 shadow-sm">
                     <div className="mb-2.5 flex items-baseline justify-between">
@@ -121,9 +132,12 @@ export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations }: HomeTabPro
                       </span>
                     </div>
                     <div className="h-2 w-full overflow-hidden rounded-full bg-secondary">
-                      <div
-                        className="h-full rounded-full transition-[width] duration-700 ease-out"
-                        style={{ width: `${pct}%`, backgroundColor: toneVar[c.tone] }}
+                      <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: `${pct}%` }}
+                        transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                        className="h-full rounded-full"
+                        style={{ backgroundColor: toneVar[c.tone] || "var(--primary)" }}
                       />
                     </div>
                   </div>
@@ -135,19 +149,37 @@ export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations }: HomeTabPro
           {/* Quick menu grid */}
           <section className="space-y-3">
             <h2 className="text-sm font-semibold text-muted-foreground">빠른 메뉴</h2>
-            <div className="grid grid-cols-3 gap-3 md:grid-cols-3">
-              {quickMenus.map((m) => {
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-4">
+              {[
+                { key: "recommend", label: "AI 과목 추천", icon: "Sparkles" },
+                { key: "schedule", label: "추천 시간표", icon: "Calendar" },
+                { key: "notice", label: "공지 & 알림", icon: "Bell" },
+                { key: "profile", label: "마이페이지", icon: "User" }
+              ].map((m, idx) => {
                 const Icon = iconMap[m.icon] ?? Sparkles
+                
+                const handleQuickMenuClick = () => {
+                  if (m.key === "recommend") {
+                    onOpenRecommendations()
+                  } else if (m.key === "schedule" || m.key === "notice" || m.key === "profile") {
+                    if (onChangeTab) {
+                      onChangeTab(m.key as any)
+                    }
+                  } else {
+                    showToast("준비 중인 기능입니다.")
+                  }
+                }
+
                 return (
                   <button
-                    key={m.key}
-                    onClick={m.key === "recommend" ? onOpenRecommendations : () => showToast("준비 중인 기능입니다.")}
-                    className="flex flex-col items-center gap-2 rounded-2xl bg-card border border-border p-4 text-center shadow-sm transition-all hover:bg-secondary hover:border-transparent"
+                    key={m.key ? `${m.key}-${idx}` : `menu-${idx}`}
+                    onClick={handleQuickMenuClick}
+                    className="flex flex-col items-center gap-2.5 rounded-2xl bg-card border border-border p-4.5 text-center shadow-sm transition-all hover:bg-secondary hover:border-transparent cursor-pointer hover:shadow-md"
                   >
-                    <span className="flex h-10 w-10 items-center justify-center rounded-full bg-secondary text-primary">
+                    <span className="flex h-11 w-11 items-center justify-center rounded-full bg-secondary text-primary">
                       <Icon className="h-5 w-5" />
                     </span>
-                    <span className="text-xs font-semibold text-foreground">{m.label}</span>
+                    <span className="text-xs font-bold text-foreground">{m.label}</span>
                   </button>
                 )
               })}
@@ -155,6 +187,6 @@ export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations }: HomeTabPro
           </section>
         </div>
       </div>
-    </div>
+    </motion.div>
   )
 }

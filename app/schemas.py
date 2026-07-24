@@ -1,6 +1,6 @@
 # app/schemas.py
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List, Union
 
 # 개설 과목 응답 스키마
 class CourseOfferingResponse(BaseModel):
@@ -25,9 +25,13 @@ class CourseOfferingListResponse(BaseModel):
 # 1. 수강 이력 입력 요청 스키마
 class CourseHistoryCreate(BaseModel):
     student_id: int
-    course_id: int
+    course_id: Optional[Union[int, str]] = None
     semester_taken: str = "2025-1학기"
     grade: str = "A+"
+    custom_course_name: Optional[str] = None
+    credits: Optional[float] = None
+    course_type: Optional[str] = None
+    is_retake: Optional[bool] = False
 
 # 2. 부족 학점 요건 계산 응답 스키마
 class GraduationSummaryResponse(BaseModel):
@@ -38,3 +42,12 @@ class GraduationSummaryResponse(BaseModel):
     total_remaining_credits: int     # 부족한 학점
     major_completed_credits: int     # 전공 이수 학점
     general_completed_credits: int   # 교양 이수 학점
+
+class CourseHistoryUpdate(BaseModel):
+    semester_taken: Optional[str] = None
+    grade: Optional[str] = None
+    course_id: Optional[Union[int, str]] = None
+    course_name: Optional[str] = None
+    earned_credit: Optional[float] = None
+    is_retake: Optional[bool] = None
+    course_type: Optional[str] = None

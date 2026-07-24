@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { GraduationCap, Loader2, Lock, User } from "lucide-react"
 import { loginUser } from "@/lib/api"
+import { motion } from "motion/react"
 
 export function LoginPage({
   onLoginSuccess,
@@ -37,14 +38,24 @@ export function LoginPage({
   }
 
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-12 sm:px-6 lg:px-8">
-      {/* Container Card */}
-      <div className="w-full max-w-md space-y-8 rounded-[2rem] bg-card p-8 border border-border sm:shadow-lg transition-all duration-300">
+    <main className="flex min-h-screen items-center justify-center bg-[#f2f4f6] dark:bg-[#0f151c] px-4 py-12 sm:px-6 lg:px-8">
+      {/* Container Card with Slide up animation */}
+      <motion.div 
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+        className="w-full max-w-md space-y-8 rounded-[2rem] bg-card p-8 border border-border shadow-lg"
+      >
         {/* Header Icon & Title */}
         <div className="flex flex-col items-center justify-center text-center">
-          <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-sm">
+          <motion.span 
+            initial={{ scale: 0.8 }}
+            animate={{ scale: 1 }}
+            transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+            className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary text-primary-foreground shadow-md shadow-primary/10"
+          >
             <GraduationCap className="h-8 w-8" />
-          </span>
+          </motion.span>
           <h2 className="mt-6 text-3xl font-bold tracking-tight text-foreground">
             GradManager
           </h2>
@@ -56,9 +67,13 @@ export function LoginPage({
         {/* Login Form */}
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           {error && (
-            <div className="rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-center text-xs font-semibold text-destructive">
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="rounded-xl border border-destructive/20 bg-destructive/5 p-3.5 text-center text-xs font-semibold text-destructive"
+            >
               {error}
-            </div>
+            </motion.div>
           )}
 
           <div className="space-y-4">
@@ -77,7 +92,7 @@ export function LoginPage({
                 value={studentId}
                 onChange={(e) => setStudentId(e.target.value)}
                 className="block w-full rounded-2xl border border-transparent bg-secondary py-3.5 pl-11 pr-4 text-sm text-foreground placeholder-muted-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="학번을 입력하세요 (예: 2022115xxx)"
+                placeholder="학번을 입력하세요 (예: 20210001)"
               />
             </div>
 
@@ -106,7 +121,7 @@ export function LoginPage({
             <button
               type="submit"
               disabled={loading}
-              className="group relative flex w-full justify-center items-center rounded-2xl bg-primary py-4 text-[17px] font-semibold text-white shadow-sm transition-all hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 h-[56px]"
+              className="group relative flex w-full justify-center items-center rounded-2xl bg-primary py-4 text-[17px] font-semibold text-white shadow-sm transition-all hover:bg-primary-hover focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 disabled:opacity-50 h-[56px] cursor-pointer"
             >
               {loading ? (
                 <span className="flex items-center gap-2">
@@ -124,13 +139,13 @@ export function LoginPage({
             <button
               type="button"
               onClick={onGoToSignUp}
-              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors"
+              className="text-sm font-semibold text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
             >
               아직 계정이 없으신가요? <span className="text-primary hover:underline ml-1">회원가입</span>
             </button>
           </div>
         </form>
-      </div>
+      </motion.div>
     </main>
   )
 }

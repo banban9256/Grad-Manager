@@ -6,9 +6,15 @@ from .data.courses import get_required_remaining, get_available_courses, get_cou
 
 
 def _time_to_minutes(time_str: str) -> int:
-    """HH:MM 형식을 분으로 변환"""
-    h, m = map(int, time_str.split(":"))
-    return h * 60 + m
+    """HH:MM 또는 HH:MM:SS 형식을 분으로 변환"""
+    try:
+        parts = time_str.strip().split(":")
+        if len(parts) >= 2:
+            return int(parts[0]) * 60 + int(parts[1])
+    except Exception:
+        pass
+    return 0
+
 
 
 def _has_time_conflict(course_a: dict, course_b: dict) -> bool:
@@ -83,6 +89,39 @@ def _score_schedule(schedule: list[dict], student: dict) -> float:
         if course["code"] in available:
             score += 5.0
 
+    # 융합전공 및 특화트랙 매칭 보너스
+    conv = student.get("convergence_major")
+    spec = student.get("specialized_track")
+    if conv or spec:
+        for course in schedule:
+            course_name = course.get("name", "")
+            course_desc = course.get("description", "")
+            
+            # 특화트랙 매칭
+            if spec == "데이터 사이언스 트랙":
+                keywords = ["데이터", "분석", "통계", "머신러닝", "딥러닝", "인공지능", "AI", "Data"]
+                if any(kw in course_name or kw in course_desc for kw in keywords):
+                    score += 8.0
+            elif spec == "인지 감성 특화 트랙":
+                keywords = ["인지", "감성", "인간", "HCI", "심리", "UX", "디자인"]
+                if any(kw in course_name or kw in course_desc for kw in keywords):
+                    score += 8.0
+            elif spec == "지능형 IoT 소프트웨어 트랙":
+                keywords = ["IoT", "임베디드", "네트워크", "센서", "통신", "시스템"]
+                if any(kw in course_name or kw in course_desc for kw in keywords):
+                    score += 8.0
+            elif spec == "풀스택 웹/모바일 소프트웨어 트랙":
+                keywords = ["웹", "모바일", "앱", "안드로이드", "iOS", "프론트", "백엔드", "네트워크", "서버"]
+                if any(kw in course_name or kw in course_desc for kw in keywords):
+                    score += 8.0
+                    
+            # 융합전공 매칭
+            if conv:
+                conv_clean = conv.replace("융합전공", "")
+                match_terms = [conv_clean, "융합", "문화", "콘텐츠", "경영", "스마트", "공공", "서비스"]
+                if any(term in course_name or term in course_desc for term in match_terms):
+                    score += 5.0
+
     # 선호 시간대 매칭 보너스
     for course in schedule:
         if _fits_preferences(course, student["preferred_days"], student["preferred_times"], student.get("avoid_times", [])):
@@ -133,6 +172,45 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
             course_pool.append(c)
             seen_codes.add(c["code"])
 
+    # 융합/특화전공 관련 과목 우선 탐색 풀 배치
+    conv = student.get("convergence_major")
+    spec = student.get("specialized_track")
+    if conv or spec:
+        for c in available_with_schedule:
+            if c["code"] not in seen_codes:
+                course_name = c.get("name", "")
+                course_desc = c.get("description", "")
+                is_match = False
+                
+                # 특화트랙 매칭
+                if spec == "데이터 사이언스 트랙":
+                    keywords = ["데이터", "분석", "통계", "머신러닝", "딥러닝", "인공지능", "AI", "Data"]
+                    if any(kw in course_name or kw in course_desc for kw in keywords):
+                        is_match = True
+                elif spec == "인지 감성 특화 트랙":
+                    keywords = ["인지", "감성", "인간", "HCI", "심리", "UX", "디자인"]
+                    if any(kw in course_name or kw in course_desc for kw in keywords):
+                        is_match = True
+                elif spec == "지능형 IoT 소프트웨어 트랙":
+                    keywords = ["IoT", "임베디드", "네트워크", "센서", "통신", "시스템"]
+                    if any(kw in course_name or kw in course_desc for kw in keywords):
+                        is_match = True
+                elif spec == "풀스택 웹/모바일 소프트웨어 트랙":
+                    keywords = ["웹", "모바일", "앱", "안드로이드", "iOS", "프론트", "백엔드", "네트워크", "서버"]
+                    if any(kw in course_name or kw in course_desc for kw in keywords):
+                        is_match = True
+                        
+                # 융합전공 매칭
+                if conv:
+                    conv_clean = conv.replace("융합전공", "")
+                    match_terms = [conv_clean, "융합", "문화", "콘텐츠", "경영", "스마트", "공공", "서비스"]
+                    if any(term in course_name or term in course_desc for term in match_terms):
+                        is_match = True
+                        
+                if is_match:
+                    course_pool.append(c)
+                    seen_codes.add(c["code"])
+
     # 선호 과목 추가
     for c in preferred_available:
         if c["code"] not in seen_codes:
@@ -160,6 +238,34 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
     for size in range(3, max_combo_size):
         for combo in combinations(course_pool, size):
             combo_list = list(combo)
+
+            # 사용자가 지정한 기피 요일 및 시간대 엄격 체크
+            strict_conflict = False
+            for course in combo_list:
+                time_slots = course.get("time_slots", [])
+                for day, start, end in time_slots:
+                    # 1) 요일 기피 체크
+                    if day not in preferred_days:
+                        strict_conflict = True
+                        break
+                    # 2) 기피 시간대 체크
+                    start_min = _time_to_minutes(start)
+                    end_min = _time_to_minutes(end)
+                    for avoid in avoid_times:
+                        sep = "~" if "~" in avoid else "-"
+                        if sep in avoid:
+                            avoid_start_str, avoid_end_str = avoid.split(sep)
+                            avoid_start = _time_to_minutes(avoid_start_str)
+                            avoid_end = _time_to_minutes(avoid_end_str)
+                            if start_min < avoid_end and avoid_start < end_min:
+                                strict_conflict = True
+                                break
+                    if strict_conflict:
+                        break
+                if strict_conflict:
+                    break
+            if strict_conflict:
+                continue
 
             # 시간 충돌 체크
             has_conflict = False

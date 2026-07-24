@@ -88,6 +88,7 @@ def load_courses() -> dict[str, dict]:
         # 기본 time_slots: 첫 번째 분반의 시간표
         default_time_slots = []
         default_professor = ""
+        default_room = "미정"
         if primary_offering:
             oid = int(primary_offering["offering_id"])
             scheds = schedule_map.get(oid, [])
@@ -96,6 +97,7 @@ def load_courses() -> dict[str, dict]:
                 for s in scheds
             ]
             default_professor = primary_offering["professor_name"]
+            default_room = scheds[0]["classroom"] if scheds else "미정"
 
         # 과목 타입 결정
         course_type = course_type_map.get(cid, _infer_type_from_code(code))
@@ -108,6 +110,7 @@ def load_courses() -> dict[str, dict]:
             "category": _category_label(course_type),
             "department": _department_from_code(code),
             "professor": default_professor,
+            "room": default_room,
             "time_slots": default_time_slots,
             "capacity": 0,
             "enrolled": 0,
@@ -115,7 +118,91 @@ def load_courses() -> dict[str, dict]:
             "offerings": offering_details,
         }
 
+    try:
+        import sqlite3
+        db_path = Path(__file__).resolve().parent.parent.parent.parent / "gradmanager.db"
+        if db_path.exists():
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+            cursor.execute("SELECT course_id, course_code, course_name, credit FROM courses")
+            db_courses = cursor.fetchall()
+            for cid, code, name, credit in db_courses:
+                code_clean = code.lstrip("*")
+                if code_clean not in courses:
+                    inferred_cat = _infer_type_from_code(code_clean)
+                    courses[code_clean] = {
+                        "code": code_clean,
+                        "name": name,
+                        "type": inferred_cat,
+                        "credits": int(credit) if credit is not None and credit == int(credit) else (float(credit) if credit is not None else 3.0),
+                        "category": _category_label(inferred_cat),
+                        "department": _department_from_code(code_clean),
+                        "professor": "미정",
+                        "room": "미정",
+                        "time_slots": [],
+                        "capacity": 0,
+                        "enrolled": 0,
+                        "description": "",
+                        "offerings": [],
+                    }
+            conn.close()
+    except Exception as e:
+        print(f"SQLite courses merge error: {e}")
+
     return courses
+
+
+def _normalize_completion_type(ctype: str) -> str:
+    """축약형이나 다양한 이수구분 명칭을 6가지 표준 명칭으로 통일"""
+    if not ctype:
+        return "일반선택"
+    
+    ctype = ctype.strip()
+    
+    mapping = {
+        # 전공필수
+        "전공필수": "전공필수",
+        "전필": "전공필수",
+        "복수필수": "전공필수",
+        "복필": "전공필수",
+        "부전공필수": "전공필수",
+        "부필": "전공필수",
+        
+        # 전공선택
+        "전공선택": "전공선택",
+        "전선": "전공선택",
+        "복수선택": "전공선택",
+        "복선": "전공선택",
+        "부전공선택": "전공선택",
+        "부선": "전공선택",
+        "융합선택": "전공선택",
+        "융선": "전공선택",
+        "특성화선택": "전공선택",
+        "특선": "전공선택",
+        "융합": "전공선택",
+        
+        # 교양필수
+        "교양필수": "교양필수",
+        "교필": "교양필수",
+        
+        # 교양선택
+        "교양선택": "교양선택",
+        "교선": "교양선택",
+        "교양": "교양선택",
+        
+        # 계열공통
+        "계열공통": "계열공통",
+        "계공": "계열공통",
+        "공통선택": "계열공통",
+        "공선": "계열공통",
+        
+        # 일반선택
+        "일반선택": "일반선택",
+        "일선": "일반선택",
+        "일반": "일반선택"
+    }
+    
+    return mapping.get(ctype, ctype)
 
 
 def _build_course_type_map(curriculum_rows: list[dict]) -> dict[int, str]:
@@ -126,21 +213,43 @@ def _build_course_type_map(curriculum_rows: list[dict]) -> dict[int, str]:
         completion_type = row["completion_type"]
         is_required = row["is_required"] == "True"
 
-        # completion_type 매핑 (인코딩 문제 없이 매핑)
-        # 전공선택, 계열공통, 교양필수 등
-        if completion_type and cid not in type_map:
-            type_map[cid] = completion_type
+        normalized_type = _normalize_completion_type(completion_type)
+
+        if normalized_type and cid not in type_map:
+            type_map[cid] = normalized_type
         if is_required:
             type_map[cid] = "전공필수"
 
     return type_map
 
 
+def _category_label(course_type: str) -> str:
+    """과목 타입을 한국어 카테고리로 변환"""
+    return _normalize_completion_type(course_type)
+
+
 def _infer_type_from_code(code: str) -> str:
     """과목 코드 접두사로 타입 추론"""
+    if "전공필수" in code:
+        return "전공필수"
+    if "전공선택" in code:
+        return "전공선택"
+    if "교양필수" in code:
+        return "교양필수"
+    if "교양선택" in code:
+        return "교양선택"
+    if "계열공통" in code:
+        return "계열공통"
+    if "일반선택" in code:
+        return "일반선택"
+
+    core_liberal_requirements = {"KY100", "KY101", "KY201", "KY217", "KY304", "KY313"}
+    if code in core_liberal_requirements:
+        return "교양필수"
+
     prefix = "".join(ch for ch in code if ch.isalpha())
     if prefix in ("KY", "KYC", "KYA", "KYD"):
-        return "교양"
+        return "교양선택"
     elif prefix == "AC":
         return "전공필수"
     elif prefix in ("FLOW",):
@@ -155,7 +264,8 @@ def _category_label(course_type: str) -> str:
         "전공필수": "전공필수",
         "전공선택": "전공선택",
         "교양필수": "교양필수",
-        "교양": "교양",
+        "교양선택": "교양선택",
+        "교양": "교양선택",
         "계열공통": "계열공통",
     }
     return mapping.get(course_type, course_type)

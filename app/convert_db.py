@@ -3,12 +3,39 @@ import sqlite3
 import os
 import re
 
-# 1. 기존 실패한 DB 삭제
+# --- [추가] 마이그레이션 중 사용자 데이터 유실 방지 가드 ---
+backed_up_profiles = []
 if os.path.exists("gradmanager.db"):
-    os.remove("gradmanager.db")
+    try:
+        temp_conn = sqlite3.connect("gradmanager.db")
+        temp_cursor = temp_conn.cursor()
+        temp_cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='student_profiles';")
+        if temp_cursor.fetchone():
+            temp_cursor.execute("SELECT student_id, profile_json FROM student_profiles;")
+            backed_up_profiles = temp_cursor.fetchall()
+            print(f"[BACKUP GUARD] 기존 학생 프로필 {len(backed_up_profiles)}개 임시 백업 완료.")
+        temp_conn.close()
+    except Exception as e:
+        print(f"[BACKUP GUARD WARNING] 백업 도중 오류 발생: {e}")
+
+# 1. 기존 실패한 DB 삭제 대신 테이블 DROP 처리 (Windows 파일 락 우회)
+if os.path.exists("gradmanager.db"):
+    try:
+        conn_drop = sqlite3.connect("gradmanager.db")
+        cursor_drop = conn_drop.cursor()
+        cursor_drop.execute("PRAGMA foreign_keys = OFF;")
+        cursor_drop.execute("SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';")
+        tables_to_drop = [row[0] for row in cursor_drop.fetchall()]
+        for table in tables_to_drop:
+            cursor_drop.execute(f'DROP TABLE IF EXISTS "{table}";')
+        conn_drop.commit()
+        conn_drop.close()
+        print(f"[DROP GUARD] 기존 테이블 {len(tables_to_drop)}개 일괄 DROP 완료.")
+    except Exception as e:
+        print(f"[DROP GUARD WARNING] 테이블 DROP 중 오류 발생: {e}")
 
 # 2. 파일 읽기
-with open("data/gradmanager_dump.sql", "r", encoding="utf-8-sig") as f:
+with open("gradmanager_dump.sql", "r", encoding="utf-8-sig") as f:
     sql_text = f.read()
 
 # 3. 주석 제거 
@@ -42,7 +69,14 @@ for stmt in raw_statements:
         stmt = re.sub(r"(?i)COMMENT\s+'[^']*'", '', stmt)
         stmt = re.sub(r'(?i)COMMENT\s+"[^"]*"', '', stmt)
         
-        # 4) AUTO_INCREMENT 제거
+        # 4) AUTO_INCREMENT 컬럼을 SQLite INTEGER PRIMARY KEY AUTOINCREMENT로 변환
+        stmt = re.sub(
+            r'("?[a-zA-Z_]+_id"?)\s+INT\s+(?:NOT\s+NULL\s+)?AUTO_INCREMENT',
+            r'\1 INTEGER PRIMARY KEY AUTOINCREMENT',
+            stmt,
+            flags=re.IGNORECASE
+        )
+        # 만약 남아있을 수 있는 AUTO_INCREMENT 구문 제거
         stmt = re.sub(r'(?i)AUTO_INCREMENT\s*=\s*\d+', '', stmt)
         stmt = re.sub(r'(?i)AUTO_INCREMENT', '', stmt)
 
@@ -103,6 +137,40 @@ for t in tables:
         print(f"  - {t[0]}: {count}개 데이터 입력됨")
     except Exception:
         pass
-print(f"==================================================")
+# --- [추가] 백업해 두었던 사용자 프로필 데이터 복원 ---
+if backed_up_profiles:
+    try:
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS student_profiles (
+            student_id TEXT PRIMARY KEY,
+            profile_json TEXT NOT NULL
+        );
+        """)
+        for sid, p_json in backed_up_profiles:
+            cursor.execute(
+                "INSERT OR REPLACE INTO student_profiles (student_id, profile_json) VALUES (?, ?);",
+                (sid, p_json)
+            )
+        conn.commit()
+        print(f"[RESTORE GUARD] 백업되었던 {len(backed_up_profiles)}개의 학생 프로필을 성공적으로 복원했습니다!")
+    except Exception as e:
+        print(f"[RESTORE GUARD ERROR] 프로필 복원 실패: {e}")
 
+    # --- [추가] student_course_history 테이블 컬럼 보정 플로우 ---
+    try:
+        cursor.execute("PRAGMA table_info(student_course_history);")
+        columns = [row[1] for row in cursor.fetchall()]
+        
+        if "semester_taken" not in columns:
+            cursor.execute("ALTER TABLE student_course_history ADD COLUMN semester_taken VARCHAR(20) DEFAULT NULL;")
+            print("[PATCH GUARD] student_course_history 테이블에 'semester_taken' 컬럼 추가 완료.")
+        if "grade" not in columns:
+            cursor.execute("ALTER TABLE student_course_history ADD COLUMN grade VARCHAR(10) DEFAULT NULL;")
+            print("[PATCH GUARD] student_course_history 테이블에 'grade' 컬럼 추가 완료.")
+            
+        conn.commit()
+    except Exception as e:
+        print(f"[PATCH GUARD ERROR] 컬럼 추가 실패: {e}")
+
+print(f"==================================================")
 conn.close()

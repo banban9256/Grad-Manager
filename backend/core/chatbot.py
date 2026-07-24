@@ -12,11 +12,15 @@ from .data.courses import get_required_remaining, get_available_courses
 from .scheduler import generate_timetable
 from .notifications import search_notices, get_upcoming_alerts
 
-# .env 로드
+# .env 로드 (백엔드 루트 및 프로젝트 루트 탐색)
 load_dotenv(Path(__file__).parent.parent / ".env")
+load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
-# OpenAI() 대신 Groq() 사용 및 환경 변수 이름 변경
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+api_key = os.getenv("GROQ_API_KEY")
+if not api_key:
+    client = None
+else:
+    client = Groq(api_key=api_key)
 
 # ==============================
 # 시스템 프롬프트 (챗봇 페르소나)
@@ -73,6 +77,8 @@ def build_student_context(student_id: str) -> str:
 - 학번: {student['student_id']}
 - 학과: {student['department']}
 - 주전공: {', '.join(student['major_tracks'])}
+- 융합전공: {student.get('convergence_major', '설정 안 함')}
+- 특화트랙: {student.get('specialized_track', '설정 안 함')}
 - 현재 학기: {student['current_semester']}학기
 - 이수 학점: {student['completed_credits']}/{student['required_credits']} (부족: {credits_needed}학점)
 - GPA: {student['gpa']}
@@ -99,6 +105,52 @@ def build_student_context(student_id: str) -> str:
 
 def chat(user_message: str, student_id: str = None, history: list = None) -> str:
     """챗봇 대화 (Groq API 호출)"""
+    # 선호도 자동 추출 및 학생 정보 업데이트
+    if student_id:
+        student = get_student(student_id)
+        if student:
+            updated = False
+            msg = user_message.lower()
+            
+            # 요일 기피/제외 감지 ("금요일 공강", "금요일 빼줘", "금요일은 제외")
+            days = ["월", "화", "수", "목", "금"]
+            for d in days:
+                d_target = d + "요일"
+                if (d_target in msg or d in msg) and ("공강" in msg or "빼" in msg or "제외" in msg or "없이" in msg or "없게" in msg or "안돼" in msg):
+                    current_pref = student.get("preferred_days", ["월", "화", "수", "목", "금"])
+                    if d in current_pref:
+                        student["preferred_days"] = [x for x in current_pref if x != d]
+                        updated = True
+            
+            # 요일 선호 명시 감지 (예: "월수금만 수업", "화목에 몰아줘")
+            if "월수금" in msg:
+                student["preferred_days"] = ["월", "수", "금"]
+                updated = True
+            elif "화목" in msg:
+                student["preferred_days"] = ["화", "목"]
+                updated = True
+                
+            # 시간대 기피 감지 (예: "오전 수업 빼줘", "아침 1교시 빼줘")
+            if "오전" in msg or "아침" in msg or "1교시" in msg:
+                if "빼" in msg or "기피" in msg or "제외" in msg or "안돼" in msg or "싫" in msg or "피해" in msg:
+                    avoid = student.get("avoid_times", [])
+                    if "09:00-12:00" not in avoid:
+                        student["avoid_times"] = list(set(avoid + ["09:00-12:00"]))
+                        updated = True
+            
+            # 시간대 선호 감지 (예: "오후 수업 위주로", "오후 선호")
+            if "오후" in msg:
+                if "선호" in msg or "위주" in msg or "좋" in msg or "맞춰" in msg or "짜줘" in msg:
+                    pref_times = student.get("preferred_times", [])
+                    if "13:00-18:00" not in pref_times:
+                        student["preferred_times"] = list(set(pref_times + ["13:00-18:00"]))
+                        updated = True
+
+            # 인메모리 STUDENTS 글로벌 변수에 즉각 보존
+            if updated:
+                from .data.students import STUDENTS
+                STUDENTS[student_id] = student
+
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
 
     # 이전 대화 기록 추가
@@ -146,6 +198,25 @@ def chat(user_message: str, student_id: str = None, history: list = None) -> str
             })
 
     messages.append({"role": "user", "content": user_message})
+
+    if not client:
+        # 데모 모드로 동작하되, 시간표/공지사항 등이 주입되었으면 해당 정보를 바탕으로 가상 답변을 반환합니다.
+        # 시간표나 일정 등의 프롬프트는 메시지에 주입되어 있습니다.
+        system_context = ""
+        for m in messages:
+            if m["role"] == "system" and "시간표" in m["content"]:
+                system_context += "\n[추천 시간표 정보 발견]\n" + m["content"]
+            if m["role"] == "system" and "공지사항" in m["content"]:
+                system_context += "\n[공지사항 정보 발견]\n" + m["content"]
+        
+        reply = "🎓 **그레듀 조교 답변 (데모 모드)**\n\n현재 `GROQ_API_KEY` 환경 변수가 설정되지 않아 인공지능 실시간 대화는 불가능하지만, 시스템 프롬프트 및 데이터를 기반으로 가상 상담을 제공합니다.\n\n"
+        if "시간표" in user_message or "추천" in user_message:
+            reply += "학번 및 선호 요일 분석을 마쳤습니다. 현재 시간표 탭에서 추천 1(18학점) 배치가 완료되었습니다. 홈 대시보드의 'AI 수강설계'에서도 6개의 맞춤 과목을 추천받으실 수 있습니다!"
+        elif "공지" in user_message or "일정" in user_message:
+            reply += "현재 관련 장학금 및 SW인턴십 공지가 예정되어 있습니다. 알림 탭에서 매칭 리스트를 확인하실 수 있습니다."
+        else:
+            reply += f"질문해주신 '{user_message}'에 관해 확인 중입니다. 졸업 자격 심사 기준 또는 전공 필수 이수 학점 상태를 확인하고 싶으시다면 상세 탭을 조회해 보세요!"
+        return reply
 
     try:
         response = client.chat.completions.create(

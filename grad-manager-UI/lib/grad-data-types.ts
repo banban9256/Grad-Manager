@@ -23,6 +23,8 @@ export type UserInfo = {
   remainingCredits: number
   totalRequired: number
   earnedCredits: number
+  completedCourses: string[]
+  completedCoursesDetail?: Record<string, string>
 }
 
 export type PastelColor = {
@@ -46,6 +48,17 @@ export type DigitalTwin = {
 
 export type GradManagerData = {
   logout?: () => void
+  refreshData?: () => Promise<void>
+  addInterestKeyword?: (text: string) => Promise<void>
+  removeInterestKeyword?: (text: string) => Promise<void>
+  updateCompletedCourses?: (studentId: string, completedCourses: string[], targetSemester?: string) => Promise<{ success: boolean; completed_credits: number; completed_courses_count: number }>
+  messages?: any[]
+  setMessages?: React.Dispatch<React.SetStateAction<any[]>>
+  simulatedSchedule?: any
+  resetSimulation?: () => void
+  allCourses?: any[]
+  notifyEnabled?: boolean
+  setNotifyEnabled?: React.Dispatch<React.SetStateAction<boolean>>
   user: {
     userInfo: UserInfo
     creditCategories: CreditCategory[]
@@ -73,3 +86,4 @@ export type GradManagerData = {
     aiCourses: AiCourse[]
   }
 }
+
