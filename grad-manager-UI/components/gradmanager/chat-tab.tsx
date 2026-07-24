@@ -17,18 +17,22 @@ import {
 } from "lucide-react"
 import type { RecommendedCourse } from "@/data/types"
 import { useGradData } from "./grad-data-provider"
-import { sendChatMessage } from "@/lib/api"
+import { useToast } from "./toast"
+import { sendChatMessage, saveUserSchedule, updateProfile } from "@/lib/api"
+import { CONVERGENCE_MAJORS, SPECIALIZED_TRACKS } from "@/lib/constants"
 
 const reasonIconMap: Record<string, LucideIcon> = {
   CalendarOff,
   BrainCircuit,
   GraduationCap,
+  Sparkles,
 }
 
 const tagStyle: Record<string, string> = {
   필수: "bg-[#e8f3ff] text-[#1b64da] dark:bg-[#1b2d45] dark:text-[#5592f2]",
   "관심사 매칭": "bg-[#daf2ee] text-[#008f80] dark:bg-[#183531] dark:text-[#00caab]",
   "특화전공 인정": "bg-[#fff3f5] text-[#d6284a] dark:bg-[#381e25] dark:text-[#ff6b8b]",
+  "융합전공 매칭": "bg-[#f4edff] text-[#6b31f6] dark:bg-[#2c1d3c] dark:text-[#a880f7]",
 }
 
 type Message = {
@@ -76,8 +80,19 @@ const dayStringToNum = (dayVal: any): number => {
   if (typeof dayVal !== "string") return -1
   
   const clean = dayVal.trim().toUpperCase()
+  
+  // 첫 단어가 한글 요일명인지 단축 검사
+  const firstChar = clean.charAt(0)
+  const quickMapping: Record<string, number> = {
+    "월": 0, "화": 1, "수": 2, "목": 3, "금": 4
+  }
+  if (quickMapping[firstChar] !== undefined) {
+    return quickMapping[firstChar]
+  }
+
   const mapping: Record<string, number> = {
     "월": 0, "화": 1, "수": 2, "목": 3, "금": 4,
+    "월요일": 0, "화요일": 1, "수요일": 2, "목요일": 3, "금요일": 4,
     "MON": 0, "TUE": 1, "WED": 2, "THU": 3, "FRI": 4,
     "MONDAY": 0, "TUESDAY": 1, "WEDNESDAY": 2, "THURSDAY": 3, "FRIDAY": 4
   }
@@ -85,12 +100,304 @@ const dayStringToNum = (dayVal: any): number => {
 }
 
 export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
-  const { chat, refreshData, schedule, messages = [], setMessages, simulatedSchedule } = useGradData()
+  const { chat, refreshData, schedule, messages = [], setMessages, simulatedSchedule, allCourses, user } = useGradData()
   const { recommendedCourses } = chat
+  const { showToast } = useToast()
+
+  const activeStudentId = user?.userInfo?.studentId || "20210001"
 
   const localSimData = simulatedSchedule
   const simDone = localSimData !== null
   const simLoading = false // Real-time calculation on client
+
+  // 수동 편집된 시간표 상태 로딩 (localStorage / sessionStorage 영구 싱크용)
+  const [customBlocks, setCustomBlocks] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      const storedLocal = localStorage.getItem(scheduleBlocksKey)
+      const storedSession = sessionStorage.getItem(scheduleBlocksKey)
+      
+      let localBlocks: any[] = []
+      let sessionBlocks: any[] = []
+      
+      if (storedLocal) {
+        try {
+          const parsed = JSON.parse(storedLocal)
+          if (Array.isArray(parsed)) localBlocks = parsed
+        } catch (e) {}
+      }
+      
+      if (storedSession) {
+        try {
+          const parsed = JSON.parse(storedSession)
+          if (Array.isArray(parsed)) sessionBlocks = parsed
+        } catch (e) {}
+      }
+      
+      if (localBlocks.length > 0) return localBlocks
+      if (sessionBlocks.length > 0) return sessionBlocks
+    }
+    return []
+  })
+
+  // 로컬/세션 저장소 싱크 함수
+  const saveBlocks = (nextBlocks: any[]) => {
+    setCustomBlocks(nextBlocks)
+    if (typeof window !== "undefined") {
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      localStorage.setItem(scheduleBlocksKey, JSON.stringify(nextBlocks))
+      sessionStorage.setItem(scheduleBlocksKey, JSON.stringify(nextBlocks))
+    }
+    saveUserSchedule(Number(activeStudentId), nextBlocks).catch((err) => {
+      console.error("Failed to save user schedule to backend:", err)
+    })
+  }
+
+  // 외부 편집 연동 동기화용 이펙트
+  useEffect(() => {
+    const syncLocal = () => {
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      const storedLocal = localStorage.getItem(scheduleBlocksKey)
+      const storedSession = sessionStorage.getItem(scheduleBlocksKey)
+      
+      let localBlocks: any[] = []
+      let sessionBlocks: any[] = []
+      
+      if (storedLocal) {
+        try {
+          const parsed = JSON.parse(storedLocal)
+          if (Array.isArray(parsed)) localBlocks = parsed
+        } catch (e) {}
+      }
+      if (storedSession) {
+        try {
+          const parsed = JSON.parse(storedSession)
+          if (Array.isArray(parsed)) sessionBlocks = parsed
+        } catch (e) {}
+      }
+      
+      const activeStored = localBlocks.length > 0 ? localBlocks : sessionBlocks
+      if (activeStored.length > 0) {
+        setCustomBlocks(activeStored)
+      }
+    }
+    window.addEventListener("focus", syncLocal)
+    return () => window.removeEventListener("focus", syncLocal)
+  }, [activeStudentId])
+
+  // 계정 전환 시 새로운 학번의 시간표 데이터를 재로드
+  useEffect(() => {
+    if (typeof window !== "undefined" && activeStudentId) {
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      const storedLocal = localStorage.getItem(scheduleBlocksKey)
+      const storedSession = sessionStorage.getItem(scheduleBlocksKey)
+      let localBlocks: any[] = []
+      let sessionBlocks: any[] = []
+      
+      if (storedLocal) {
+        try {
+          const parsed = JSON.parse(storedLocal)
+          if (Array.isArray(parsed)) localBlocks = parsed
+        } catch (e) {}
+      }
+      if (storedSession) {
+        try {
+          const parsed = JSON.parse(storedSession)
+          if (Array.isArray(parsed)) sessionBlocks = parsed
+        } catch (e) {}
+      }
+      const activeStored = localBlocks.length > 0 ? localBlocks : sessionBlocks
+      setCustomBlocks(activeStored)
+    }
+  }, [activeStudentId])
+
+  // 시간 포맷을 실수형 숫자로 파싱
+  const timeToHoursValue = (timeStr: string): number => {
+    if (!timeStr) return 9
+    const [h, m] = timeStr.split(":").map(Number)
+    return h + m / 60
+  }
+
+  // 결합 시간표 분산 쪼개기 헬퍼
+  const normalizeSchedules = (rawSchedules: any[]): any[] => {
+    const normalized: any[] = []
+    if (!rawSchedules || rawSchedules.length === 0) return normalized
+
+    rawSchedules.forEach((s: any) => {
+      const dayStr = String(s.day || "")
+      const startStr = String(s.start_time || "")
+      const endStr = String(s.end_time || "")
+      const roomStr = String(s.classroom || s.room || "")
+
+      let delimiter = ","
+      if (dayStr.includes("/")) {
+        delimiter = "/"
+      } else if (!dayStr.includes(",") && (startStr.includes(",") || endStr.includes(","))) {
+        delimiter = ","
+      } else if (!dayStr.includes("/") && (startStr.includes("/") || endStr.includes("/"))) {
+        delimiter = "/"
+      }
+
+      const days = dayStr.split(delimiter).map(x => x.trim())
+      const starts = startStr.split(delimiter).map(x => x.trim())
+      const ends = endStr.split(delimiter).map(x => x.trim())
+      const rooms = roomStr.split(delimiter).map(x => x.trim())
+
+      const maxLen = Math.max(days.length, starts.length, ends.length)
+
+      for (let i = 0; i < maxLen; i++) {
+        const d = days[i] || days[0] || "월"
+        const st = starts[i] || starts[0] || "09:00"
+        const et = ends[i] || ends[0] || "10:30"
+        const r = rooms[i] || rooms[0] || roomStr || "미정"
+
+        normalized.push({
+          day: d,
+          start_time: st,
+          end_time: et,
+          classroom: r
+        })
+      }
+    })
+
+    return normalized
+  }
+
+  // 시간표 겹침 충돌 체크
+  const checkTimeConflict = (newSchedules: any[], existingBlocks: any[]) => {
+    for (const ns of newSchedules) {
+      const newDayNum = dayStringToNum(ns.day)
+      if (newDayNum === -1) continue
+
+      const newStart = timeToHoursValue(ns.start_time)
+      const newEnd = timeToHoursValue(ns.end_time)
+
+      for (const eb of existingBlocks) {
+        const ebDayNum = dayStringToNum(eb.day)
+        if (ebDayNum !== newDayNum) continue
+
+        const ebStart = Number(eb.start)
+        const ebEnd = Number(eb.start) + Number(eb.span)
+
+        if (newStart < ebEnd && ebStart < newEnd) {
+          return eb.name 
+        }
+      }
+    }
+    return null
+  }
+
+  // [신규 1] 시뮬레이션 추천 시간표 일괄 한 번에 적용
+  const handleBulkApply = () => {
+    if (!localSimData || !localSimData.scheduleBlocks) {
+      showToast("적용할 시뮬레이션 시간표가 없습니다.")
+      return
+    }
+    const nextBlocks = [...localSimData.scheduleBlocks]
+    saveBlocks(nextBlocks)
+    showToast("추천 시간표 시뮬레이션 결과가 한 번에 적용되었습니다!")
+  }
+
+  // [신규 2] 추천 과목 카드별 개별 추가 핸들러
+  const handleAddToSchedule = (course: RecommendedCourse, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    // 1. 중복 체크
+    const courseName = course.name || matched?.title || matched?.name || course.code || "과목명 미정"
+    const cleanCourseName = courseName.trim().toLowerCase()
+    const isDuplicate = customBlocks.some(b => b.name.trim().toLowerCase() === cleanCourseName)
+    if (isDuplicate) {
+      showToast(`'${courseName}' 과목은 이미 시간표에 등록되어 있습니다.`)
+      return
+    }
+
+    // 2. 추천 과목에 매칭되는 시뮬레이션 schedules 직접 상속
+    let schedules = (course as any).schedules || []
+
+    if (schedules.length === 0) {
+      // 텍스트("월 10:30~11:45" 등)로부터 간편 파싱 시도 또는 가상 폴백 생성
+      const matched = allCourses?.find(c => {
+        const targetId = String(course.code || "");
+        return String(c.course_id || "") === targetId ||
+               String(c.code || "") === targetId ||
+               String(c.id || "") === targetId;
+      })
+      const rawSchedules = matched?.schedules || []
+      
+      // 단일 분반 시간대만 추출하여 타 분반 누적 충돌 방지
+      if (rawSchedules.length > 0) {
+        const firstClassroom = rawSchedules[0].classroom || "미정"
+        const filteredByClassroom = rawSchedules.filter((s: any) => (s.classroom || "미정") === firstClassroom)
+        
+        const uniqueSet: any[] = []
+        const seenScheduleKeys = new Set<string>()
+        filteredByClassroom.forEach((s: any) => {
+          const key = `${s.day}-${s.start_time}-${s.end_time}`
+          if (!seenScheduleKeys.has(key)) {
+            seenScheduleKeys.add(key)
+            uniqueSet.push(s)
+          }
+        })
+        schedules = uniqueSet
+      }
+    }
+
+    if (schedules.length === 0) {
+      const timeStr = course.time || ""
+      const day = timeStr.charAt(0)
+      const range = timeStr.slice(1).trim()
+      if (day && range.includes("~")) {
+        const [start_time, end_time] = range.split("~").map(x => x.trim())
+        schedules = [{ day, start_time, end_time, classroom: "강의실 미정" }]
+      } else {
+        const hash = course.code.charCodeAt(0) % 2
+        if (hash === 0) {
+          schedules = [
+            { day: "월", start_time: "13:30", end_time: "14:45", classroom: "장공관 101호" },
+            { day: "수", start_time: "13:30", end_time: "14:45", classroom: "장공관 101호" }
+          ]
+        } else {
+          schedules = [
+            { day: "화", start_time: "10:30", end_time: "11:45", classroom: "만우관 302호" },
+            { day: "목", start_time: "10:30", end_time: "11:45", classroom: "만우관 302호" }
+          ]
+        }
+      }
+    }
+
+    // 3. 시간표 교시 충돌 체크
+    const normalizedSchedules = normalizeSchedules(schedules)
+    const conflictName = checkTimeConflict(normalizedSchedules, customBlocks)
+    if (conflictName) {
+      showToast(`기존 과목 '${conflictName}'과 수업 시간이 겹쳐 추가할 수 없습니다.`)
+      return
+    }
+
+    // 4. 시간표 블록 생성 및 추가
+    const newBlocks: any[] = []
+    const profName = course.professor || matched?.professor || matched?.professor_name || (course as any).professor_name || "미지정"
+
+    normalizedSchedules.forEach((s: any, sIdx: number) => {
+      const start = timeToHoursValue(s.start_time)
+      const end = timeToHoursValue(s.end_time)
+
+      newBlocks.push({
+        id: `rec-chat-block-${String(course.code || "")}-${s.day}-${s.start_time}-${sIdx}`,
+        groupId: String(course.code || ""), // 분반 그룹 단위 일괄 제어를 위한 groupId 바인딩
+        name: courseName,
+        day: s.day,
+        start: start,
+        span: end - start,
+        room: s.classroom || matched?.classroom || (course as any).room || "미정",
+        professor: profName,
+        colorIndex: (customBlocks.length + newBlocks.length) % 3
+      })
+    })
+
+    const nextBlocks = [...customBlocks, ...newBlocks]
+    saveBlocks(nextBlocks)
+    showToast(`'${courseName}' 과목이 시간표에 추가되었습니다.`)
+  }
 
   // 동적 통계 데이터 실시간 계산
   let freeDayText = "공강 없음"
@@ -126,6 +433,69 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
   const [retakeCourse, setRetakeCourse] = useState<RecommendedCourse | null>(null)
   const [inputText, setInputText] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+
+  // 융합/특화 전공 설정 상태 및 모달 제어
+  const [majorPrefs, setMajorPrefs] = useState<{ convergenceMajor?: string; specializedTrack?: string } | null>(null)
+  const [showEasySetting, setShowEasySetting] = useState(false)
+  const [easyConv, setEasyConv] = useState("")
+  const [easySpec, setEasySpec] = useState("")
+
+  const loadMajorPrefs = () => {
+    if (typeof window !== "undefined") {
+      const prefKey = `grad_major_preferences_${activeStudentId}`
+      const stored = sessionStorage.getItem(prefKey)
+      if (stored) {
+        try {
+          setMajorPrefs(JSON.parse(stored))
+        } catch {
+          setMajorPrefs(null)
+        }
+      } else {
+        setMajorPrefs(null)
+      }
+    }
+  }
+
+  useEffect(() => {
+    loadMajorPrefs()
+    window.addEventListener("focus", loadMajorPrefs)
+    return () => window.removeEventListener("focus", loadMajorPrefs)
+  }, [activeStudentId])
+
+  useEffect(() => {
+    if (showEasySetting && majorPrefs) {
+      setEasyConv(majorPrefs.convergenceMajor || "")
+      setEasySpec(majorPrefs.specializedTrack || "")
+    }
+  }, [showEasySetting, majorPrefs])
+
+  const handleSaveEasy = async () => {
+    const nextPrefs = { convergenceMajor: easyConv, specializedTrack: easySpec }
+    if (typeof window !== "undefined") {
+      const prefKey = `grad_major_preferences_${activeStudentId}`
+      sessionStorage.setItem(prefKey, JSON.stringify(nextPrefs))
+    }
+    setMajorPrefs(nextPrefs)
+    
+    // 백엔드 프로필 DB 동기화
+    try {
+      const name = user?.userInfo?.name || ""
+      const dept = user?.userInfo?.department || ""
+      const mileage = user?.userInfo?.mileage || 0
+      const sem = user?.userInfo?.currentSemester || 8
+      
+      const tracks: string[] = []
+      if (easyConv) tracks.push(easyConv)
+      if (easySpec) tracks.push(easySpec)
+      
+      await updateProfile(name, activeStudentId, dept, mileage, sem, tracks)
+    } catch (err) {
+      console.error("Failed to sync major tracks to backend:", err)
+    }
+
+    setShowEasySetting(false)
+    if (refreshData) refreshData()
+  }
 
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -202,6 +572,40 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
         </div>
       </div>
 
+      {/* 융합/특화 전공 상태 배너 (Toss UI 스타일) */}
+      <div className="bg-[#f2f4f6] dark:bg-[#18212c] px-4 py-2.5 shrink-0 border-b border-border transition-colors">
+        <div className="mx-auto w-full max-w-4xl flex items-center justify-between flex-wrap gap-2 text-[11px] md:text-xs">
+          <div className="flex items-center gap-1.5 text-muted-foreground font-semibold">
+            <Sparkles className="h-3.5 w-3.5 text-primary animate-pulse" />
+            <span>AI 맞춤 전공 설정:</span>
+            {majorPrefs?.convergenceMajor || majorPrefs?.specializedTrack ? (
+              <div className="flex gap-1.5 flex-wrap">
+                {majorPrefs.convergenceMajor && (
+                  <span className="bg-primary/10 text-primary px-2.5 py-0.5 rounded-full font-bold">
+                    {majorPrefs.convergenceMajor}
+                  </span>
+                )}
+                {majorPrefs.specializedTrack && (
+                  <span className="bg-[#8f5cf0]/10 text-[#8f5cf0] dark:text-[#a880f7] px-2.5 py-0.5 rounded-full font-bold">
+                    {majorPrefs.specializedTrack}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <span className="text-destructive font-bold">설정되지 않음 (일반 주전공만 반영)</span>
+            )}
+          </div>
+          
+          <button 
+            type="button"
+            onClick={() => setShowEasySetting(true)}
+            className="text-primary hover:underline font-bold cursor-pointer select-none"
+          >
+            {majorPrefs?.convergenceMajor || majorPrefs?.specializedTrack ? "변경하기" : "지금 설정하기"}
+          </button>
+        </div>
+      </div>
+
       {/* Chat scroll area */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto bg-[#f9fafb] dark:bg-[#0f151c] px-4 py-6">
         <div className="mx-auto w-full max-w-4xl space-y-6">
@@ -248,9 +652,9 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                   key="sim-done"
                   initial={{ opacity: 0, y: 15 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="rounded-2xl border border-border bg-card p-5 shadow-md shadow-primary/5 hover:shadow-lg transition-all duration-300"
+                  className="rounded-2xl border border-border bg-card p-5 shadow-md shadow-primary/5 hover:shadow-lg transition-all duration-300 space-y-4"
                 >
-                  <div className="mb-4 flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                     <span className="flex items-center gap-1.5 text-[15px] font-bold text-foreground">
                       <CheckCircle2 className="h-4.5 w-4.5 text-[#3182f6]" />
                       추천 시간표 시뮬레이션
@@ -264,7 +668,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                     <SummaryStat label="총 학점" value={`${totalCreditsText}학점`} />
                     <SummaryStat label="과목 수" value={`${courseCount}개`} />
                   </div>
-                  <ul className="mt-4.5 space-y-2.5 border-t border-border pt-4">
+                  <ul className="space-y-2.5 border-t border-border pt-4">
                     {displayReasons.filter(r => r && r.title).map((r, i) => {
                       const Icon = reasonIconMap[r.icon] ?? Sparkles
                       return (
@@ -294,44 +698,88 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
             >
               <p className="text-xs font-semibold text-muted-foreground">추천 과목 목록</p>
               <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-                {coursesToRender.map((course) => (
-                  <button
-                    key={course.id}
-                    onClick={() => handleSelect(course)}
-                    className="w-full rounded-2xl bg-card border border-border p-4.5 text-left shadow-sm transition-all hover:bg-secondary hover:border-transparent hover:shadow-md flex flex-col justify-between cursor-pointer"
-                  >
-                    <div className="flex items-start justify-between gap-2.5 w-full">
-                      <div className="min-w-0">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-foreground truncate">{course.name}</span>
-                          {course.retake ? (
-                            <span className="flex items-center gap-0.5 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive shrink-0">
-                              <RotateCcw className="h-3 w-3" />
-                              재수강
-                            </span>
-                          ) : null}
+                {coursesToRender.map((course) => {
+                  const isAdded = customBlocks.some(b => b.name.trim().toLowerCase() === course.name.trim().toLowerCase())
+                  return (
+                    <div
+                      key={course.id}
+                      onClick={() => handleSelect(course)}
+                      className="w-full rounded-2xl bg-card border border-border p-4.5 text-left shadow-sm transition-all hover:bg-secondary hover:border-transparent hover:shadow-md flex flex-col justify-between cursor-pointer"
+                    >
+                      <div className="flex items-start justify-between gap-2.5 w-full">
+                        <div className="min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm font-bold text-foreground truncate">{course.name}</span>
+                            {course.retake ? (
+                              <span className="flex items-center gap-0.5 rounded-full bg-destructive/10 px-2 py-0.5 text-[10px] font-semibold text-destructive shrink-0">
+                                <RotateCcw className="h-3 w-3" />
+                                재수강
+                              </span>
+                            ) : null}
+                          </div>
+                          {/* 고유 시간대 정화 및 한 줄 정제 포맷팅 */}
+                          {(() => {
+                            const rawSchedules = (course as any).schedules || []
+                            const uniqueSchedules: any[] = []
+                            const seen = new Set<string>()
+                            rawSchedules.forEach((s: any) => {
+                              const key = `${s.day}-${s.start_time}-${s.end_time}`
+                              if (!seen.has(key)) {
+                                seen.add(key)
+                                uniqueSchedules.push(s)
+                              }
+                            })
+
+                            const timeText = uniqueSchedules.length > 0
+                              ? uniqueSchedules.map((s: any) => `${s.day}요일 ${s.start_time}~${s.end_time}`).join(", ")
+                              : course.time || "시간 미정"
+
+                            return (
+                              <p className="text-xs text-muted-foreground mt-1.5 font-medium leading-relaxed">
+                                🕒 {timeText} · {course.professor || "미지정"}교수 ({course.credit}학점)
+                              </p>
+                            )
+                          })()}
                         </div>
-                        <p className="text-xs text-muted-foreground mt-1.5">
-                          {course.professor} · {course.credit}학점 · {course.time}
-                        </p>
+                        <div className="shrink-0 text-right">
+                          <p className="text-base font-bold text-[#3182f6]">{course.match}%</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">적합도</p>
+                        </div>
                       </div>
-                      <div className="shrink-0 text-right">
-                        <p className="text-base font-bold text-[#3182f6]">{course.match}%</p>
-                        <p className="text-[10px] text-muted-foreground mt-0.5">적합도</p>
+                      <div className="mt-4 flex flex-wrap gap-1.5">
+                        {course.tags.map((t) => (
+                          <span
+                            key={t}
+                            className={`rounded px-2.5 py-0.5 text-[10px] font-bold ${tagStyle[t] ?? "bg-secondary text-muted-foreground"}`}
+                          >
+                            {t}
+                          </span>
+                        ))}
+                      </div>
+
+                      {/* [신규] 개별 추가/추가됨 액션 버튼 */}
+                      <div className="mt-4 pt-3 border-t border-border/40 flex justify-end">
+                        {isAdded ? (
+                          <button
+                            type="button"
+                            disabled
+                            className="w-full py-2 px-4 rounded-xl text-[10px] font-extrabold bg-[#3182f6]/10 text-[#3182f6] border border-[#3182f6]/20 cursor-not-allowed text-center"
+                          >
+                            ✓ 시간표에 추가됨
+                          </button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => handleAddToSchedule(course, e)}
+                            className="w-full py-2 px-4 rounded-xl text-[10px] font-extrabold bg-[#3182f6] text-white hover:bg-[#1b64da] active:scale-95 transition-all text-center cursor-pointer shadow-sm"
+                          >
+                            + 시간표에 추가
+                          </button>
+                        )}
                       </div>
                     </div>
-                    <div className="mt-4 flex flex-wrap gap-1.5">
-                      {course.tags.map((t) => (
-                        <span
-                          key={t}
-                          className={`rounded px-2.5 py-0.5 text-[10px] font-bold ${tagStyle[t] ?? "bg-secondary text-muted-foreground"}`}
-                        >
-                          {t}
-                        </span>
-                      ))}
-                    </div>
-                  </button>
-                ))}
+                  )
+                })}
               </div>
             </motion.div>
           )}
@@ -406,6 +854,97 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                   className="flex-1 rounded-2xl bg-destructive py-3.5 text-[15px] font-semibold text-white hover:opacity-90 h-[48px] cursor-pointer"
                 >
                   이해했어요
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* 융합/특화 전공 간편 설정 모달 (Toss UI 스타일) */}
+      <AnimatePresence>
+        {showEasySetting && (
+          <div
+            className="absolute inset-0 z-40 flex items-end md:items-center justify-center bg-black/40 p-4"
+            role="dialog"
+            aria-modal="true"
+            onClick={() => setShowEasySetting(false)}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 50, scale: 0.95 }}
+              className="w-full max-w-md rounded-[2.5rem] bg-card p-6 shadow-2xl border border-border"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="mb-4 flex items-center justify-between border-b border-border pb-3">
+                <h3 className="text-lg font-bold text-foreground">AI 전공/트랙 설정</h3>
+                <button
+                  onClick={() => setShowEasySetting(false)}
+                  className="rounded-full p-1 hover:bg-secondary transition-colors"
+                >
+                  <X className="h-5.5 w-5.5 text-muted-foreground" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {/* 융합전공 */}
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1">융합전공 선택</label>
+                  <div className="relative">
+                    <select
+                      value={easyConv}
+                      onChange={(e) => setEasyConv(e.target.value)}
+                      className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3 text-sm text-foreground appearance-none cursor-pointer"
+                    >
+                      <option value="">선택 안 함 (일반 전공)</option>
+                      {CONVERGENCE_MAJORS.map((m) => (
+                        <option key={m} value={m}>{m}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                      <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 특화트랙 */}
+                <div>
+                  <label className="text-xs font-bold text-muted-foreground block mb-1">특화트랙 선택</label>
+                  <div className="relative">
+                    <select
+                      value={easySpec}
+                      onChange={(e) => setEasySpec(e.target.value)}
+                      className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3 text-sm text-foreground appearance-none cursor-pointer"
+                    >
+                      <option value="">선택 안 함 (일반 트랙)</option>
+                      {SPECIALIZED_TRACKS.map((t) => (
+                        <option key={t} value={t}>{t}</option>
+                      ))}
+                    </select>
+                    <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+                      <svg className="h-4 w-4 text-muted-foreground" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={() => setShowEasySetting(false)}
+                  className="flex-1 rounded-2xl bg-secondary py-3 text-sm font-semibold text-secondary-foreground hover:opacity-90 h-[44px]"
+                >
+                  취소
+                </button>
+                <button
+                  onClick={handleSaveEasy}
+                  className="flex-1 rounded-2xl bg-primary py-3 text-sm font-semibold text-white hover:bg-primary-hover h-[44px]"
+                >
+                  저장하기
                 </button>
               </div>
             </motion.div>

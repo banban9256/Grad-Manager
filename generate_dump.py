@@ -284,17 +284,21 @@ for table_name in INSERT_ORDER:
     col_names = ", ".join(f"`{f}`" for f in fields)
     lines.append(f"-- {table_name} ({len(rows)}행)")
     lines.append(f"LOCK TABLES `{table_name}` WRITE;")
-    lines.append(f"INSERT INTO `{table_name}` ({col_names}) VALUES")
 
-    value_lines = []
-    for row in rows:
-        vals = []
-        for f in fields:
-            t = types.get(f, "str")
-            vals.append(escape_value(row.get(f, ""), t))
-        value_lines.append(f"({', '.join(vals)})")
+    CHUNK_SIZE = 100
+    for chunk_start in range(0, len(rows), CHUNK_SIZE):
+        chunk_rows = rows[chunk_start:chunk_start + CHUNK_SIZE]
+        value_lines = []
+        for row in chunk_rows:
+            vals = []
+            for f in fields:
+                t = types.get(f, "str")
+                vals.append(escape_value(row.get(f, ""), t))
+            value_lines.append(f"({', '.join(vals)})")
+        
+        lines.append(f"INSERT INTO `{table_name}` ({col_names}) VALUES")
+        lines.append(",\n".join(value_lines) + ";")
 
-    lines.append(",\n".join(value_lines) + ";")
     lines.append(f"UNLOCK TABLES;")
     lines.append("")
 

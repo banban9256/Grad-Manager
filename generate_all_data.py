@@ -76,6 +76,7 @@ for s in subjects:
         "practice_hours": 0.0,
         "course_description": s.get("GAESUL_BIGO", ""),
         "source_url": SOURCE_URL_SUGANG,
+        "completion_type": s.get("ISU_NM", "일반선택"),
     }
     courses_order.append(code)
 
@@ -160,11 +161,11 @@ def parse_time(gyosi_str):
     if not gyosi_str or gyosi_str.strip() == "-":
         return []
     results = []
-    for part in gyosi_str.split("/"):
-        part = part.strip()
-        m = re.match(r'([월화목금토])\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)', part)
-        if m:
-            results.append((DAY_MAP.get(m.group(1), m.group(1)), m.group(2), m.group(3)))
+    # 글로벌 매칭으로 요일(시작~종료) 패턴을 수에 관계없이 모두 추출 (수요일 [수] 누락 및 슬래시 유무 대응 해결)
+    pattern = r'([월화수목금토일])\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)'
+    matches = re.findall(pattern, gyosi_str)
+    for day_char, start, end in matches:
+        results.append((DAY_MAP.get(day_char, day_char), start, end))
     return results
 
 offerings = []
@@ -372,6 +373,36 @@ for row in aisw_curr_rows:
         cc_id += 1
 
 print(f"  AISW curriculum: {len(aisw_curr_rows)} rows")
+
+# 7d. Sugang JSON curriculum (주전공 및 교양 이수구분 메타 복원)
+seen_curr_keys = set()
+sugang_added_count = 0
+for code, info in courses_map.items():
+    merged_course_id = course_code_to_id.get(code, 0)
+    if not merged_course_id:
+        continue
+    comp_type = info.get("completion_type", "일반선택")
+    
+    curr_key = (merged_course_id, comp_type)
+    if curr_key not in seen_curr_keys:
+        seen_curr_keys.add(curr_key)
+        is_already_added = any(cc["course_id"] == merged_course_id for cc in curriculum_courses)
+        if not is_already_added:
+            curriculum_courses.append({
+                "curriculum_course_id": cc_id,
+                "curriculum_year": 2026,
+                "course_id": merged_course_id,
+                "recommended_grade": None,
+                "semester": None,
+                "completion_type": comp_type,
+                "is_required": "필수" in comp_type,
+                "note": info.get("course_description", ""),
+                "program_id": None,
+            })
+            cc_id += 1
+            sugang_added_count += 1
+
+print(f"  Sugang JSON curriculum: {sugang_added_count} rows added")
 print(f"  Total curriculum_courses: {len(curriculum_courses)}")
 
 

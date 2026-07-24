@@ -1,9 +1,9 @@
 "use client"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useMemo } from "react"
 import { GraduationCap, Loader2 } from "lucide-react"
 import type { GradManagerData } from "@/lib/grad-data-types"
-import { getGradData } from "@/lib/api"
+import { getGradData, updateCompletedCourses as apiUpdateCompletedCourses } from "@/lib/api"
 import { ToastProvider } from "./toast"
 import { LoginPage } from "./login-page"
 import { SignUpPage } from "./signup-page"
@@ -18,35 +18,88 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // 기수강 완료 과목 목록 전역 상태
+  const [completedCourses, setCompletedCourses] = useState<string[]>([])
+
   // 관심 키워드 전역 상태 관리
   const [interestKeywords, setInterestKeywords] = useState<any[]>([])
+
+  // 알림 토글 스위치 전역 상태
+  const [notifyEnabled, setNotifyEnabled] = useState<boolean>(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("grad_notify_enabled")
+      return saved !== null ? saved === "true" : true
+    }
+    return true
+  })
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      localStorage.setItem("grad_notify_enabled", String(notifyEnabled))
+    }
+  }, [notifyEnabled])
 
   // 전체 과목 풀 전역 상태
   const [allCourses, setAllCourses] = useState<any[]>([])
 
   // 챗봇 메시지 전역 상태 관리
-  const [messages, setMessages] = useState<any[]>(() => {
-    if (typeof window !== "undefined") {
-      const stored = sessionStorage.getItem("grad_chatbot_messages")
-      if (stored) {
-        try {
-          return JSON.parse(stored)
-        } catch (e) {
-          console.error("챗봇 메시지 파싱 실패:", e)
-        }
-      }
-    }
-    return [
-      {
-        id: "welcome",
-        role: "ai",
-        content: "안녕하세요! 원하는 수강 조건을 알려주세요. 예) “금요일 공강”, “전공 필수 과목 위주로 추천해줘”",
-      },
-    ]
-  })
+  const [messages, setMessages] = useState<any[]>([
+    {
+      id: "welcome",
+      role: "ai",
+      content: "안녕하세요! 원하는 수강 조건을 알려주세요. 예) “금요일 공강”, “전공 필수 과목 위주로 추천해줘”",
+    },
+  ])
 
   // 시뮬레이션 적용 시간표 전역 상태
   const [simulatedSchedule, setSimulatedSchedule] = useState<any>(null)
+
+  const studentId = data?.user?.userInfo?.studentId
+
+  // 로그인 성공이나 data 로드 시 completedCourses 및 로컬 스토리지 동기화
+  useEffect(() => {
+    if (studentId) {
+      const localKey = `grad_completed_courses_${studentId}`
+      if (data?.user?.userInfo?.completedCourses) {
+        // 백엔드 API의 최신 completedCourses 데이터를 최우선적으로 전역 상태 및 스토리지 캐시에 덮어쓰기
+        setCompletedCourses(data.user.userInfo.completedCourses)
+        localStorage.setItem(localKey, JSON.stringify(data.user.userInfo.completedCourses))
+        sessionStorage.setItem(localKey, JSON.stringify(data.user.userInfo.completedCourses))
+      } else {
+        const localCached = localStorage.getItem(localKey)
+        if (localCached) {
+          try {
+            setCompletedCourses(JSON.parse(localCached))
+          } catch (e) {
+            console.error("완료 과목 로컬 캐시 파싱 실패:", e)
+          }
+        }
+      }
+    } else {
+      setCompletedCourses([])
+    }
+  }, [data, studentId])
+
+  useEffect(() => {
+    if (typeof window !== "undefined" && studentId) {
+      const stored = sessionStorage.getItem(`grad_chatbot_messages_${studentId}`)
+      if (stored) {
+        try {
+          setMessages(JSON.parse(stored))
+        } catch (e) {
+          console.error("챗봇 메시지 파싱 실패:", e)
+        }
+      } else {
+        setMessages([
+          {
+            id: "welcome",
+            role: "ai",
+            content: "안녕하세요! 원하는 수강 조건을 알려주세요. 예) “금요일 공강”, “전공 필수 과목 위주로 추천해줘”",
+          },
+        ])
+      }
+    }
+  }, [studentId])
 
   // 컴포넌트 마운트 시 전체 개설 과목 풀 로딩
   useEffect(() => {
@@ -66,27 +119,48 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
 
   // 메시지 혹은 과목 풀 업데이트 시 시뮬레이션 엔진 실행
   useEffect(() => {
+    if (!studentId) return
+
+    const messagesKey = `grad_chatbot_messages_${studentId}`
+    const simulatedTimetableKey = `grad_simulated_timetable_${studentId}`
+    const simulationAppliedKey = `chatbot_simulation_applied_${studentId}`
+    const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}`
+
     if (typeof window !== "undefined") {
-      sessionStorage.setItem("grad_chatbot_messages", JSON.stringify(messages))
+      sessionStorage.setItem(messagesKey, JSON.stringify(messages))
     }
     if (messages.length > 0 && allCourses.length > 0) {
       const result = generateTimetableFromChat(messages, allCourses)
       setSimulatedSchedule(result)
       if (result) {
         if (typeof window !== "undefined") {
-          sessionStorage.setItem("grad_simulated_timetable", JSON.stringify(result))
-          sessionStorage.setItem("chatbot_simulation_applied", "true")
+          sessionStorage.setItem(simulatedTimetableKey, JSON.stringify(result))
+          sessionStorage.setItem(simulationAppliedKey, "true")
+          // AI 추천 시간표를 localStorage에 영구 보존
+          localStorage.setItem(aiRecommendedTimetableKey, JSON.stringify(result))
         }
       } else {
         if (typeof window !== "undefined") {
-          sessionStorage.removeItem("grad_simulated_timetable")
-          sessionStorage.removeItem("chatbot_simulation_applied")
+          sessionStorage.removeItem(simulatedTimetableKey)
+          sessionStorage.removeItem(simulationAppliedKey)
         }
       }
     } else {
-      setSimulatedSchedule(null)
+      // 메시지가 비었을 경우 로컬 스토리지 백업 복원 시도
+      if (typeof window !== "undefined") {
+        const cached = localStorage.getItem(aiRecommendedTimetableKey)
+        if (cached) {
+          try {
+            setSimulatedSchedule(JSON.parse(cached))
+          } catch {}
+        } else {
+          setSimulatedSchedule(null)
+        }
+      } else {
+        setSimulatedSchedule(null)
+      }
     }
-  }, [messages, allCourses])
+  }, [messages, allCourses, studentId])
 
   // 챗봇 시뮬레이션 초기화 액션
   const resetSimulation = () => {
@@ -98,17 +172,22 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
       },
     ])
     setSimulatedSchedule(null)
-    if (typeof window !== "undefined") {
-      sessionStorage.removeItem("grad_chatbot_messages")
-      sessionStorage.removeItem("grad_simulated_timetable")
-      sessionStorage.removeItem("chatbot_simulation_applied")
-      sessionStorage.removeItem("chatbot_simulation_data")
+    if (typeof window !== "undefined" && studentId) {
+      sessionStorage.removeItem(`grad_chatbot_messages_${studentId}`)
+      sessionStorage.removeItem(`grad_simulated_timetable_${studentId}`)
+      sessionStorage.removeItem(`chatbot_simulation_applied_${studentId}`)
+      sessionStorage.removeItem(`chatbot_simulation_data_${studentId}`)
+      localStorage.removeItem(`grad_manager_ai_recommended_timetable_${studentId}`)
     }
   }
 
   useEffect(() => {
+    if (!studentId) return
+
+    const keywordsKey = `grad_manager_keywords_${studentId}`
+
     if (typeof window !== "undefined") {
-      const stored = localStorage.getItem("grad_manager_keywords")
+      const stored = localStorage.getItem(keywordsKey)
       if (stored) {
         try {
           const parsed = JSON.parse(stored)
@@ -125,10 +204,12 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     if (data?.notice?.interestKeywords) {
       setInterestKeywords(data.notice.interestKeywords)
       if (typeof window !== "undefined") {
-        localStorage.setItem("grad_manager_keywords", JSON.stringify(data.notice.interestKeywords.map((k) => k.label || k.text)))
+        localStorage.setItem(keywordsKey, JSON.stringify(data.notice.interestKeywords.map((k) => k.label || k.text)))
       }
+    } else {
+      setInterestKeywords([])
     }
-  }, [data])
+  }, [data, studentId])
 
   const updateKeywordsOnServer = async (updatedKeywords: string[]) => {
     if (!data?.user?.userInfo?.studentId) return
@@ -155,8 +236,8 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     const newKeywordObj = { id: interestKeywords.length, text, active: true }
     const nextKeywords = [...interestKeywords, newKeywordObj]
     setInterestKeywords(nextKeywords)
-    if (typeof window !== "undefined") {
-      localStorage.setItem("grad_manager_keywords", JSON.stringify(nextKeywords.map((k) => k.label || k.text)))
+    if (typeof window !== "undefined" && studentId) {
+      localStorage.setItem(`grad_manager_keywords_${studentId}`, JSON.stringify(nextKeywords.map((k) => k.label || k.text)))
     }
     
     try {
@@ -170,8 +251,8 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
   const removeInterestKeyword = async (text: string) => {
     const nextKeywords = interestKeywords.filter((k) => (k.label || k.text) !== text)
     setInterestKeywords(nextKeywords)
-    if (typeof window !== "undefined") {
-      localStorage.setItem("grad_manager_keywords", JSON.stringify(nextKeywords.map((k) => k.label || k.text)))
+    if (typeof window !== "undefined" && studentId) {
+      localStorage.setItem(`grad_manager_keywords_${studentId}`, JSON.stringify(nextKeywords.map((k) => k.label || k.text)))
     }
     
     try {
@@ -215,21 +296,163 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     try {
       const json = await getGradData()
       setData(json)
+      if (json?.user?.userInfo?.studentId && json.user.userInfo.completedCourses) {
+        const localKey = `grad_completed_courses_${json.user.userInfo.studentId}`
+        localStorage.setItem(localKey, JSON.stringify(json.user.userInfo.completedCourses))
+        sessionStorage.setItem(localKey, JSON.stringify(json.user.userInfo.completedCourses))
+        setCompletedCourses(json.user.userInfo.completedCourses)
+      }
     } catch (err: any) {
       setError(err.message || "데이터 새로고침에 실패했습니다.")
     }
   }
 
+  const updateCompletedCourses = async (studentId: string, completedCoursesList: string[], targetSemester?: string) => {
+    // 1. 전역 상태 및 로컬 스토리지 즉시 업데이트
+    setCompletedCourses(completedCoursesList)
+    const localKey = `grad_completed_courses_${studentId}`
+    if (typeof window !== "undefined") {
+      localStorage.setItem(localKey, JSON.stringify(completedCoursesList))
+      sessionStorage.setItem(localKey, JSON.stringify(completedCoursesList))
+    }
+
+    // 2. 백엔드 API 연동
+    const result = await apiUpdateCompletedCourses(studentId, completedCoursesList, targetSemester)
+
+    // 3. 백엔드 갱신
+    await refreshData()
+    return result
+  }
+
   const login = (token: string, user: any) => {
     sessionStorage.setItem("token", token)
+    if (user?.studentId) {
+      sessionStorage.setItem("active_student_id", user.studentId)
+    }
     setIsLoggedIn(true)
   }
 
   const logout = () => {
-    sessionStorage.removeItem("token")
+    if (typeof window !== "undefined") {
+      // 모든 sessionStorage 제거
+      sessionStorage.clear()
+      
+      // localStorage에서 유저 캐시 데이터들 제거
+      const keysToRemove: string[] = []
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i)
+        if (key && (key.startsWith("grad_") || key.startsWith("chatbot_") || key.startsWith("schedule_"))) {
+          keysToRemove.push(key)
+        }
+      }
+      keysToRemove.forEach(k => localStorage.removeItem(k))
+    }
     setIsLoggedIn(false)
     setData(null)
+    setInterestKeywords([])
+    setMessages([
+      {
+        id: "welcome",
+        role: "ai",
+        content: "안녕하세요! 원하는 수강 조건을 알려주세요. 예) “금요일 공강”, “전공 필수 과목 위주로 추천해줘”",
+      },
+    ])
+    setSimulatedSchedule(null)
   }
+
+  // 기수강 완료 과목 리스트를 기반으로 클라이언트 단에서 실시간 학점 및 카테고리 진행률 계산 헬퍼 함수
+  const calculateGradSummary = (
+    completedCoursesList: string[],
+    allCoursesList: any[],
+    totalRequired: number = 130
+  ) => {
+    const categoryGoals: Record<string, number> = {
+      "전공필수": 18,
+      "전공선택": 45,
+      "교양필수": 14,
+      "교양선택": 20,
+      "계열공통": 12,
+    }
+
+    const categoryEarned: Record<string, number> = {
+      "전공필수": 0,
+      "전공선택": 0,
+      "교양필수": 0,
+      "교양선택": 0,
+      "계열공통": 0,
+      "일반선택": 0,
+    }
+
+    const courseMap = new Map<string, { category: string; credit: number }>()
+    if (allCoursesList && allCoursesList.length > 0) {
+      allCoursesList.forEach((c: any) => {
+        const code = String(c.course_code || c.code || c.course_id || "")
+        if (code && !courseMap.has(code)) {
+          courseMap.set(code, {
+            category: c.category || "일반선택",
+            credit: Number(c.credits || c.credit || 3)
+          })
+        }
+      })
+    }
+
+    let totalEarned = 0
+    completedCoursesList.forEach((code) => {
+      const course = courseMap.get(code)
+      const credit = course ? course.credit : 3
+      const cat = course ? course.category : "일반선택"
+
+      totalEarned += credit
+      const normalizedCat = ["전공필수", "전공선택", "교양필수", "교양선택", "계열공통"].includes(cat)
+        ? cat
+        : "일반선택"
+      
+      categoryEarned[normalizedCat] += credit
+    })
+
+    const categoryKeys: Record<string, string> = {
+      "전공필수": "major_req",
+      "전공선택": "major_sel",
+      "교양필수": "liberal_req",
+      "교양선택": "liberal_sel",
+      "계열공통": "core_common",
+      "일반선택": "general_sel"
+    }
+
+    const categoryTones: Record<string, string> = {
+      "전공필수": "chart-1",
+      "전공선택": "chart-2",
+      "교양필수": "chart-3",
+      "교양선택": "chart-1",
+      "계열공통": "chart-2",
+      "일반선택": "chart-3"
+    }
+
+    const creditCategories = Object.keys(categoryGoals).map((cat) => ({
+      key: categoryKeys[cat] || "etc",
+      label: cat,
+      current: categoryEarned[cat],
+      required: categoryGoals[cat],
+      tone: categoryTones[cat] || "chart-1"
+    }))
+
+    creditCategories.push({
+      key: "general_sel",
+      label: "일반선택",
+      current: categoryEarned["일반선택"],
+      required: 21,
+      tone: "chart-3"
+    })
+
+    return {
+      earnedCredits: totalEarned,
+      remainingCredits: Math.max(0, totalRequired - totalEarned),
+      overallProgress: totalRequired > 0 ? Math.min(100, Math.round((totalEarned / totalRequired) * 100)) : 0,
+      creditCategories
+    }
+  }
+
+  // 클라이언트 계산 오버라이드 억제 및 제거
 
   if (loading) {
     return (
@@ -287,11 +510,15 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     refreshData,
     addInterestKeyword,
     removeInterestKeyword,
+    updateCompletedCourses,
     messages,
     setMessages,
     simulatedSchedule,
     resetSimulation,
     allCourses,
+    notifyEnabled,
+    setNotifyEnabled,
+    user: data?.user || { userInfo: {} as any, creditCategories: [], quickMenus: [] },
     notice: data?.notice ? {
       ...data.notice,
       interestKeywords,

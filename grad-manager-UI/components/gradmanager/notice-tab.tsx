@@ -1,12 +1,12 @@
 "use client"
 
 import { useState } from "react"
-import { AlertTriangle, Bell, CalendarDays, Info, Plus, X, Loader2 } from "lucide-react"
+import { AlertTriangle, Bell, BellOff, CalendarDays, Info, Plus, X, Loader2 } from "lucide-react"
 import { useGradData } from "./grad-data-provider"
 import { useToast } from "./toast"
 
 export function NoticeTab() {
-  const { notice, addInterestKeyword, removeInterestKeyword } = useGradData()
+  const { notice, addInterestKeyword, removeInterestKeyword, notifyEnabled = true, setNotifyEnabled = () => {} } = useGradData()
   const { showToast } = useToast()
   const { academicCalendar, interestKeywords, urgentNotice } = notice
 
@@ -62,9 +62,25 @@ export function NoticeTab() {
         <h1 className="text-2xl font-bold text-foreground">공지 &amp; 알림</h1>
         <div className="flex items-center gap-2">
           {isUpdating && <Loader2 className="h-4.5 w-4.5 animate-spin text-primary" />}
-          <span className="flex h-9.5 w-9.5 items-center justify-center rounded-full bg-card border border-border shadow-sm">
-            <Bell className="h-5 w-5 text-primary" />
-          </span>
+          <button
+            onClick={() => {
+              const nextVal = !notifyEnabled
+              setNotifyEnabled(nextVal)
+              showToast(nextVal ? "알림이 수신 허용되었습니다." : "알림이 수신 거부(음소거)되었습니다.")
+            }}
+            className={`flex h-9.5 w-9.5 items-center justify-center rounded-full border transition-all cursor-pointer shadow-sm hover:scale-105 active:scale-95 ${
+              notifyEnabled
+                ? "bg-[#3182f6]/10 border-[#3182f6]/20 text-[#3182f6]"
+                : "bg-secondary border-border text-muted-foreground/60"
+            }`}
+            title={notifyEnabled ? "알림 끄기" : "알림 켜기"}
+          >
+            {notifyEnabled ? (
+              <Bell className="h-5 w-5" />
+            ) : (
+              <BellOff className="h-5 w-5" />
+            )}
+          </button>
         </div>
       </div>
 
@@ -142,63 +158,127 @@ export function NoticeTab() {
         </div>
       </section>
 
-      {/* Urgent notice matched with 특화 */}
-      <section
-        className="rounded-2xl bg-[#fff3f5] dark:bg-[#381e25] p-5 shadow-sm"
-        role="alert"
-      >
-        <div className="mb-2 flex items-center gap-2">
-          <span className="flex items-center gap-1 rounded-full bg-[#e42939] px-2.5 py-0.5 text-[10px] font-bold text-white">
-            <AlertTriangle className="h-3 w-3" />
-            긴급 · {urgentNotice.date}
-          </span>
-          <span className="rounded-full bg-[#e42939]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#e42939] dark:text-[#ff6b8b]">
-            #{urgentNotice.keyword}
-          </span>
-        </div>
-        <h3 className="text-[15px] font-bold text-foreground">{urgentNotice.title}</h3>
-        <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{urgentNotice.desc}</p>
-      </section>
+      {/* 키워드 하이라이팅 헬퍼 */}
+      {(() => {
+        const renderHighlightedTitle = (title: string, keywords: any[]) => {
+          const kws = keywords.map(k => k.label || k.text).filter(Boolean)
+          if (kws.length === 0) return title
 
-      {/* Academic calendar timeline */}
-      <section>
-        <h2 className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-          <CalendarDays className="h-4.5 w-4.5 text-primary" />
-          학사 일정
-        </h2>
-        <ol className="relative ml-2.5 border-l border-border">
-          {academicCalendar.map((item, idx) => {
-            const isWarning = item.type === "warning"
-            return (
-              <li key={`${item.id || idx}-${idx}`} className="relative mb-5 pl-5.5 last:mb-0">
-                <span
-                  className={`absolute -left-[6.5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-background ${
-                    isWarning ? "bg-[#ff9f1a]" : "bg-primary"
-                  }`}
-                />
-                <div
-                  className={`rounded-2xl p-4.5 shadow-sm border ${
-                    isWarning 
-                      ? "border-transparent bg-[#fff9e6] dark:bg-[#3d321d]" 
-                      : "border-border bg-card"
-                  }`}
-                >
-                  <div className="mb-1.5 flex items-center gap-2">
-                    <span className={`text-xs font-bold ${isWarning ? "text-[#b27600] dark:text-[#ffca57]" : "text-primary"}`}>{item.date}</span>
-                    {isWarning ? (
-                      <AlertTriangle className="h-4 w-4 text-[#ff9f1a]" />
-                    ) : (
-                      <Info className="h-4 w-4 text-muted-foreground" />
-                    )}
-                  </div>
-                  <h3 className="text-[15px] font-bold text-foreground">{item.title}</h3>
-                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.desc}</p>
-                </div>
-              </li>
+          const regex = new RegExp(`(${kws.join("|")})`, "gi")
+          const parts = title.split(regex)
+
+          return parts.map((part, i) =>
+            regex.test(part) ? (
+              <span key={i} className="bg-[#3182f6]/10 text-[#3182f6] px-1 py-0.5 rounded font-bold">
+                {part}
+              </span>
+            ) : (
+              part
             )
-          })}
-        </ol>
-      </section>
+          )
+        }
+
+        return (
+          <>
+            {/* Urgent notice matched with 특화 */}
+            <section
+              className="rounded-2xl bg-[#fff3f5] dark:bg-[#381e25] p-5 shadow-sm border border-transparent"
+              role="alert"
+            >
+              <div className="mb-2 flex items-center gap-2">
+                <span className="flex items-center gap-1 rounded-full bg-[#e42939] px-2.5 py-0.5 text-[10px] font-bold text-white">
+                  <AlertTriangle className="h-3 w-3" />
+                  긴급 · {urgentNotice.date}
+                </span>
+                <span className="rounded-full bg-[#e42939]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#e42939] dark:text-[#ff6b8b]">
+                  #{urgentNotice.keyword || "공통"}
+                </span>
+              </div>
+              <h3 className="text-[15px] font-bold text-foreground">{urgentNotice.title}</h3>
+              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{urgentNotice.desc}</p>
+              {urgentNotice.url && (
+                <div className="mt-3 pt-2.5 border-t border-[#e42939]/10 flex justify-end">
+                  <a
+                    href={urgentNotice.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#e42939] hover:underline"
+                  >
+                    <span>원문 보기</span>
+                    <span className="text-[8px]">↗</span>
+                  </a>
+                </div>
+              )}
+            </section>
+
+            {/* Academic calendar timeline */}
+            <section>
+              <h2 className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+                <CalendarDays className="h-4.5 w-4.5 text-primary" />
+                학사 및 맞춤 공지
+              </h2>
+              <ol className="relative ml-2.5 border-l border-border">
+                {academicCalendar.map((item, idx) => {
+                  const isWarning = item.type === "warning"
+                  const kws = (interestKeywords || []).map(k => k.label || k.text).filter(Boolean)
+                  const isMatched = kws.some(kw => item.title.includes(kw) || (item.content || "").includes(kw))
+
+                  return (
+                    <li key={`${item.id || idx}-${idx}`} className="relative mb-5 pl-5.5 last:mb-0">
+                      <span
+                        className={`absolute -left-[6.5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-background ${
+                          isMatched ? "bg-[#3182f6]" : isWarning ? "bg-[#ff9f1a]" : "bg-primary"
+                        }`}
+                      />
+                      <div
+                        className={`rounded-2xl p-4.5 shadow-sm border transition-all ${
+                          isMatched
+                            ? "border-[#3182f6]/40 bg-[#3182f6]/5 dark:bg-[#3182f6]/10"
+                            : isWarning 
+                              ? "border-transparent bg-[#fff9e6] dark:bg-[#3d321d]" 
+                              : "border-border bg-card"
+                        }`}
+                      >
+                        <div className="mb-1.5 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className={`text-xs font-bold ${isMatched ? "text-[#3182f6]" : isWarning ? "text-[#b27600] dark:text-[#ffca57]" : "text-primary"}`}>{item.date}</span>
+                            {isMatched ? (
+                              <span className="text-[9px] font-bold text-[#3182f6] bg-[#3182f6]/15 px-2 py-0.5 rounded-full select-none">
+                                # 키워드 일치
+                              </span>
+                            ) : isWarning ? (
+                              <AlertTriangle className="h-4 w-4 text-[#ff9f1a]" />
+                            ) : (
+                              <Info className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </div>
+                        </div>
+                        <h3 className="text-[15px] font-bold text-foreground">
+                          {renderHighlightedTitle(item.title, interestKeywords || [])}
+                        </h3>
+                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.content || item.desc || "상세 공지 내용이 존재하지 않습니다."}</p>
+                        {item.url && (
+                          <div className="mt-3 pt-2.5 border-t border-border/40 flex justify-end">
+                            <a
+                              href={item.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#3182f6] hover:underline"
+                            >
+                              <span>원문 보기</span>
+                              <span className="text-[8px]">↗</span>
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    </li>
+                  )
+                })}
+              </ol>
+            </section>
+          </>
+        )
+      })()}
     </div>
   )
 }

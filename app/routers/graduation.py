@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Header, HTTPException
+from fastapi import APIRouter, Header, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
+from sqlalchemy.orm import Session
+from app.database import get_db
+from app import models
 
 from backend.core.data.students import get_student, STUDENTS
 from backend.core.data.csv_loader import load_courses
@@ -13,6 +16,7 @@ router = APIRouter()
 class UpdateCoursesRequest(BaseModel):
     studentId: str
     completedCourses: List[str]
+    targetSemester: Optional[str] = None
 
 def get_student_from_token(authorization: Optional[str]) -> dict:
     # Authorization header 파싱하여 학번 추출
@@ -65,14 +69,74 @@ def map_user_info(student: dict) -> dict:
         "completedCoursesDetail": completed_details
     }
 
+def get_course_category(code: str, courses_db: dict) -> str:
+    from backend.core.data.csv_loader import _infer_type_from_code, _normalize_completion_type
+    course = courses_db.get(code)
+    if course:
+        cat = course.get("category", "일반선택")
+        return _normalize_completion_type(cat)
+    else:
+        inferred = _infer_type_from_code(code)
+        return _normalize_completion_type(inferred)
+
+
 @router.get("/summary", summary="종합 졸업학점 진단 결과 API")
-def get_graduation_summary(authorization: Optional[str] = Header(None)):
+def get_graduation_summary(
+    authorization: Optional[str] = Header(None),
+    db: Session = Depends(get_db)
+):
     student = get_student_from_token(authorization)
     student_id = student["student_id"]
     
     courses_db = load_courses()
     
-    # 1. creditCategories 계산
+    # SQLite StudentCourseHistory 기반의 최신 실시간 이수현황 집계
+    from app import models
+    histories = db.query(models.StudentCourseHistory).filter(
+        models.StudentCourseHistory.student_id == int(student_id)
+    ).all()
+
+    # history_id 별로 course_code 및 attributes를 매칭하기 위해 Course 테이블 조인 조회
+    history_details = []
+    for h in histories:
+        c_record = db.query(models.Course).filter(models.Course.course_id == h.course_id).first()
+        course_code = c_record.course_code if c_record else f"UNKNOWN-{h.course_id}"
+        course_name = c_record.course_name if c_record else "과목명 미정"
+        history_details.append({
+            "history_id": h.history_id,
+            "course_code": course_code,
+            "course_name": course_name,
+            "semester_taken": h.semester_taken,
+            "earned_credit": h.earned_credit,
+            "grade": h.grade,
+            "is_retake": h.is_retake,
+            "course_type": getattr(h, 'course_type', None)
+        })
+
+    # 재수강 포기(Forfeited) 계산
+    from collections import defaultdict
+    import re
+    code_groups = defaultdict(list)
+    for hd in history_details:
+        if hd["course_code"]:
+            code_groups[hd["course_code"]].append(hd)
+
+    forfeited_ids = set()
+    for code, instances in code_groups.items():
+        has_retake = any(inst["is_retake"] for inst in instances)
+        if has_retake and len(instances) > 1:
+            def get_sem_score(sem: str):
+                if not sem: return 0
+                m = re.match(r'(\d+)-(\d)학기', sem)
+                if not m: return 0
+                return int(m.group(1)) * 10 + int(m.group(2))
+            
+            sorted_instances = sorted(instances, key=lambda x: get_sem_score(x["semester_taken"]))
+            # 최신 학기만 살리고 나머지는 포기
+            for inst in sorted_instances[:-1]:
+                forfeited_ids.add(inst["history_id"])
+
+    # creditCategories 계산
     # 카테고리별 기본 목표치 설정
     category_goals = {
         "전공필수": 18,
@@ -82,20 +146,38 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
         "계열공통": 12,
     }
     
-    category_earned = {cat: 0 for cat in category_goals.keys()}
-    category_earned["일반선택"] = 0
+    category_earned = {cat: 0.0 for cat in category_goals.keys()}
+    category_earned["일반선택"] = 0.0
     
-    for code in student.get("completed_courses", []):
-        course = courses_db.get(code)
-        if course:
-            cat = course.get("category", "일반선택")
-            credits = course.get("credits", 3)
-            if cat in category_earned:
-                category_earned[cat] += credits
-            else:
-                category_earned["일반선택"] += credits
+    completed_courses_list = []
+    completed_details = {}
+
+    for hd in history_details:
+        if hd["history_id"] in forfeited_ids:
+            continue
+        if hd["grade"] == "F":
+            continue
+            
+        code = hd["course_code"]
+        completed_courses_list.append(code)
+        completed_details[code] = hd["course_name"]
+        
+        # 이수구분 판별: 실물 DB에 course_type이 이미 저장되어 있으면 그것을 최우선으로 쓰고, 없으면 추론
+        cat = hd.get("course_type")
+        if not cat or cat.strip() == "":
+            cat = get_course_category(code, courses_db)
+        credits = float(hd["earned_credit"])
+        
+        if cat in category_earned:
+            category_earned[cat] += credits
         else:
-            category_earned["일반선택"] += 3
+            category_earned["일반선택"] += credits
+
+    completed = sum(category_earned.values())
+    
+    # 대시보드 리턴 데이터에 활용할 학생 딕셔너리 정보 오버라이드
+    student["completed_credits"] = completed
+    student["completed_courses"] = completed_courses_list
 
     category_keys = {
         "전공필수": "major_req",
@@ -120,7 +202,7 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
         credit_categories.append({
             "key": category_keys.get(cat, "etc"),
             "label": cat,
-            "current": int(category_earned[cat]),
+            "current": float(category_earned[cat]),
             "required": req_credits,
             "tone": category_tones.get(cat, "chart-1")
         })
@@ -128,7 +210,7 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
     credit_categories.append({
         "key": "general_sel",
         "label": "일반선택",
-        "current": int(category_earned["일반선택"]),
+        "current": float(category_earned["일반선택"]),
         "required": 21,
         "tone": "chart-3"
     })
@@ -200,6 +282,24 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
             {"id": 2, "title": "졸업앨범 촬영 일정 안내", "date": "2026-09-15", "category": "학사", "isNew": False}
         ]
 
+    # 디지털 트윈용 전공/교양 과목 개수 계산 (DB course_type 및 forfeited_ids 반영)
+    major_courses_count = 0
+    liberal_courses_count = 0
+    for hd in history_details:
+        if hd["history_id"] in forfeited_ids:
+            continue
+        if hd["grade"] == "F":
+            continue
+        
+        c_type = hd.get("course_type")
+        if not c_type or c_type.strip() == "":
+            c_type = get_course_category(hd["course_code"], courses_db)
+            
+        if c_type in ("전공필수", "전공선택"):
+            major_courses_count += 1
+        elif c_type in ("교양필수", "교양선택"):
+            liberal_courses_count += 1
+
     # 4. 디지털 트윈 상태
     remaining_req = get_required_remaining(student)
     digital_twin = {
@@ -208,19 +308,49 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
         "remainingCredits": max(0, student["required_credits"] - student["completed_credits"]),
         "aiProbability": 94 if len(remaining_req) == 0 else max(40, 94 - len(remaining_req) * 15),
         "expectedGraduation": "2027년 2월 (정기)",
-        "completedCourses": len(student.get("completed_courses", [])),
-        "majorCourses": len([c for c in student.get("completed_courses", []) if courses_db.get(c, {}).get("category") in ("전공필수", "전공선택")]),
-        "liberalCourses": len([c for c in student.get("completed_courses", []) if courses_db.get(c, {}).get("category") in ("교양필수", "교양선택", "교양")]),
+        "completedCourses": len(completed_courses_list),
+        "majorCourses": major_courses_count,
+        "liberalCourses": liberal_courses_count,
         "scenarioCount": 3,
         "scenarioStatus": "안정" if len(remaining_req) == 0 else "주의"
     }
+
+    def get_course_schedules(course_info: dict) -> list:
+        schedules = []
+        offs = course_info.get("offerings", [])
+        if offs:
+            # 2026-1학기 분반 우선
+            primary = None
+            for o in offs:
+                if o.get("semester") == "1학기" and o.get("academic_year") == "2026":
+                    primary = o
+                    break
+            if not primary:
+                primary = offs[0]
+            
+            # primary 분반의 시간표를 프론트엔드 스키마로 변환
+            # (day_of_week -> day, start_time, end_time, classroom -> classroom)
+            for idx, slot in enumerate(primary.get("time_slots", [])):
+                day, start_time, end_time = slot
+                classroom = primary.get("classrooms")[idx] if idx < len(primary.get("classrooms", [])) else "미정"
+                schedules.append({
+                    "day": day,
+                    "start_time": start_time,
+                    "end_time": end_time,
+                    "classroom": classroom,
+                    "section": primary.get("section", "01"),
+                    "professor": primary.get("professor", "미정")
+                })
+        return schedules
 
     # 5. AI 수강 추천 과목
     ai_courses = []
     colors = ["violet", "pink", "teal"]
     # 미이수 필수 과목과 수강 가능 추천 과목 조립
     for idx, r in enumerate(remaining_req[:5]):
-        prof = r.get("professor", "미지정")
+        prof = r.get("professor", "미정")
+        schedules = get_course_schedules(r)
+        time_str = " / ".join(f"{s['day']} {s['start_time']}~{s['end_time']}" for s in schedules) if schedules else ""
         ai_courses.append({
             "id": f"ai-course-{r['code']}",
             "code": r["code"],
@@ -231,7 +361,9 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
             "reason": "미이수한 전공필수 과목입니다.",
             "color": colors[idx % len(colors)],
             "professor": prof,
-            "category": "전공필수"
+            "category": "전공필수",
+            "time": time_str,
+            "schedules": schedules
         })
     # 전공선택 추가
     if len(ai_courses) < 6:
@@ -239,6 +371,8 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
             if code not in student.get("completed_courses", []) and info["category"] == "전공선택":
                 idx = len(ai_courses)
                 prof = info.get("professor", "이교수")
+                schedules = get_course_schedules(info)
+                time_str = " / ".join(f"{s['day']} {s['start_time']}~{s['end_time']}" for s in schedules) if schedules else ""
                 ai_courses.append({
                     "id": f"ai-course-{code}",
                     "code": code,
@@ -249,14 +383,19 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
                     "reason": "추천 전공 트랙 관심 과목입니다.",
                     "color": colors[idx % len(colors)],
                     "professor": prof,
-                    "category": "전공선택"
+                    "category": "전공선택",
+                    "time": time_str,
+                    "schedules": schedules
                 })
                 if len(ai_courses) >= 6:
                     break
 
+    user_info_mapped = map_user_info(student)
+    user_info_mapped["completedCoursesDetail"] = completed_details
+
     return {
         "user": {
-            "userInfo": map_user_info(student),
+            "userInfo": user_info_mapped,
             "creditCategories": credit_categories,
             "quickMenus": [
                 {"key": "diagnostic", "label": "졸업요건 진단", "icon": "GraduationCap", "title": "졸업요건 진단", "description": "나의 부족 학점 확인"},
@@ -326,11 +465,22 @@ def get_graduation_summary(authorization: Optional[str] = Header(None)):
     }
 
 @router.put("/courses", summary="기수강 과목 목록 갱신 API")
-def update_completed_courses(req: UpdateCoursesRequest):
+def update_completed_courses(
+    req: UpdateCoursesRequest,
+    db: Session = Depends(get_db)
+):
     student = get_student(req.studentId)
     if not student:
         raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
         
+    # 빈 요청 방지 가드 완화 (None일 때만 방지)
+    if req.completedCourses is None:
+        return {
+            "success": True, 
+            "completed_credits": student.get("completed_credits", 0),
+            "completed_courses_count": len(student.get("completed_courses", []))
+        }
+
     courses_db = load_courses()
     
     # 기수강 과목 목록 업데이트
@@ -349,6 +499,107 @@ def update_completed_courses(req: UpdateCoursesRequest):
     
     # 변경 사항을 STUDENTS에 저장
     STUDENTS[req.studentId] = student
+    
+    # --- [실제 SQLite DB 동기화 - 보존형 리팩토링] ---
+    try:
+        student_id_int = int(req.studentId)
+        
+        # 1. 기존 DB에 있던 수강 기록들을 리스트로 백업해둡니다. (학기와 성적 보존 목적, 중복 수강 보존)
+        from collections import defaultdict
+        existing_histories = db.query(models.StudentCourseHistory).filter(
+            models.StudentCourseHistory.student_id == student_id_int
+        ).all()
+        
+        history_backup = defaultdict(list)
+        for h in existing_histories:
+            history_backup[h.course_id].append({
+                "semester_taken": h.semester_taken,
+                "grade": h.grade,
+                "earned_credit": h.earned_credit,
+                "completion_status": h.completion_status,
+                "is_retake": h.is_retake
+            })
+            
+        # 기존 히스토리 중 가장 최근 학기 구하기 (기본값용)
+        latest_sem = "2026-1학기"
+        if existing_histories:
+            sems = [h.semester_taken for h in existing_histories if h.semester_taken]
+            if sems:
+                latest_sem = sorted(sems, reverse=True)[0]
+ 
+        # 2. 기존 수강기록 전체 삭제
+        db.query(models.StudentCourseHistory).filter(
+            models.StudentCourseHistory.student_id == student_id_int
+        ).delete()
+        
+        # 3. 새로운 수강기록 bulk 추가 (백업된 값 보존)
+        for code in req.completedCourses:
+            c_record = db.query(models.Course).filter(models.Course.course_code == code).first()
+            if not c_record:
+                # CSV 로더 캐시에서 정보 조회하여 SQLite DB에 Course 레코드 즉시 동기화 생성
+                from backend.core.data.csv_loader import load_courses
+                courses_db = load_courses()
+                c_info = courses_db.get(code)
+                if c_info:
+                    credit_val_temp = float(c_info.get("credits", 3.0))
+                    new_c = models.Course(
+                        course_code=code,
+                        course_name=c_info.get("name", "과목명 미정"),
+                        credit=credit_val_temp,
+                        source_url="csv_sync",
+                        theory_hours=0.0,
+                        practice_hours=0.0,
+                        course_description="CSV에서 자동 동기화된 과목"
+                    )
+                    db.add(new_c)
+                    db.commit()
+                    db.refresh(new_c)
+                    c_record = new_c
+
+            c_id = c_record.course_id if c_record else None
+            credit_val = 3.0
+            if c_record:
+                if getattr(c_record, 'credit', None) is not None:
+                    credit_val = float(c_record.credit)
+            if not c_id:
+                import re
+                nums = re.findall(r'\d+', code)
+                fallback_id = int(nums[0]) if nums else 1001
+                if fallback_id == 1 or fallback_id == 0:
+                    fallback_id = 9999
+                c_id = fallback_id
+                
+            backups = history_backup.get(c_id)
+            if backups and len(backups) > 0:
+                backup = backups.pop(0)
+                sem = backup["semester_taken"]
+                grade = backup["grade"]
+                credit = backup["earned_credit"]
+                status = backup["completion_status"]
+                is_ret = backup.get("is_retake", False)
+            else:
+                sem = req.targetSemester or latest_sem
+                grade = "A+"
+                credit = credit_val
+                status = "이수"
+                is_ret = False
+                
+            new_hist = models.StudentCourseHistory(
+                student_id=student_id_int,
+                course_id=c_id,
+                semester_taken=sem,
+                grade=grade,
+                earned_credit=credit,
+                completion_status=status,
+                is_retake=is_ret
+            )
+            db.add(new_hist)
+        
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(f"Bulk Sync SQLite Error: {e}")
+    # -----------------------------
     
     return {
         "success": True, 

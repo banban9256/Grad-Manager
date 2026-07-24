@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Header, HTTPException, Query
-from typing import Optional, List
+from typing import Optional, List, Any
+from pydantic import BaseModel
 
-from backend.core.data.students import get_student
+from backend.core.data.students import get_student, save_student
 from backend.core.data.csv_loader import load_courses
 from backend.core.scheduler import generate_timetable
 
@@ -95,12 +96,16 @@ def get_all_courses(q: Optional[str] = Query(None, description="과목명 또는
         # API 응답 포맷 맞춤
         schedules = []
         for o in info.get("offerings", []):
+            sec_val = o.get("section") or "01"
+            prof_val = o.get("professor") or info.get("professor") or "미지정"
             for d, start, end in o.get("time_slots", []):
                 schedules.append({
                     "day": d,
                     "start_time": start,
                     "end_time": end,
-                    "classroom": o.get("classrooms", ["미정"])[0] if o.get("classrooms") else "미정"
+                    "classroom": o.get("classrooms", ["미정"])[0] if o.get("classrooms") else "미정",
+                    "section": sec_val,
+                    "professor": prof_val
                 })
                 
         data.append({
@@ -108,6 +113,7 @@ def get_all_courses(q: Optional[str] = Query(None, description="과목명 또는
             "course_id": code,
             "title": info["name"],
             "credit": float(info["credits"]),
+            "category": info["category"],
             "program_type": "MAJOR" if "전공" in info["category"] else "LIBERAL",
             "professor": info.get("professor", "교수"),
             "schedules": schedules,
@@ -116,5 +122,28 @@ def get_all_courses(q: Optional[str] = Query(None, description="과목명 또는
         
     return {
         "status": "success",
-        "data": data[:100]  # 상위 100개로 제한
+        "data": data  # 전체 반환
+    }
+
+class ScheduleBlocksUpdateRequest(BaseModel):
+    studentId: str
+    scheduleBlocks: List[Any]
+
+@router.post("/schedule", summary="사용자 커스텀 시간표 블록 저장 API")
+def save_user_schedule(req: ScheduleBlocksUpdateRequest):
+    student = get_student(req.studentId)
+    if not student:
+        raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
+    student["custom_schedule_blocks"] = req.scheduleBlocks
+    save_student(req.studentId, student)
+    return {"success": True, "count": len(req.scheduleBlocks)}
+
+@router.get("/schedule", summary="사용자 커스텀 시간표 블록 조회 API")
+def get_user_schedule(studentId: str):
+    student = get_student(studentId)
+    if not student:
+        raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
+    return {
+        "success": True,
+        "scheduleBlocks": student.get("custom_schedule_blocks", [])
     }

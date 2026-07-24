@@ -1,6 +1,15 @@
-"""가상 학생 데이터 - 나중에 실제 DB로 교체 예정"""
+"""가상 학생 데이터 및 SQLite DB 영구 저장(Persistence) 레이어"""
 
-STUDENTS = {
+import sqlite3
+import json
+import os
+
+# DB 파일 절대경로 계산 (프로젝트 루트의 gradmanager.db)
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+DB_PATH = os.path.join(BASE_DIR, "gradmanager.db")
+
+# 인메모리 기본 가상 데이터 (최초 1회 DB 적재용)
+DEFAULT_STUDENTS = {
     "20210001": {
         "name": "김정보",
         "student_id": "20210001",
@@ -25,6 +34,7 @@ STUDENTS = {
         "preferred_days": ["월", "화", "수"],
         "preferred_times": ["09:00-12:00", "14:00-17:00"],
         "avoid_times": ["18:00-21:00"],
+        "custom_schedule_blocks": []
     },
     "20220001": {
         "name": "박졸업",
@@ -49,15 +59,121 @@ STUDENTS = {
         "preferred_days": ["화", "목"],
         "preferred_times": ["10:00-18:00"],
         "avoid_times": [],
+        "custom_schedule_blocks": []
     },
 }
 
+def _get_db_conn():
+    """SQLite DB 커넥션 생성"""
+    return sqlite3.connect(DB_PATH)
+
+def init_db():
+    """프로필 영구 보존용 student_profiles 테이블 생성 및 기본값 초기화"""
+    conn = _get_db_conn()
+    cursor = conn.cursor()
+    cursor.execute("""
+    CREATE TABLE IF NOT EXISTS student_profiles (
+        student_id TEXT PRIMARY KEY,
+        profile_json TEXT NOT NULL
+    );
+    """)
+    conn.commit()
+    
+    # 데이터가 비어 있는 경우 기본 데모 학생 복원 인서트
+    cursor.execute("SELECT COUNT(*) FROM student_profiles;")
+    count = cursor.fetchone()[0]
+    if count == 0:
+        for sid, sdata in DEFAULT_STUDENTS.items():
+            cursor.execute(
+                "INSERT INTO student_profiles (student_id, profile_json) VALUES (?, ?);",
+                (sid, json.dumps(sdata, ensure_ascii=False))
+            )
+        conn.commit()
+    conn.close()
+
+# 백엔드 모듈 로딩 시 데이터베이스 및 테이블 자동 초기화 트리거
+init_db()
+
+# 기존 로직과의 호환성을 위한 STUDENTS 인메모리 프록시 딕셔너리 클래스 정의
+class SQLiteStudentsProxy(dict):
+    """
+    기존 STUDENTS[student_id] = s 및 get() 동작을 
+    SQLite DB와 실시간 투명 연동하는 Proxy 객체
+    """
+    def __getitem__(self, key):
+        student = get_student(key)
+        if student is None:
+            raise KeyError(key)
+        return student
+
+    def __setitem__(self, key, value):
+        save_student(key, value)
+
+    def __contains__(self, key):
+        return get_student(key) is not None
+
+    def get(self, key, default=None):
+        student = get_student(key)
+        return student if student is not None else default
+
+    def items(self):
+        return get_all_students().items()
+
+    def values(self):
+        return get_all_students().values()
+
+    def keys(self):
+        return get_all_students().keys()
+
+# 글로벌 가상 변수 STUDENTS를 프록시 객체로 대체하여 기존 API 코드 파손 방지
+STUDENTS = SQLiteStudentsProxy()
 
 def get_student(student_id: str) -> dict | None:
-    """학번으로 학생 정보 조회"""
-    return STUDENTS.get(student_id)
+    """학번으로 SQLite DB에서 학생 정보 조회"""
+    try:
+        conn = _get_db_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT profile_json FROM student_profiles WHERE student_id = ?;", (str(student_id),))
+        row = cursor.fetchone()
+        conn.close()
+        if row:
+            return json.loads(row[0])
+    except Exception as e:
+        print(f"[SQLITE ERROR] get_student failed: {e}")
+    
+    # DB 조회 실패 혹은 없을 시 기본 데모 데이터 수집
+    return DEFAULT_STUDENTS.get(str(student_id))
 
+def save_student(student_id: str, student_dict: dict) -> bool:
+    """학생 정보를 SQLite DB에 영구 업데이트 및 덮어쓰기"""
+    try:
+        conn = _get_db_conn()
+        cursor = conn.cursor()
+        cursor.execute(
+            "INSERT OR REPLACE INTO student_profiles (student_id, profile_json) VALUES (?, ?);",
+            (str(student_id), json.dumps(student_dict, ensure_ascii=False))
+        )
+        conn.commit()
+        conn.close()
+        return True
+    except Exception as e:
+        print(f"[SQLITE ERROR] save_student failed: {e}")
+        return False
 
 def get_all_students() -> dict:
-    """전체 학생 목록 반환"""
-    return STUDENTS
+    """전체 학생 목록 반환 (DB로부터 동적 리로드)"""
+    students_map = {}
+    try:
+        conn = _get_db_conn()
+        cursor = conn.cursor()
+        cursor.execute("SELECT student_id, profile_json FROM student_profiles;")
+        rows = cursor.fetchall()
+        conn.close()
+        for row in rows:
+            students_map[row[0]] = json.loads(row[1])
+    except Exception as e:
+        print(f"[SQLITE ERROR] get_all_students failed: {e}")
+        
+    if not students_map:
+        return DEFAULT_STUDENTS
+    return students_map

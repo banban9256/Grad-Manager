@@ -44,14 +44,17 @@ def get_notice_alerts(authorization: Optional[str] = Header(None)):
                 "id": f"notice-{kw}-{r['id']}",
                 "title": f"[{kw} 매칭] {r['title']}",
                 "date": r["date"],
-                "isNew": True
+                "isNew": True,
+                "url": r.get("url", ""),
+                "content": r.get("content", ""),
+                "category": r.get("category", "")
             })
             
     # 매칭 결과가 없을 경우 백업
     if not alerts:
         alerts = [
-            {"id": 101, "title": "[인턴 매칭] 2026 동계 SW인턴십 모집 안내", "date": "2026-07-22", "isNew": True},
-            {"id": 102, "title": "[장학 매칭] AI특화 학업 우수 장학금 신청 연장", "date": "2026-07-21", "isNew": False}
+            {"id": 101, "title": "[인턴 매칭] 2026 동계 SW인턴십 모집 안내", "date": "2026-07-22", "isNew": True, "url": "https://www.hs.ac.kr", "content": "2026 동계 소프트웨어(SW) 인턴십 참여 학생을 모집합니다. 많은 참여 바랍니다."},
+            {"id": 102, "title": "[장학 매칭] AI특화 학업 우수 장학금 신청 연장", "date": "2026-07-21", "isNew": False, "url": "https://www.hs.ac.kr", "content": "AI융합대학 AI특화 우수 학생을 위한 학업 지원 장학금 신청 기간이 연장되었습니다."}
         ]
         
     return {
@@ -60,7 +63,9 @@ def get_notice_alerts(authorization: Optional[str] = Header(None)):
             "id": 200,
             "title": "[긴급] 졸업자격설정 제출 마감 임박 안내 (~07/31)",
             "date": "2026-07-22",
-            "isNew": True
+            "isNew": True,
+            "url": "https://www.hs.ac.kr",
+            "desc": "2026학년도 전기(2027년 2월) 졸업예정자를 위한 졸업자격인증 설정 및 서류 제출 마감 기한이 임박하였으니 대상자는 속히 확인하시기 바랍니다."
         },
         "academicCalendar": alerts
     }

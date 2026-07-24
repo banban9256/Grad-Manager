@@ -157,6 +157,10 @@ schedules = []
 course_id_counter = 1
 offering_id_counter = 1
 
+curriculum_courses = []
+curriculum_course_id_counter = 1
+seen_curriculum = set()
+
 for rd in rows_data:
     code = rd.get("COURSE_CD", "")
     name = rd.get("COURSE_NM", "")
@@ -184,6 +188,24 @@ for rd in rows_data:
         course_id_counter += 1
 
     cid = courses_map[code]["course_id"]
+
+    # 이수구분(전공/교양 등) 정보 curriculum_courses 리스트에 누락없이 적재
+    if category:
+        curr_key = (cid, category)
+        if curr_key not in seen_curriculum:
+            seen_curriculum.add(curr_key)
+            is_req = "필수" in category
+            curriculum_courses.append({
+                "curriculum_course_id": curriculum_course_id_counter,
+                "curriculum_year": 2026,
+                "course_id": cid,
+                "recommended_grade": "",
+                "semester": "1학기",
+                "completion_type": category,
+                "is_required": str(is_req),
+                "note": note
+            })
+            curriculum_course_id_counter += 1
 
     # course_offerings
     offering_id = offering_id_counter
@@ -766,7 +788,7 @@ write_csv("curriculum_courses.csv", [
     "curriculum_course_id", "curriculum_year", "course_id",
     "recommended_grade", "semester", "completion_type",
     "is_required", "note"
-], [])
+], curriculum_courses)
 
 write_csv("program_courses.csv", [
     "program_course_id", "program_id", "course_id",

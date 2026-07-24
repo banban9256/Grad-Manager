@@ -67,7 +67,8 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
                         schedule_blocks.append({
                           "id": f"block-{c['code']}-{d}",
                           "name": c["name"],
-                          "professor": c["professor"],
+                          "professor": c.get("professor", "미정"),
+                          "room": c.get("room", "미정"),
                           "day": day_map[d],
                           "start": start_h,
                           "end": end_h,

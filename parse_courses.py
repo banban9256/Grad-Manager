@@ -22,23 +22,18 @@ def parse_credit(hakjum_str):
 
 def parse_time(gyosi_str):
     """
-    GYOSI 예: '금(13:00~14:40)', '화(11:00~12:40)', '월(10:00~11:40)/수(10:00~11:40)', '-'
+    GYOSI 예: '금(13:00~14:40)', '화(11:00~12:40)', '월(10:00~11:40)/수(10:00~11:40)', '월(09:30~10:45)수(11:00~12:15)', '-'
     → [(day, start, end), ...]
     """
     if not gyosi_str or gyosi_str.strip() == "-":
         return []
     results = []
-    # Split by / for multi-day courses like '월(10:00~11:40)/수(10:00~11:40)'
-    parts = gyosi_str.split("/")
-    for part in parts:
-        part = part.strip()
-        # Pattern: day(HH:MM~HH:MM)
-        m = re.match(r'([월화목금토])\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)', part)
-        if m:
-            day = DAY_MAP.get(m.group(1), m.group(1))
-            start = m.group(2)
-            end = m.group(3)
-            results.append((day, start, end))
+    # 글로벌 매칭으로 요일(시작~종료) 패턴을 수에 관계없이 모두 추출 (수요일 [수] 누락 해결)
+    pattern = r'([월화수목금토일])\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)'
+    matches = re.findall(pattern, gyosi_str)
+    for day_char, start, end in matches:
+        day = DAY_MAP.get(day_char, day_char)
+        results.append((day, start, end))
     return results
 
 def parse_theory_practice(gyosi_str, credit):

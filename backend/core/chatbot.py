@@ -77,6 +77,8 @@ def build_student_context(student_id: str) -> str:
 - 학번: {student['student_id']}
 - 학과: {student['department']}
 - 주전공: {', '.join(student['major_tracks'])}
+- 융합전공: {student.get('convergence_major', '설정 안 함')}
+- 특화트랙: {student.get('specialized_track', '설정 안 함')}
 - 현재 학기: {student['current_semester']}학기
 - 이수 학점: {student['completed_credits']}/{student['required_credits']} (부족: {credits_needed}학점)
 - GPA: {student['gpa']}
