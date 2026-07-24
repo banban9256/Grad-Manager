@@ -13,13 +13,7 @@ app = FastAPI(title="GradManager API")
 # 프론트엔드 통신 CORS 설정
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "http://localhost:3001",
-        "http://127.0.0.1:3001"
-    ],
-    allow_origin_regex="http://(localhost|127\\.0\\.0\\.1)(:\\d+)?",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -77,6 +71,7 @@ def sync_student_cache(student_id: int, db: Session):
         history_details.append({
             "history_id": h.history_id,
             "course_code": course_code,
+            "course_name": course_name,
             "earned_credit": h.earned_credit,
             "grade": h.grade,
             "is_retake": h.is_retake,
@@ -84,15 +79,42 @@ def sync_student_cache(student_id: int, db: Session):
             "semester_taken": h.semester_taken
         })
 
-    # 재수강 포기(Forfeited) 계산
-    code_groups = defaultdict(list)
-    for hd in history_details:
-        if hd["course_code"]:
-            code_groups[hd["course_code"]].append(hd)
+    # 재수강 포기(Forfeited) 계산: 동일 과목코드 또는 동일 과목명 그룹화 (Union-Find)
+    n_hist = len(history_details)
+    parent = list(range(n_hist))
+
+    def find(i):
+        if parent[i] == i:
+            return i
+        parent[i] = find(parent[i])
+        return parent[i]
+
+    def union(i, j):
+        root_i = find(i)
+        root_j = find(j)
+        if root_i != root_j:
+            parent[root_i] = root_j
+
+    for i in range(n_hist):
+        for j in range(i + 1, n_hist):
+            code_i = history_details[i].get("course_code")
+            code_j = history_details[j].get("course_code")
+            name_i = history_details[i].get("course_name")
+            name_j = history_details[j].get("course_name")
+            
+            cond_code = (code_i and code_j and code_i == code_j)
+            cond_name = (name_i and name_j and name_i == name_j)
+            if cond_code or cond_name:
+                union(i, j)
+
+    groups = defaultdict(list)
+    for i in range(n_hist):
+        root = find(i)
+        groups[root].append(history_details[i])
 
     forfeited_ids = set()
-    for code, instances in code_groups.items():
-        has_retake = any(inst["is_retake"] for inst in instances)
+    for root_idx, instances in groups.items():
+        has_retake = any(inst.get("is_retake") for inst in instances)
         if has_retake and len(instances) > 1:
             def get_sem_score(sem: str):
                 if not sem: return 0
@@ -100,9 +122,11 @@ def sync_student_cache(student_id: int, db: Session):
                 if not m: return 0
                 return int(m.group(1)) * 10 + int(m.group(2))
             
-            sorted_instances = sorted(instances, key=lambda x: get_sem_score(x["semester_taken"]))
+            sorted_instances = sorted(instances, key=lambda x: get_sem_score(x.get("semester_taken")))
+            # 최신 학기만 살리고 나머지는 포기
             for inst in sorted_instances[:-1]:
-                forfeited_ids.add(inst["history_id"])
+                if inst.get("history_id") is not None:
+                    forfeited_ids.add(inst["history_id"])
 
     completed_courses_list = []
     total_completed = 0.0
@@ -323,9 +347,11 @@ def get_graduation_summary(
         for h in histories:
             c_record = db.query(models.Course).filter(models.Course.course_id == h.course_id).first()
             course_code = c_record.course_code if c_record else f"UNKNOWN-{h.course_id}"
+            course_name = c_record.course_name if c_record else "과목명 미정"
             history_details.append({
                 "history_id": h.history_id,
                 "course_code": course_code,
+                "course_name": course_name,
                 "earned_credit": h.earned_credit,
                 "grade": h.grade,
                 "is_retake": h.is_retake,
@@ -333,14 +359,42 @@ def get_graduation_summary(
                 "semester_taken": h.semester_taken
             })
 
-        code_groups = defaultdict(list)
-        for hd in history_details:
-            if hd["course_code"]:
-                code_groups[hd["course_code"]].append(hd)
+        # 재수강 포기(Forfeited) 계산: 동일 과목코드 또는 동일 과목명 그룹화 (Union-Find)
+        n_hist = len(history_details)
+        parent = list(range(n_hist))
+
+        def find(i):
+            if parent[i] == i:
+                return i
+            parent[i] = find(parent[i])
+            return parent[i]
+
+        def union(i, j):
+            root_i = find(i)
+            root_j = find(j)
+            if root_i != root_j:
+                parent[root_i] = root_j
+
+        for i in range(n_hist):
+            for j in range(i + 1, n_hist):
+                code_i = history_details[i].get("course_code")
+                code_j = history_details[j].get("course_code")
+                name_i = history_details[i].get("course_name")
+                name_j = history_details[j].get("course_name")
+                
+                cond_code = (code_i and code_j and code_i == code_j)
+                cond_name = (name_i and name_j and name_i == name_j)
+                if cond_code or cond_name:
+                    union(i, j)
+
+        groups = defaultdict(list)
+        for i in range(n_hist):
+            root = find(i)
+            groups[root].append(history_details[i])
 
         forfeited_ids = set()
-        for code, instances in code_groups.items():
-            has_retake = any(inst["is_retake"] for inst in instances)
+        for root_idx, instances in groups.items():
+            has_retake = any(inst.get("is_retake") for inst in instances)
             if has_retake and len(instances) > 1:
                 def get_sem_score(sem: str):
                     if not sem: return 0
@@ -348,9 +402,11 @@ def get_graduation_summary(
                     if not m: return 0
                     return int(m.group(1)) * 10 + int(m.group(2))
                 
-                sorted_instances = sorted(instances, key=lambda x: get_sem_score(x["semester_taken"]))
+                sorted_instances = sorted(instances, key=lambda x: get_sem_score(x.get("semester_taken")))
+                # 최신 학기만 살리고 나머지는 포기
                 for inst in sorted_instances[:-1]:
-                    forfeited_ids.add(inst["history_id"])
+                    if inst.get("history_id") is not None:
+                        forfeited_ids.add(inst["history_id"])
 
         for hd in history_details:
             if hd["history_id"] in forfeited_ids:
@@ -478,6 +534,10 @@ def update_student_course_history(
     # 이수구분(이수 구분) 수정 지원
     if history_data.course_type is not None:
         history.course_type = history_data.course_type
+        
+    # 재수강 여부 수정 지원
+    if history_data.is_retake is not None:
+        history.is_retake = history_data.is_retake
         
     db.commit()
     db.refresh(history)
