@@ -332,7 +332,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
         sessionStorage.setItem(filtersKey, JSON.stringify(defaultFilters))
       }
     }
-  }, [studentId])
+  }, [activeStudentId])
 
   // 필터 목록 동기화 및 글로벌 AI 시뮬레이터 재생성 트리거
   const syncFilters = (nextFilters: { key: string; label: string }[]) => {
