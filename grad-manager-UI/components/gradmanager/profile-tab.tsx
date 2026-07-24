@@ -327,16 +327,48 @@ export function ProfileTab() {
     const baseList = historyList || []
 
     // --- [재수강 포기(Forfeit) 규칙 계산 적용] ---
-    const codeGroups: Record<string, any[]> = {}
-    baseList.forEach(h => {
-      if (h.course_code) {
-        if (!codeGroups[h.course_code]) codeGroups[h.course_code] = []
-        codeGroups[h.course_code].push(h)
+    const n = baseList.length
+    const parent = Array.from({ length: n }, (_, i) => i)
+
+    const find = (i: number): number => {
+      if (parent[i] === i) return i
+      parent[i] = find(parent[i])
+      return parent[i]
+    }
+
+    const union = (i: number, j: number) => {
+      const rootI = find(i)
+      const rootJ = find(j)
+      if (rootI !== rootJ) {
+        parent[rootI] = rootJ
       }
-    })
+    }
+
+    for (let i = 0; i < n; i++) {
+      for (let j = i + 1; j < n; j++) {
+        const codeI = baseList[i].course_code
+        const codeJ = baseList[j].course_code
+        const nameI = baseList[i].course_name || baseList[i].name
+        const nameJ = baseList[j].course_name || baseList[j].name
+
+        const condCode = codeI && codeJ && codeI === codeJ
+        const condName = nameI && nameJ && nameI === nameJ
+
+        if (condCode || condName) {
+          union(i, j)
+        }
+      }
+    }
+
+    const groups: Record<number, any[]> = {}
+    for (let i = 0; i < n; i++) {
+      const root = find(i)
+      if (!groups[root]) groups[root] = []
+      groups[root].push(baseList[i])
+    }
 
     const forfeitedHistoryIds = new Set<number>()
-    Object.entries(codeGroups).forEach(([code, instances]) => {
+    Object.values(groups).forEach(instances => {
       const hasRetake = instances.some(inst => inst.is_retake)
       if (hasRetake && instances.length > 1) {
         // 학기 정렬 (올림차순 정렬 후, 가장 최근 학기를 제외한 나머지를 포기 처리)
@@ -1165,14 +1197,17 @@ export function ProfileTab() {
                                     <option key={ct} value={ct}>{ct}</option>
                                   ))}
                                 </select>
-                                <label className="flex items-center gap-1 text-[10px] text-muted-foreground select-none cursor-pointer shrink-0">
+                                <label 
+                                  className="flex items-center gap-1 text-[10px] text-muted-foreground select-none cursor-pointer shrink-0"
+                                  title="재수강 선택 시, 동일 과목(코드/이름)의 이전 수강 이력 학점과 성적은 졸업 사정 및 GPA 계산에서 제외(포기)됩니다."
+                                >
                                   <input
                                     type="checkbox"
                                     checked={editIsRetake}
                                     onChange={(e) => setEditIsRetake(e.target.checked)}
                                     className="rounded border-border text-[#3182f6] focus:ring-[#3182f6] h-3.5 w-3.5 cursor-pointer"
                                   />
-                                  <span>재수강</span>
+                                  <span className="underline decoration-dotted decoration-muted-foreground cursor-help">재수강</span>
                                 </label>
                               </div>
                             </div>
@@ -1192,7 +1227,10 @@ export function ProfileTab() {
                                   </span>
                                 )}
                                 {item.is_forfeited && (
-                                  <span className="text-[8px] font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md select-none shrink-0">
+                                  <span 
+                                    className="text-[8px] font-bold text-muted-foreground bg-secondary px-1.5 py-0.5 rounded-md select-none shrink-0 cursor-help"
+                                    title="재수강 과목 수강으로 인해 이 과목의 취득 학점과 성적은 전체 합계 및 GPA에서 포기 처리되었습니다."
+                                  >
                                     학점포기됨
                                   </span>
                                 )}

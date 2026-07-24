@@ -37,11 +37,11 @@ class CourseHistoryCreate(BaseModel):
 class GraduationSummaryResponse(BaseModel):
     status: str
     student_id: int
-    total_required_credits: int      # 총 필요 학점 (예: 130)
-    total_completed_credits: int     # 총 이수 학점
-    total_remaining_credits: int     # 부족한 학점
-    major_completed_credits: int     # 전공 이수 학점
-    general_completed_credits: int   # 교양 이수 학점
+    total_required_credits: float      # 총 필요 학점 (예: 130)
+    total_completed_credits: float     # 총 이수 학점
+    total_remaining_credits: float     # 부족한 학점
+    major_completed_credits: float     # 전공 이수 학점
+    general_completed_credits: float   # 교양 이수 학점
 
 class CourseHistoryUpdate(BaseModel):
     semester_taken: Optional[str] = None
