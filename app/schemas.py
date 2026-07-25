@@ -1,5 +1,5 @@
 # app/schemas.py
-from pydantic import BaseModel
+from pydantic import BaseModel, model_validator
 from typing import Optional, List, Union
 
 # 개설 과목 응답 스키마
@@ -51,3 +51,38 @@ class CourseHistoryUpdate(BaseModel):
     earned_credit: Optional[float] = None
     is_retake: Optional[bool] = None
     course_type: Optional[str] = None
+
+class ProfileUpdateRequest(BaseModel):
+    name: str
+    studentId: str
+    department: str
+    mileage: Optional[int] = None
+    current_semester: Optional[int] = None
+    major_tracks: Optional[List[str]] = None
+
+    @model_validator(mode="after")
+    def validate_tracks(self) -> "ProfileUpdateRequest":
+        if self.major_tracks:
+            convergence_majors = {
+                "인공지능소프트웨어융합전공",
+                "디지털문화콘텐츠융합전공",
+                "스마트경영융합전공",
+                "공공서비스융합전공",
+            }
+            specialized_tracks = {
+                "인지 감성 특화 트랙",
+                "데이터 사이언스 트랙",
+                "지능형 IoT 소프트웨어 트랙",
+                "풀스택 웹/모바일 소프트웨어 트랙",
+                "인지 감성 특화",
+                "데이터 사이언스",
+                "지능형 IoT 소프트웨어",
+                "풀스택 웹/모바일 소프트웨어",
+            }
+            
+            has_conv = any(track in convergence_majors for track in self.major_tracks)
+            has_spec = any(track in specialized_tracks for track in self.major_tracks)
+            
+            if has_conv and has_spec:
+                raise ValueError("융합전공과 특성화트랙은 동시에 선택할 수 없습니다.")
+        return self

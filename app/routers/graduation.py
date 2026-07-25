@@ -4,6 +4,7 @@ from typing import Optional, List
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app import models
+import math
 
 from backend.core.data.students import get_student, STUDENTS
 from backend.core.data.csv_loader import load_courses
@@ -329,19 +330,94 @@ def get_graduation_summary(
         elif c_type in ("교양필수", "교양선택"):
             liberal_courses_count += 1
 
-    # 4. 디지털 트윈 상태
+    # 3.5. 실제 수강 이력 기반 GPA(평점) 계산
+    GRADE_POINTS = {
+        "A+": 4.5, "A0": 4.0,
+        "B+": 3.5, "B0": 3.0,
+        "C+": 2.5, "C0": 2.0,
+        "D+": 1.5, "D0": 1.0,
+        "F": 0.0
+    }
+    total_pts = 0.0
+    total_credits_for_gpa = 0.0
+    for hd in history_details:
+        if hd["history_id"] in forfeited_ids:
+            continue
+        grade = hd["grade"].upper() if hd["grade"] else "A+"
+        if grade in ("P", "NP"):
+            continue
+        credit = float(hd["earned_credit"])
+        pts = GRADE_POINTS.get(grade, 4.5)
+        total_pts += pts * credit
+        total_credits_for_gpa += credit
+        
+    actual_gpa = round(total_pts / total_credits_for_gpa, 2) if total_credits_for_gpa > 0 else 0.0
+    student["gpa"] = actual_gpa
+
+    # 4. 디지털 트윈 상태 동적 계산
     remaining_req = get_required_remaining(student)
+    remaining_credits = max(0, student["required_credits"] - student["completed_credits"])
+    
+    # 4.1. 졸업을 위해 필요한 최소 추가 학기 수 계산 (18학점/학기 기준 또는 8학기 기준 중 최대값)
+    needed_semesters = max(1, math.ceil(remaining_credits / 18)) if remaining_credits > 0 else 0
+    current_semester = student.get("current_semester", 1)
+    needed_semesters = max(needed_semesters, max(0, 8 - current_semester))
+    if remaining_credits > 0 and needed_semesters == 0:
+        needed_semesters = 1
+        
+    # 4.2. 예상 졸업 시기 계산 (현재 2026년 1학기 완료 시점 기준)
+    year = 2026
+    semester_type = 1 # 1: 1학기 완료, 2: 2학기 완료
+    for _ in range(needed_semesters):
+        if semester_type == 1:
+            semester_type = 2
+        else:
+            semester_type = 1
+            year += 1
+            
+    if needed_semesters == 0:
+        expected_grad = "즉시 졸업 가능"
+    else:
+        if semester_type == 2:
+            grad_year = year + 1
+            grad_month = "2월 (정기)"
+        else:
+            grad_year = year
+            grad_month = "8월 (후기)"
+        expected_grad = f"{grad_year}년 {grad_month}"
+        
+    # 4.3. AI 예측 확률 계산
+    # 평점(GPA) 가중치 (최대 40%), 이수 학점 가중치 (최대 50%), 미이수 필수 과목 패널티 (최대 10%)
+    gpa_factor = (actual_gpa / 4.5) * 40
+    credits_factor = (student["completed_credits"] / student["required_credits"]) * 50 if student["required_credits"] > 0 else 50
+    remaining_req_penalty = len(remaining_req) * 2
+    
+    ai_prob = min(99, max(30, int(gpa_factor + credits_factor + 10 - remaining_req_penalty)))
+    if remaining_credits == 0 and len(remaining_req) == 0:
+        ai_prob = 100
+        
+    # 4.4. 예상 시나리오 개수 및 상태 결정
+    scenario_count = 2 if len(remaining_req) <= 1 else (3 if len(remaining_req) <= 3 else 4)
+    if ai_prob >= 90:
+        scenario_status = "안정"
+    elif ai_prob >= 75:
+        scenario_status = "보통"
+    elif ai_prob >= 60:
+        scenario_status = "주의"
+    else:
+        scenario_status = "위험"
+
     digital_twin = {
         "name": student["name"],
         "progress": int((student["completed_credits"] / student["required_credits"]) * 100) if student["required_credits"] > 0 else 0,
-        "remainingCredits": max(0, student["required_credits"] - student["completed_credits"]),
-        "aiProbability": 94 if len(remaining_req) == 0 else max(40, 94 - len(remaining_req) * 15),
-        "expectedGraduation": "2027년 2월 (정기)",
+        "remainingCredits": remaining_credits,
+        "aiProbability": ai_prob,
+        "expectedGraduation": expected_grad,
         "completedCourses": len(completed_courses_list),
         "majorCourses": major_courses_count,
         "liberalCourses": liberal_courses_count,
-        "scenarioCount": 3,
-        "scenarioStatus": "안정" if len(remaining_req) == 0 else "주의"
+        "scenarioCount": scenario_count,
+        "scenarioStatus": scenario_status
     }
 
     def get_course_schedules(course_info: dict) -> list:
@@ -372,52 +448,210 @@ def get_graduation_summary(
                 })
         return schedules
 
-    # 5. AI 수강 추천 과목
+    # 5. AI 수강 추천 과목 고도화
     ai_courses = []
     colors = ["violet", "pink", "teal"]
-    # 미이수 필수 과목과 수강 가능 추천 과목 조립
-    for idx, r in enumerate(remaining_req[:5]):
-        prof = r.get("professor", "미정")
-        schedules = get_course_schedules(r)
+    
+    # 5.1. 학생의 융합전공/특성화트랙 관련 program_id 추출 (SQLite DB의 programs 테이블 연동)
+    student_tracks = student.get("major_tracks", [])
+    from backend.core.data.csv_loader import _read_csv
+    try:
+        curriculum_raw = _read_csv("curriculum_courses.csv")
+    except Exception:
+        curriculum_raw = []
+        
+    CONVERGENCE_MAJORS_SET = {
+        "인공지능소프트웨어융합전공",
+        "디지털문화콘텐츠융합전공",
+        "스마트경영융합전공",
+        "공공서비스융합전공",
+    }
+    SPECIALIZED_TRACKS_SET = {
+        "인지 감성 특화 트랙",
+        "데이터 사이언스 트랙",
+        "지능형 IoT 소프트웨어 트랙",
+        "풀스택 웹/모바일 소프트웨어 트랙",
+        "인지 감성 특화",
+        "데이터 사이언스",
+        "지능형 IoT 소프트웨어",
+        "풀스택 웹/모바일 소프트웨어",
+    }
+    
+    matched_program_ids = set()
+    try:
+        import sqlite3
+        from pathlib import Path
+        db_path = Path(__file__).resolve().parent.parent.parent / "gradmanager.db"
+        if db_path.exists():
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+            cursor.execute("SELECT program_id, program_name, program_type FROM programs")
+            db_programs = cursor.fetchall()
+            
+            for track in student_tracks:
+                if "본전공" in track:
+                    continue
+                clean_track = track.replace(" ", "").replace("트랙", "").replace("전공", "")
+                if not clean_track:
+                    continue
+                    
+                is_conv = track in CONVERGENCE_MAJORS_SET or any(c in track for c in ("융합", "장애인", "시니어"))
+                is_spec = track in SPECIALIZED_TRACKS_SET or any(s in track for s in ("특화", "트랙", "IoT", "풀스택", "데이터"))
+                
+                for pid, pname, ptype in db_programs:
+                    if is_conv and ptype != "CONVERGENCE":
+                        continue
+                    if is_spec and ptype != "SPECIALIZED":
+                        continue
+                        
+                    clean_pname = pname.replace(" ", "").replace("특화", "").replace("융합", "").replace("전공", "").replace("트랙", "")
+                    if clean_track in clean_pname or clean_pname in clean_track:
+                        matched_program_ids.add(pid)
+            conn.close()
+    except Exception as e:
+        print(f"Error fetching programs from DB: {e}")
+                
+    # 5.2. 해당 program_id에 속한 과목 ID 목록 추출
+    track_course_ids = set()
+    for row in curriculum_raw:
+        pid_raw = row.get("program_id")
+        if pid_raw and pid_raw.strip():
+            pid = int(pid_raw)
+            if pid in matched_program_ids:
+                cid_raw = row.get("course_id")
+                if cid_raw and cid_raw.strip():
+                    track_course_ids.add(int(cid_raw))
+            
+    # 5.3. SQLite 과목 테이블에서 ID와 코드를 매핑
+    track_course_codes = set()
+    try:
+        import sqlite3
+        from pathlib import Path
+        db_path = Path(__file__).resolve().parent.parent.parent / "gradmanager.db"
+        if db_path.exists():
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+            cursor.execute("SELECT course_code, course_id FROM courses")
+            db_mapping = cursor.fetchall()
+            for code, cid in db_mapping:
+                if cid in track_course_ids:
+                    track_course_codes.add(code.lstrip("*"))
+            conn.close()
+    except Exception as e:
+        print(f"Curriculum DB join error: {e}")
+
+    # 5.4. 추천 점수 산정 및 필터링
+    student_dept = student.get("department", "AISW")
+    aisw_depts = {"AISW", "인공지능소프트웨어학과", "컴퓨터공학과", "소프트웨어융합학과", "ICT융합학부", "데이터사이언스학과"}
+    
+    recommend_candidates = []
+    for code, info in courses_db.items():
+        if code in student.get("completed_courses", []):
+            continue
+            
+        course_dept = info.get("department", "AISW")
+        category = info.get("category", "일반선택")
+        
+        score = 0
+        is_match = False
+        
+        # 학과(Department) 매칭 검사
+        if course_dept == "계열공통":
+            score += 40
+            is_match = True
+        elif student_dept in aisw_depts and course_dept in aisw_depts:
+            score += 50
+            is_match = True
+        elif student_dept == course_dept:
+            score += 60
+            is_match = True
+            
+        # 학생의 융합전공/특성화트랙 과목인 경우 가산 및 허용
+        if code in track_course_codes:
+            score += 100
+            is_match = True
+            
+        # 미이수 필수 과목은 가산
+        is_remaining = any(r["code"] == code for r in remaining_req)
+        if is_remaining:
+            score += 200
+            is_match = True
+            
+        # 전공필수 과목 가산
+        if category == "전공필수":
+            score += 30
+            
+        # 교양 과목은 학과 매칭과 무관하게 허용하되 점수는 낮춤
+        if category in ("교양필수", "교양선택"):
+            is_match = True
+            score += 10
+            
+        # 매칭되는 과목(주전공, 계열공통, 융합/특화, 교양)만 추천 풀에 포함 (타학과 무관 전공 완전 배제)
+        if is_match:
+            recommend_candidates.append({
+                "code": code,
+                "info": info,
+                "score": score,
+                "category": category,
+                "is_remaining": is_remaining
+            })
+            
+    # 점수 높은 순으로 정렬
+    recommend_candidates.sort(key=lambda x: x["score"], reverse=True)
+    
+    # 균형 잡힌 추천 배분 (미이수 필수과목 최대 3개까지 우선 추천, 나머지는 트랙/융합 및 전공선택에 안배)
+    final_candidates = []
+    remaining_count = 0
+    for cand in recommend_candidates:
+        if cand["is_remaining"]:
+            if remaining_count < 3:
+                final_candidates.append(cand)
+                remaining_count += 1
+        else:
+            final_candidates.append(cand)
+            
+    # 추천 리스트 개수가 부족하면 제외했던 미이수 필수과목들로 순차적으로 채워넣음
+    if len(final_candidates) < 6:
+        for cand in recommend_candidates:
+            if cand not in final_candidates:
+                final_candidates.append(cand)
+                
+    # 상위 6개 과목을 추천 리스트에 탑재
+    for idx, cand in enumerate(final_candidates[:6]):
+        code = cand["code"]
+        info = cand["info"]
+        category = cand["category"]
+        is_remaining = cand["is_remaining"]
+        
+        prof = info.get("professor", "미정")
+        schedules = get_course_schedules(info)
         time_str = " / ".join(f"{s['day']} {s['start_time']}~{s['end_time']}" for s in schedules) if schedules else ""
+        
+        match_pct = min(98, max(70, int(70 + (cand["score"] / 350) * 28)))
+        
+        if is_remaining:
+            reason = f"미이수한 필수 {category} 과목입니다."
+        elif code in track_course_codes:
+            reason = f"선택하신 전공 트랙/융합 프로그램 맞춤형 {category} 과목입니다."
+        elif category in ("전공필수", "전공선택"):
+            reason = f"전공 역량 강화를 위해 추천하는 {category} 과목입니다."
+        else:
+            reason = f"졸업 요건을 충족하기 위한 {category} 과목입니다."
+            
         ai_courses.append({
-            "id": f"ai-course-{r['code']}",
-            "code": r["code"],
-            "name": r["name"],
-            "credit": r["credits"],
-            "match": 98,
-            "tags": ["전공필수", prof],
-            "reason": "미이수한 전공필수 과목입니다.",
+            "id": f"ai-course-{code}",
+            "code": code,
+            "name": info["name"],
+            "credit": info["credits"],
+            "match": match_pct,
+            "tags": [category, prof],
+            "reason": reason,
             "color": colors[idx % len(colors)],
             "professor": prof,
-            "category": "전공필수",
+            "category": category,
             "time": time_str,
             "schedules": schedules
         })
-    # 전공선택 추가
-    if len(ai_courses) < 6:
-        for code, info in list(courses_db.items()):
-            if code not in student.get("completed_courses", []) and info["category"] == "전공선택":
-                idx = len(ai_courses)
-                prof = info.get("professor", "이교수")
-                schedules = get_course_schedules(info)
-                time_str = " / ".join(f"{s['day']} {s['start_time']}~{s['end_time']}" for s in schedules) if schedules else ""
-                ai_courses.append({
-                    "id": f"ai-course-{code}",
-                    "code": code,
-                    "name": info["name"],
-                    "credit": info["credits"],
-                    "match": 85,
-                    "tags": ["전공선택", prof],
-                    "reason": "추천 전공 트랙 관심 과목입니다.",
-                    "color": colors[idx % len(colors)],
-                    "professor": prof,
-                    "category": "전공선택",
-                    "time": time_str,
-                    "schedules": schedules
-                })
-                if len(ai_courses) >= 6:
-                    break
 
     user_info_mapped = map_user_info(student)
     user_info_mapped["completedCoursesDetail"] = completed_details

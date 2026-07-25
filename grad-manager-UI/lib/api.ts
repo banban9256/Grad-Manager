@@ -101,7 +101,9 @@ export async function getAiRecommendationData(): Promise<{
 
 export async function sendChatMessage(
   message: string,
-  history?: Array<{ role: "user" | "assistant"; content: string }>
+  history?: Array<{ role: "user" | "assistant"; content: string }>,
+  semester?: string,
+  department?: string
 ): Promise<{ message: string; simulated_timetable?: any }> {
   let convergenceMajor = ""
   let specializedTrack = ""
@@ -126,7 +128,14 @@ export async function sendChatMessage(
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ message, history, convergenceMajor, specializedTrack }),
+    body: JSON.stringify({ 
+      message, 
+      history, 
+      convergenceMajor, 
+      specializedTrack,
+      semester,
+      department
+    }),
   })
   if (!res.ok) {
     throw new Error("메시지 전송에 실패했습니다.")
@@ -154,8 +163,9 @@ export async function registerUser(
   return await res.json()
 }
 
-export async function searchCourseOfferings(query: string): Promise<any[]> {
-  const res = await apiFetch(`/api/v1/timetable/mock-courses?q=${encodeURIComponent(query)}`)
+export async function searchCourseOfferings(query: string, semester?: string): Promise<any[]> {
+  const semParam = semester ? `&semester=${encodeURIComponent(semester)}` : ""
+  const res = await apiFetch(`/api/v1/timetable/mock-courses?q=${encodeURIComponent(query)}${semParam}`)
   if (!res.ok) {
     throw new Error("과목 검색에 실패했습니다.")
   }
@@ -210,13 +220,13 @@ export async function updateProfile(
   return await res.json()
 }
 
-export async function saveUserSchedule(studentId: string | number, scheduleBlocks: any[]): Promise<{ success: boolean }> {
+export async function saveUserSchedule(studentId: string | number, scheduleBlocks: any[], semester?: string): Promise<{ success: boolean }> {
   const res = await apiFetch("/api/v1/timetable/schedule", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ studentId, scheduleBlocks }),
+    body: JSON.stringify({ studentId: String(studentId), scheduleBlocks, semester }),
   })
   if (!res.ok) {
     throw new Error("시간표 블록 저장에 실패했습니다.")
@@ -224,8 +234,9 @@ export async function saveUserSchedule(studentId: string | number, scheduleBlock
   return await res.json()
 }
 
-export async function getUserSchedule(studentId: string): Promise<any[]> {
-  const res = await apiFetch(`/api/v1/timetable/schedule?studentId=${studentId}`)
+export async function getUserSchedule(studentId: string, semester?: string): Promise<any[]> {
+  const semParam = semester ? `&semester=${encodeURIComponent(semester)}` : ""
+  const res = await apiFetch(`/api/v1/timetable/schedule?studentId=${studentId}${semParam}`)
   if (!res.ok) {
     throw new Error("시간표 블록 조회에 실패했습니다.")
   }
@@ -348,6 +359,8 @@ export async function getStudentCourseHistory(
     grade: string
     earned_credit: number
     is_retake: boolean
+    year?: string
+    semester?: string
   }>
 }> {
   const res = await apiFetch(`/api/v1/students/${studentId}/history`)
@@ -399,4 +412,13 @@ export async function deleteStudentCourseHistory(
     throw new Error("수강 이력 삭제에 실패했습니다.")
   }
   return await res.json()
+}
+
+export async function getSemesterList(): Promise<string[]> {
+  const res = await apiFetch("/api/v1/timetable/semesters")
+  if (!res.ok) {
+    throw new Error("학기 목록 조회에 실패했습니다.")
+  }
+  const data = await res.json()
+  return data.semesters || []
 }

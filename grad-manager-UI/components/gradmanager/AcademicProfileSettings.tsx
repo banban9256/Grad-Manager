@@ -333,7 +333,13 @@ export function AcademicProfileSettings({ onBack, onSubmitSuccess }: AcademicPro
             <div className="relative">
               <select
                 value={convergenceMajor}
-                onChange={(e) => setConvergenceMajor(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setConvergenceMajor(val)
+                  if (val !== "") {
+                    setSpecializedTrack("")
+                  }
+                }}
                 className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3.5 pr-10 text-sm text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer font-medium"
               >
                 <option value="">선택 안 함 (일반 전공)</option>
@@ -358,7 +364,13 @@ export function AcademicProfileSettings({ onBack, onSubmitSuccess }: AcademicPro
             <div className="relative">
               <select
                 value={specializedTrack}
-                onChange={(e) => setSpecializedTrack(e.target.value)}
+                onChange={(e) => {
+                  const val = e.target.value
+                  setSpecializedTrack(val)
+                  if (val !== "") {
+                    setConvergenceMajor("")
+                  }
+                }}
                 className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3.5 pr-10 text-sm text-foreground transition-all focus:border-primary focus:bg-background focus:outline-none focus:ring-1 focus:ring-primary appearance-none cursor-pointer font-medium"
               >
                 <option value="">선택 안 함 (일반 트랙)</option>

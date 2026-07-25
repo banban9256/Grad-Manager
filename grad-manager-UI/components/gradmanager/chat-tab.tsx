@@ -35,6 +35,21 @@ const tagStyle: Record<string, string> = {
   "융합전공 매칭": "bg-[#f4edff] text-[#6b31f6] dark:bg-[#2c1d3c] dark:text-[#a880f7]",
 }
 
+const SEMESTER_OPTIONS = [
+  "2026-2학기",
+  "2026-1학기",
+  "2025-2학기",
+  "2025-1학기",
+  "2024-2학기",
+  "2024-1학기",
+  "2023-2학기",
+  "2023-1학기",
+  "2022-2학기",
+  "2022-1학기",
+  "2021-2학기",
+  "2021-1학기",
+]
+
 type Message = {
   id: string
   role: "ai" | "user"
@@ -100,11 +115,20 @@ const dayStringToNum = (dayVal: any): number => {
 }
 
 export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
-  const { chat, refreshData, schedule, messages = [], setMessages, simulatedSchedule, allCourses, user } = useGradData()
+  const { chat, refreshData, schedule, messages = [], setMessages, simulatedSchedule, allCourses, user, selectedSemester = "2026-1학기", setSelectedSemester, semesters = [] } = useGradData()
   const { recommendedCourses } = chat
   const { showToast } = useToast()
 
   const activeStudentId = user?.userInfo?.studentId || "20210001"
+
+  const handleSemesterChange = (newSem: string) => {
+    if (setSelectedSemester) {
+      setSelectedSemester(newSem)
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`grad_last_viewed_semester_${activeStudentId}`, newSem)
+    }
+  }
 
   const localSimData = simulatedSchedule
   const simDone = localSimData !== null
@@ -113,7 +137,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
   // 수동 편집된 시간표 상태 로딩 (localStorage / sessionStorage 영구 싱크용)
   const [customBlocks, setCustomBlocks] = useState<any[]>(() => {
     if (typeof window !== "undefined") {
-      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}_${selectedSemester}`
       const storedLocal = localStorage.getItem(scheduleBlocksKey)
       const storedSession = sessionStorage.getItem(scheduleBlocksKey)
       
@@ -144,11 +168,11 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
   const saveBlocks = (nextBlocks: any[]) => {
     setCustomBlocks(nextBlocks)
     if (typeof window !== "undefined") {
-      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}_${selectedSemester}`
       localStorage.setItem(scheduleBlocksKey, JSON.stringify(nextBlocks))
       sessionStorage.setItem(scheduleBlocksKey, JSON.stringify(nextBlocks))
     }
-    saveUserSchedule(Number(activeStudentId), nextBlocks).catch((err) => {
+    saveUserSchedule(Number(activeStudentId), nextBlocks, selectedSemester).catch((err) => {
       console.error("Failed to save user schedule to backend:", err)
     })
   }
@@ -156,7 +180,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
   // 외부 편집 연동 동기화용 이펙트
   useEffect(() => {
     const syncLocal = () => {
-      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}_${selectedSemester}`
       const storedLocal = localStorage.getItem(scheduleBlocksKey)
       const storedSession = sessionStorage.getItem(scheduleBlocksKey)
       
@@ -179,16 +203,18 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
       const activeStored = localBlocks.length > 0 ? localBlocks : sessionBlocks
       if (activeStored.length > 0) {
         setCustomBlocks(activeStored)
+      } else {
+        setCustomBlocks([])
       }
     }
     window.addEventListener("focus", syncLocal)
     return () => window.removeEventListener("focus", syncLocal)
-  }, [activeStudentId])
+  }, [activeStudentId, selectedSemester])
 
-  // 계정 전환 시 새로운 학번의 시간표 데이터를 재로드
+  // 계정 전환 및 선택 학기 변경 시 새로운 학번/학기의 시간표 데이터를 재로드
   useEffect(() => {
     if (typeof window !== "undefined" && activeStudentId) {
-      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}`
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${activeStudentId}_${selectedSemester}`
       const storedLocal = localStorage.getItem(scheduleBlocksKey)
       const storedSession = sessionStorage.getItem(scheduleBlocksKey)
       let localBlocks: any[] = []
@@ -209,7 +235,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
       const activeStored = localBlocks.length > 0 ? localBlocks : sessionBlocks
       setCustomBlocks(activeStored)
     }
-  }, [activeStudentId])
+  }, [activeStudentId, selectedSemester])
 
   // 시간 포맷을 실수형 숫자로 파싱
   const timeToHoursValue = (timeStr: string): number => {
@@ -529,7 +555,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
           content: m.content,
         }))
       
-      const chatResult = await sendChatMessage(userMsg.content, formattedHistory)
+      const chatResult = await sendChatMessage(userMsg.content, formattedHistory, selectedSemester, user?.userInfo?.department)
       
       const aiMsg: Message = {
         id: `msg-${Date.now()}-ai`,
@@ -563,12 +589,27 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
     <div className="flex h-full flex-col bg-background">
       {/* Header */}
       <div className="border-b border-border bg-card px-4 py-4 shrink-0 shadow-sm">
-        <div className="mx-auto w-full max-w-4xl">
-          <h1 className="flex items-center gap-2 text-lg font-bold text-foreground">
-            <Sparkles className="h-5 w-5 text-primary" />
-            AI 수강 추천 &amp; 상담
-          </h1>
-          <p className="text-xs text-muted-foreground mt-0.5">조건을 말씀하시면 최적의 과목과 시간표를 추천해 드립니다</p>
+        <div className="mx-auto w-full max-w-4xl flex items-center justify-between gap-4">
+          <div className="text-left">
+            <h1 className="flex items-center gap-2 text-lg font-bold text-foreground">
+              <Sparkles className="h-5 w-5 text-primary" />
+              AI 수강 추천 &amp; 상담
+            </h1>
+            <p className="text-xs text-muted-foreground mt-0.5">조건을 말씀하시면 최적의 과목과 시간표를 추천해 드립니다</p>
+          </div>
+          {/* 학기 선택기 드롭다운 추가 */}
+          <div className="flex items-center gap-1.5 shrink-0 bg-secondary/40 px-3 py-1.8 rounded-xl border border-border/50">
+            <span className="text-[10px] font-black text-muted-foreground shrink-0">학기 선택:</span>
+            <select
+              value={selectedSemester}
+              onChange={(e) => handleSemesterChange(e.target.value)}
+              className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer font-bold"
+            >
+              {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -682,6 +723,16 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                       )
                     })}
                   </ul>
+                  {onOpenSchedule && (
+                    <button
+                      type="button"
+                      onClick={onOpenSchedule}
+                      className="w-full mt-3 py-2.5 rounded-xl text-xs font-bold bg-[#3182f6] text-white hover:bg-[#1b64da] active:scale-95 transition-all cursor-pointer shadow-sm text-center flex items-center justify-center gap-1.5"
+                    >
+                      <Sparkles className="h-4 w-4" />
+                      <span>추천 시간표 확인하러 가기</span>
+                    </button>
+                  )}
                 </motion.div>
               ) : null}
             </AnimatePresence>
@@ -894,7 +945,13 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                   <div className="relative">
                     <select
                       value={easyConv}
-                      onChange={(e) => setEasyConv(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setEasyConv(val)
+                        if (val !== "") {
+                          setEasySpec("")
+                        }
+                      }}
                       className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3 text-sm text-foreground appearance-none cursor-pointer"
                     >
                       <option value="">선택 안 함 (일반 전공)</option>
@@ -916,7 +973,13 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                   <div className="relative">
                     <select
                       value={easySpec}
-                      onChange={(e) => setEasySpec(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setEasySpec(val)
+                        if (val !== "") {
+                          setEasyConv("")
+                        }
+                      }}
                       className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3 text-sm text-foreground appearance-none cursor-pointer"
                     >
                       <option value="">선택 안 함 (일반 트랙)</option>

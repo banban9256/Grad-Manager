@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useState, useMemo } from "react"
 import { GraduationCap, Loader2 } from "lucide-react"
 import type { GradManagerData } from "@/lib/grad-data-types"
-import { getGradData, updateCompletedCourses as apiUpdateCompletedCourses } from "@/lib/api"
+import { getGradData, updateCompletedCourses as apiUpdateCompletedCourses, getSemesterList } from "@/lib/api"
 import { ToastProvider } from "./toast"
 import { LoginPage } from "./login-page"
 import { SignUpPage } from "./signup-page"
@@ -56,6 +56,44 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
 
   const studentId = data?.user?.userInfo?.studentId
 
+  const [semesters, setSemesters] = useState<string[]>([
+    "2026-2학기", "2026-1학기", "2025-2학기", "2025-1학기",
+    "2024-2학기", "2024-1학기", "2023-2학기", "2023-1학기",
+    "2022-2학기", "2022-1학기", "2021-2학기", "2021-1학기"
+  ])
+
+  // 학기 관리 상태 신설 (마지막 조회 학기 복원 지원)
+  const getSavedSemester = (id: string) => {
+    if (typeof window !== "undefined" && id) {
+      const lastSem = localStorage.getItem(`grad_last_viewed_semester_${id}`)
+      if (lastSem) return lastSem
+    }
+    return "2026-1학기"
+  }
+
+  const [selectedSemester, setSelectedSemester] = useState<string>(() => getSavedSemester(studentId || "20210001"))
+
+  // 학기 동적 로드 이펙트
+  useEffect(() => {
+    let isMounted = true
+    getSemesterList().then((list) => {
+      if (isMounted && list && list.length > 0) {
+        setSemesters(list)
+        const saved = getSavedSemester(studentId || "20210001")
+        if (saved && list.includes(saved)) {
+          setSelectedSemester(saved)
+        } else {
+          setSelectedSemester(list[0])
+        }
+      }
+    }).catch((err) => {
+      console.error("학기 목록 로드 실패:", err)
+    })
+    return () => {
+      isMounted = false
+    }
+  }, [studentId])
+
   // 로그인 성공이나 data 로드 시 completedCourses 및 로컬 스토리지 동기화
   useEffect(() => {
     if (studentId) {
@@ -101,30 +139,30 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [studentId])
 
-  // 컴포넌트 마운트 시 전체 개설 과목 풀 로딩
+  // 컴포넌트 마운트 및 선택 학기 변경 시 개설 과목 풀 로딩
   useEffect(() => {
     async function loadAllCourses() {
       try {
         const { searchCourseOfferings } = await import("@/lib/api")
-        const courses = await searchCourseOfferings("")
+        const courses = await searchCourseOfferings("", selectedSemester)
         setAllCourses(courses)
       } catch (err) {
-        console.error("전체 개설 과목 목록 로딩 실패:", err)
+        console.error("개설 과목 목록 로딩 실패:", err)
       }
     }
-    if (isLoggedIn) {
+    if (isLoggedIn && selectedSemester) {
       loadAllCourses()
     }
-  }, [isLoggedIn])
+  }, [isLoggedIn, selectedSemester])
 
   // 메시지 혹은 과목 풀 업데이트 시 시뮬레이션 엔진 실행
   useEffect(() => {
     if (!studentId) return
 
     const messagesKey = `grad_chatbot_messages_${studentId}`
-    const simulatedTimetableKey = `grad_simulated_timetable_${studentId}`
-    const simulationAppliedKey = `chatbot_simulation_applied_${studentId}`
-    const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}`
+    const simulatedTimetableKey = `grad_simulated_timetable_${studentId}_${selectedSemester}`
+    const simulationAppliedKey = `chatbot_simulation_applied_${studentId}_${selectedSemester}`
+    const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}_${selectedSemester}`
 
     if (typeof window !== "undefined") {
       sessionStorage.setItem(messagesKey, JSON.stringify(messages))
@@ -160,7 +198,7 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
         setSimulatedSchedule(null)
       }
     }
-  }, [messages, allCourses, studentId])
+  }, [messages, allCourses, studentId, selectedSemester])
 
   // 챗봇 시뮬레이션 초기화 액션
   const resetSimulation = () => {
@@ -174,10 +212,10 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     setSimulatedSchedule(null)
     if (typeof window !== "undefined" && studentId) {
       sessionStorage.removeItem(`grad_chatbot_messages_${studentId}`)
-      sessionStorage.removeItem(`grad_simulated_timetable_${studentId}`)
-      sessionStorage.removeItem(`chatbot_simulation_applied_${studentId}`)
+      sessionStorage.removeItem(`grad_simulated_timetable_${studentId}_${selectedSemester}`)
+      sessionStorage.removeItem(`chatbot_simulation_applied_${studentId}_${selectedSemester}`)
       sessionStorage.removeItem(`chatbot_simulation_data_${studentId}`)
-      localStorage.removeItem(`grad_manager_ai_recommended_timetable_${studentId}`)
+      localStorage.removeItem(`grad_manager_ai_recommended_timetable_${studentId}_${selectedSemester}`)
     }
   }
 
@@ -518,6 +556,9 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     allCourses,
     notifyEnabled,
     setNotifyEnabled,
+    selectedSemester,
+    setSelectedSemester,
+    semesters,
     user: data?.user || { userInfo: {} as any, creditCategories: [], quickMenus: [] },
     notice: data?.notice ? {
       ...data.notice,
