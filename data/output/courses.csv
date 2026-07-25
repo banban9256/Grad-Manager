@@ -1,766 +1,2161 @@
 ﻿course_id,course_code,course_name,credit,theory_hours,practice_hours,course_description,source_url
-1,KY410,진로와상담,0.0,0.0,0.0,경영미디어계열 / 대학생활길잡이 이수 완료자,https://sugang.hs.ac.kr/course/subject/list
-2,KY313,기독교와문화,2.0,2.0,0.0,교필과목/기독교과목,https://sugang.hs.ac.kr/course/subject/list
-3,KYC54,Essential English,3.0,3.0,0.0,독해수업/신학인문/콘텐츠/글로벌융합/경영/미디어 계열수강/2026학번 교양필수,https://sugang.hs.ac.kr/course/subject/list
-4,KY882,기독교와세계종교,2.0,2.0,0.0,교필과목/기독교과목,https://sugang.hs.ac.kr/course/subject/list
-5,KY620,드라마속의기독교,2.0,2.0,0.0,교필과목/기독교과목,https://sugang.hs.ac.kr/course/subject/list
-6,KY677,대학생활길잡이,1.0,1.0,0.0,AI·SW계열 수강,https://sugang.hs.ac.kr/course/subject/list
-7,KY883,영화속의기독교,2.0,2.0,0.0,교필과목/기독교과목,https://sugang.hs.ac.kr/course/subject/list
-8,KY304,채플,1.0,1.0,0.0,"신학 1학년, 신학전공 예정자(대예배실에서 채플 진행)",https://sugang.hs.ac.kr/course/subject/list
-9,KYC56,컴퓨팅사고와SW코딩,3.0,3.0,0.0,AISW 계열 수강 / 교양필수,https://sugang.hs.ac.kr/course/subject/list
-10,KYC55,글쓰기의기초,3.0,3.0,0.0,자유전공/휴먼서비스/첨단융합/AI•SW/특체계열 수강 / 2026학번 교양필수 ,https://sugang.hs.ac.kr/course/subject/list
-11,KYD03,AI아트코딩과윤리,3.0,3.0,0.0,신학인문융합계열 수강 / 교양필수,https://sugang.hs.ac.kr/course/subject/list
-12,KYD01,자기탐색과소통,1.0,1.0,0.0,자유전공학부 교양필수,https://sugang.hs.ac.kr/course/subject/list
-13,KY612,성서입문,2.0,2.0,0.0,교필과목/성서관련과목 신학전공예정자 교양필수과목,https://sugang.hs.ac.kr/course/subject/list
-14,KY879,기독교와인문학,2.0,2.0,0.0,교필과목/기독교과목,https://sugang.hs.ac.kr/course/subject/list
-15,KY201,채플,0.5,0.5,0.0,"경영계열(경영,IT경영,글비), 미디어계열(미영), 휴먼서비스계열(사회학과,사복,재활,심아), 특수체육학계열(특체)",https://sugang.hs.ac.kr/course/subject/list
-16,KY100,채플,1.0,1.0,0.0,~22학번 신학대학 2~4학년 복학생(대예배실에서 채플 진행),https://sugang.hs.ac.kr/course/subject/list
-17,KY101,채플,0.5,0.5,0.0,"첨단융합(수리,응통,금융공학,빅데이터융합),AI·SW계열(컴공, 소웨융, IT영상콘텐츠), AI시스템반도체",https://sugang.hs.ac.kr/course/subject/list
-18,KY509,채플,1.0,1.0,0.0,"신학대학 NP대상자 수강, 교목실과 상담 후 수강신청, P/NP",https://sugang.hs.ac.kr/course/subject/list
-19,KY921,사회생활길잡이,1.0,1.0,0.0,"AI·SW학, 컴공부, 소웨융, 아영콘 수강",https://sugang.hs.ac.kr/course/subject/list
-20,KY217,성서의세계,2.0,2.0,0.0,"교필과목/2,3,4학년 성서관련 과목 미이수자",https://sugang.hs.ac.kr/course/subject/list
-21,KY721,영어Ⅰ,2.0,2.0,0.0,교양필수 영어1 재수강반(*2026-1학기까지만 재수강 가능),https://sugang.hs.ac.kr/course/subject/list
-22,*KY134,K-POP실습,3.0,3.0,0.0,외국인학생 전용강의,https://sugang.hs.ac.kr/course/subject/list
-23,KYC89,세계의전쟁과평화,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-24,KY696,문학과영화에서죽음의의미,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-25,KY820,테니스,2.0,2.0,0.0,특수체육학 전공생 수강금지(특수체육학계열 1학년은 수강 가능) 이론 수업 시 10201호,https://sugang.hs.ac.kr/course/subject/list
-26,KY828,등산과트래킹,2.0,2.0,0.0,특수체육학 전공생 수강금지(특수체육학계열 1학년은 수강 가능),https://sugang.hs.ac.kr/course/subject/list
-27,KY755,철학이란무엇인가,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-28,KY817,축구,2.0,2.0,0.0,특수체육학 전공생 수강금지(특수체육학계열 1학년은 수강가능) 이론 수업 시 10202호,https://sugang.hs.ac.kr/course/subject/list
-29,KY835,봉사활동Ⅰ,1.0,1.0,0.0,"P/N 교과목/오리엔테이션 필참,30시간이상 봉사활동 수행, 인증서 제출",https://sugang.hs.ac.kr/course/subject/list
-30,KY964,시각문화의역사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-31,KY786,뉴턴과근대과학탄생의비밀,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-32,KY861,올바른언어생활,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-33,KYA30,기초독일어실습Ⅰ,2.0,2.0,0.0,"교내온라인 / 독어독문학 수강금지(1학년허용), 구)독일어Ⅰ",https://sugang.hs.ac.kr/course/subject/list
-34,KY662,초급일본어Ⅰ,2.0,2.0,0.0,일본학과수강금지(1학년허용),https://sugang.hs.ac.kr/course/subject/list
-35,KY245,수재수학:수포자를위한재미있는수학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-36,KYC88,인간관계와의사소통,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-37,KY896,서양고전문학길잡이,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-38,KY800,구급과안전교육,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-39,KYA88,기독교와음식문화,3.0,3.0,0.0,"교양필수아님,일반교양선택과목,교내온라인",https://sugang.hs.ac.kr/course/subject/list
-40,KYA67,지혜로운소비와재테크,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-41,KYA76,기술과인간의미래,3.0,3.0,0.0,구)기계와인간의미래,https://sugang.hs.ac.kr/course/subject/list
-42,KY818,농구,2.0,2.0,0.0,특수체육학 전공생 수강금지(특수체육학계열 1학년은 수강 가능) 이론 수업 시 10201호,https://sugang.hs.ac.kr/course/subject/list
-43,KY724,드라마의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-44,KY646,프랑스어회화및실습Ⅰ,2.0,2.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-45,KY961,결혼과가족,3.0,3.0,0.0,블랜디드 수업,https://sugang.hs.ac.kr/course/subject/list
-46,KYC91,중국사를통해본리더십,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-47,KYA81,금융과사회,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-48,KY993,중급영어회화1,2.0,2.0,0.0,영문과수강금지(1학년허용) / 수강인원 5명 이상 개설(절대평가),https://sugang.hs.ac.kr/course/subject/list
-49,KY286,서양사의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-50,KYA21,물리란무엇인가,3.0,3.0,0.0,구) 물리및실험 이수자 수강 불가,https://sugang.hs.ac.kr/course/subject/list
-51,KYA24,중국문화길잡이,3.0,3.0,0.0,온라인 수강,https://sugang.hs.ac.kr/course/subject/list
-52,KYA22,인간과교육,3.0,3.0,0.0,블랜디드 수업(강의실 변경 3203>3321),https://sugang.hs.ac.kr/course/subject/list
-53,KYC45,게임과e스포츠영상의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-54,*KY130,고급한국어회화2,3.0,3.0,0.0,"외국인학생 전용강의 / TOPIK 4급 듣기, 말하기",https://sugang.hs.ac.kr/course/subject/list
-55,KYC87,인공지능시대말과글,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-56,KYC41,나를찾아떠나는여행,2.0,2.0,0.0,교목실 교양과목,https://sugang.hs.ac.kr/course/subject/list
-57,KY667,초급일본어회화Ⅰ,1.0,1.0,0.0,일본학과수강금지(1학년허용),https://sugang.hs.ac.kr/course/subject/list
-58,KYC96,공정거래와법정책이야기,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-59,KY508,1인미디어만들기,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-60,KY693,광고와삶,3.0,3.0,0.0,교내온라인 / 미디어영상광고홍보제외,https://sugang.hs.ac.kr/course/subject/list
-61,KYA82,아동발달과양육사의이해,3.0,3.0,0.0,발달재활서비스제공인력 놀이심리재활 공통선택 과목 (강의실 변경 18420>18104),https://sugang.hs.ac.kr/course/subject/list
-62,*KY133,소통의기술,3.0,3.0,0.0,외국인학생 전용강의,https://sugang.hs.ac.kr/course/subject/list
-63,KY747,중국사의이해,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-64,KY963,예술로말하기1,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-65,KY844,중국어회화Ⅰ,2.0,2.0,0.0,"중국어문화콘텐츠전공(중국어문화영상융합포함), 중국학전공 2학년 이상 학생 수강 금지.",https://sugang.hs.ac.kr/course/subject/list
-66,KY983,시사영어,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-67,*KY044,응급처치와생존수영,2.0,2.0,0.0,집중이수제과목 / 외국인학생 전용강의 / 신설(2024.11.27),https://sugang.hs.ac.kr/course/subject/list
-68,KY840,한문Ⅰ,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-69,KY309,생활속의실용금융,3.0,3.0,0.0,학생 전원 교재 지급,https://sugang.hs.ac.kr/course/subject/list
-70,KY796,"식품,건강,사회",3.0,3.0,0.0,LMS 온라인강의,https://sugang.hs.ac.kr/course/subject/list
-71,KYD13,사진과평화감수성,3.0,3.0,0.0,신설(25.06),https://sugang.hs.ac.kr/course/subject/list
-72,KYD05,AI시대창의성과브랜딩,3.0,3.0,0.0,신설(2024.11.27),https://sugang.hs.ac.kr/course/subject/list
-73,KYD17,"K브랜드,그들은 어떻게 세상을 바꾸었나",3.0,3.0,0.0,교내온라인/혁신지원사업 신설(25.11.27),https://sugang.hs.ac.kr/course/subject/list
-74,KYC64,발표하기와토론하기,3.0,3.0,0.0,교내온라인수업,https://sugang.hs.ac.kr/course/subject/list
-75,KYD07,쟁점으로본한국근현대사,3.0,3.0,0.0,구)쟁점으로본한국현대사,https://sugang.hs.ac.kr/course/subject/list
-76,KYD19,슬기로운직업생활과법,3.0,3.0,0.0,신설(25.11.27),https://sugang.hs.ac.kr/course/subject/list
-77,KYD20,피클볼,3.0,3.0,0.0,"신설(25.11) 특수체육학 전공생 수강금지(특수체육계열 1학년은 수강가능), 이론수업 시 10201호 수업",https://sugang.hs.ac.kr/course/subject/list
-78,*KY043,외국인을위한한국세계유산탐방,3.0,3.0,0.0,외국인학생 전용강의 / 신설(2024.11.27),https://sugang.hs.ac.kr/course/subject/list
-79,KYC36,Feel Free to Speak,2.0,2.0,0.0,교내온라인 수업 /P/NP,https://sugang.hs.ac.kr/course/subject/list
-80,KYC69,실용영어,3.0,3.0,0.0,전학년 수강가능/구)비즈니스영어/구)실용영어연습,https://sugang.hs.ac.kr/course/subject/list
-81,KYD09,우주의기원과진화,3.0,3.0,0.0,구)우주의한마을:지구의이해,https://sugang.hs.ac.kr/course/subject/list
-82,KYD04,신체활동과긍정적인자아정체성,3.0,3.0,0.0,신설(2024.11.27),https://sugang.hs.ac.kr/course/subject/list
-83,KYD18,한류드라마로본한국기독교의 이해,3.0,3.0,0.0,교내온라인/혁신지원사업 신설(25.11.27),https://sugang.hs.ac.kr/course/subject/list
-84,KYC31,빅데이터분석실습,3.0,3.0,0.0,[빅데이터분석] 마이크로전공,https://sugang.hs.ac.kr/course/subject/list
-85,KYC21,오르간연주법1,2.0,2.0,0.0,교목실 교양과목,https://sugang.hs.ac.kr/course/subject/list
-86,KY967,명화의사회사,3.0,3.0,0.0,교내온라인 강좌,https://sugang.hs.ac.kr/course/subject/list
-87,KYC82,음악의이해와기악실습,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-88,KYC46,국제개발협력과글로벌이슈,3.0,3.0,0.0,국제관계학(글로벌인재학) 전공학생 수강불가,https://sugang.hs.ac.kr/course/subject/list
-89,KY472,생활법률,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-90,KY952,한국미술의감상과이해,3.0,3.0,0.0,교내 온라인 강좌,https://sugang.hs.ac.kr/course/subject/list
-91,KYA70,감정수업:침묵과말,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-92,KY756,현대사회와윤리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-93,KYA69,연기예술1:행동,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-94,KYC85,우리가몰랐던동남아시아,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-95,KY241,노벨상으로보는과학의역사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-96,KYA89,4차산업기술의이해와미래,3.0,3.0,0.0,블랜디드,https://sugang.hs.ac.kr/course/subject/list
-97,KY734,영화입문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-98,KY554,e-비즈니스의이해,3.0,3.0,0.0,IT경영학과/e-비즈니스학과 수강불가,https://sugang.hs.ac.kr/course/subject/list
-99,KY949,유럽속의독일문화,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-100,KYC94,문화유산으로만나는정조시대,3.0,3.0,0.0,구)18세기조선과정조의꿈 수강생 수강금지,https://sugang.hs.ac.kr/course/subject/list
-101,KYC70,문화산업과콘텐츠,3.0,3.0,0.0,기존 '문화산업과대중문화' 수강생 수강불가 / 교내온라인,https://sugang.hs.ac.kr/course/subject/list
-102,KY471,논리와비판적사고,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-103,KY876,노동과인간,3.0,3.0,0.0,외부지원사업교과목,https://sugang.hs.ac.kr/course/subject/list
-104,KY842,중국어Ⅰ,2.0,2.0,0.0,중국어문화콘텐츠학 2학년 이상 수강 금지,https://sugang.hs.ac.kr/course/subject/list
-105,KY991,기초영어회화1,2.0,2.0,0.0,영문과수강금지(1학년허용) / 수강인원 5명 이상 개설,https://sugang.hs.ac.kr/course/subject/list
-106,KY898,재미있는광고이야기,3.0,3.0,0.0,교내온라인 / 미디어영상광고홍보학부 수강금지,https://sugang.hs.ac.kr/course/subject/list
-107,KY419,현대사회와복지,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-108,KYC61,어서와한국은처음이지,3.0,3.0,0.0,일반 학생 수강 가능/외국인 대상 수업 아님,https://sugang.hs.ac.kr/course/subject/list
-109,KYC63,책읽기와말하기,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-110,OC239,챗GPT의이해와활용,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-111,OC191,부동산의이해,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-112,OC160,식생활과건강,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-113,OC129,TED로배우는영화속바이오테크놀로지,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-114,KYC60,먼나라이웃나라,3.0,3.0,0.0,강의실 변경 20502>8110,https://sugang.hs.ac.kr/course/subject/list
-115,OC244,뇌과학의탐험,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-116,*KY142,컴퓨터기초1,3.0,3.0,0.0,외국인학생 전용강의/신설(25.11.27),https://sugang.hs.ac.kr/course/subject/list
-117,OC243,기후위기와미래사회,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-118,OC112,생활속의심리학,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-119,OC235,나를찾는행복레슨,3.0,3.0,0.0,"사이버대학교(OCU)강의/교양과목/별도수강료납부(24,000원)/학점교류 6학점까지 수강가능 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-120,*KY045,고급심화한국어문법1,3.0,3.0,0.0,"외국인학생 전용 강의 / TOPIK 4급 읽기,문법,쓰기",https://sugang.hs.ac.kr/course/subject/list
-121,*KY046,고급심화한국어회화1,3.0,3.0,0.0,"외국인학생 전용강의 / TOPIK 4급 듣기, 말하기",https://sugang.hs.ac.kr/course/subject/list
-122,KYD10,5주만행렬에집중,3.0,3.0,0.0,KYC26 이수자 수강불가/집중이수제과목/교내온라인,https://sugang.hs.ac.kr/course/subject/list
-123,*KY042,영화로배우는한국어와한국문화,3.0,3.0,0.0,외국인학생 전용강의 / 신설(2024.11.27),https://sugang.hs.ac.kr/course/subject/list
-124,KY661,취창업스쿨1,3.0,3.0,0.0,"P/NP 2,3,4학년 교내온라인 , 진로선택과취업준비와 동일학기 중복 수강 불가",https://sugang.hs.ac.kr/course/subject/list
-125,KYC01,좋은기업찾기프로젝트,3.0,3.0,0.0,교내온라인,https://sugang.hs.ac.kr/course/subject/list
-126,KY593,진로선택과취업준비,3.0,3.0,0.0,"3,4학년만 수강/온라인수업/P/NP교과목, 외부온라인 // 외부온라인",https://sugang.hs.ac.kr/course/subject/list
-127,EK201,글로벌경영론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-128,TT111,목회실습Ⅰ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-129,HK105,한국문학개론,3.0,3.0,0.0,전공필수교과목. 한국어교육트랙 4영역 ,https://sugang.hs.ac.kr/course/subject/list
-130,HH406,한국사사료읽기1,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-131,HN613,동아시아경제지리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-132,HP141,서양고중세철학사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-133,HP137,철학여행Ⅰ,1.0,1.0,0.0,철학 재학생(복수전공 포함)만 수강 가능,https://sugang.hs.ac.kr/course/subject/list
-134,HE275,영미문화의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-135,EZ238,파이썬프로그래밍기초,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-136,EJ203,국제개발협력의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-137,EB312,재무관리,3.0,3.0,0.0,경영학 전공 재학생 수강신청 선수이수과목: 회계의 이해 또는 회계원리 //전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-138,HH116,한국사학입문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-139,EB203,조직행동론,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-140,HH272,기록학입문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-141,HH470,학술답사A,0.5,0.5,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-142,TT151,신앙수련회Ⅱ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-143,HS217,고전사회학탐구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-144,TT632,그리스도교신학과문화 ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-145,HE219,영문학개관,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-146,DV101,문화콘텐츠학,3.0,3.0,0.0,"디영문콘,디문콘,영상문화 소속 전공자에 한함 / 복수전공자 및 타과생 수강 금지 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-147,DC164,현대중국사회와문화,3.0,3.0,0.0,한중콘텐츠전공과목,https://sugang.hs.ac.kr/course/subject/list
-148,TT112,목회실습Ⅱ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-149,EF201,경제금융수학길잡이,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-150,NM216,금융공학1,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-151,NP201,특수체육개론,3.0,3.0,0.0,"이론 수업 시 10201호/실습 수업 시 운동장/월3,4블록",https://sugang.hs.ac.kr/course/subject/list
-152,HK106,한국어학개론,3.0,3.0,0.0,전공필수교과목. 한국어교육트랙 1영역,https://sugang.hs.ac.kr/course/subject/list
-153,HJ269,일본학조사연구Ⅰ,3.0,3.0,0.0,세미나 수업 연강요청. 전공(복수전공)자,https://sugang.hs.ac.kr/course/subject/list
-154,HR102,종교학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-155,EH105,글로벌사회입문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-156,EE366,미시경제학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-157,NM289,미적분학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-158,HH263,고고학입문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-159,HI269,국제관계의이론과역사,3.0,3.0,0.0,외국인 유학생 전용 강의,https://sugang.hs.ac.kr/course/subject/list
-160,HC599,중급중국어회화Ⅰ,1.0,1.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-161,PS110,공공조직관리론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-162,HI323,정치사상의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-163,TT217,목회실습Ⅲ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-164,PS414,사회조사분석,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-165,EZ239,데이터분석,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-166,HP287,철학여행Ⅱ,1.0,1.0,0.0, 철학 재학생(복수전공 포함)만 수강 가능,https://sugang.hs.ac.kr/course/subject/list
-167,TT152,신앙수련회Ⅲ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-168,EZ227,웹프로그래밍활용,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-169,TT293,교회봉사Ⅳ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-170,TT291,교회봉사Ⅲ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-171,NS323,통계조사실습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-172,NM227,금융수치해석,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-173,HJ359,일본학조사연구Ⅲ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-174,HS316,사회조사방법Ⅱ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-175,HH472,학술답사C,0.5,0.5,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-176,EK345,글로벌경영전략,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-177,EI247,국제정치경제학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-178,TT218,목회실습Ⅳ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-179,TT509,목회실습,1.0,1.0,0.0,목회실습 미수강자를 위한 과목입니다.(대체과제 필수),https://sugang.hs.ac.kr/course/subject/list
-180,HC600,HSK5급Ⅰ,2.0,2.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-181,HI340,유라시아외교론,3.0,3.0,0.0,외국인 유학생 전용 강의,https://sugang.hs.ac.kr/course/subject/list
-182,TR371,재활윤리와철학,3.0,3.0,0.0,"전공필수과목// 발달재활서비스 공통선택 과목, 장애인재활상담사 선택과목",https://sugang.hs.ac.kr/course/subject/list
-183,HI428,사회과학분석기법,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-184,EB412,졸업논문,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-185,SP419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-186,HE412,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-187,NE419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-188,NA419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-189,PSB01,졸업논문,3.0,3.0,0.0,정책학 전공 졸업예정자 신청(행정학/정책학 복수 전공 시 졸업논문 2개 모두 신청),https://sugang.hs.ac.kr/course/subject/list
-190,NI400,졸업논문,3.0,3.0,0.0,소프트웨어융합학부,https://sugang.hs.ac.kr/course/subject/list
-191,NP419,졸업논문,3.0,3.0,0.0,8월 졸업예정자 중 미수강한 학생은 필히 수강. 학점 미포함되므로 고려하여 수강 신청할 것. // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-192,EI411,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-193,DC419,졸업논문,3.0,3.0,0.0,한중문화콘텐츠학과 전공,https://sugang.hs.ac.kr/course/subject/list
-194,TT320,목회실습V,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-195,TT153,신앙수련회Ⅳ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-196,NP427,특수체육현장실습,1.0,1.0,0.0,"2학기에 열리지 않으므로 4학년은 필히 수강할 것, 실습 완료 시 이수 가능 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-197,NM450,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-198,EZ419,졸업논문,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-199,TS419,졸업논문,3.0,3.0,0.0,전공(복수포함)자만 수강신청 가능// 졸업기준 충족(수강신청 학기 포함하여 학점 및 필수과목 이수 등)시 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-200,PSA01,졸업논문,3.0,3.0,0.0,행정학 전공 졸업예정자 신청(행정학/정책학 복수 전공 시 졸업논문 2개 모두 신청),https://sugang.hs.ac.kr/course/subject/list
-201,EJ419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-202,DS403,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-203,EE411,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-204,HN419,졸업논문,3.0,3.0,0.0,마지막 학기생 신청,https://sugang.hs.ac.kr/course/subject/list
-205,SB419,졸업논문,3.0,3.0,0.0,임상 및 상담심리 전공생 수강 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-206,HI419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-207,NP401,스포츠사회학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-208,HH411,졸업논문,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-209,EK419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-210,NS419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-211,EM419,졸업논문,3.0,3.0,0.0,미디어영상전공 졸업논문 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-212,SH519,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-213,HD419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-214,TR419,졸업논문,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-215,TT416,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-216,HP496,논문작성법,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-217,HP419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-218,HC419,졸업논문,3.0,3.0,0.0,"중국어문화영상융합학과, 중국어문화학과 전공",https://sugang.hs.ac.kr/course/subject/list
-219,EA409,졸업논문,3.0,3.0,0.0,광고홍보전공 졸업논문 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-220,HJ419,졸업논문,3.0,3.0,0.0,마지막 학기생 신청,https://sugang.hs.ac.kr/course/subject/list
-221,HR434,논문지도,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-222,HW419,졸업논문,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-223,HS419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-224,IT419,졸업논문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-225,DV419,졸업논문,3.0,3.0,0.0,P/NP 전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-226,TT321,목회실습Ⅵ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-227,KS419,졸업논문,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-228,SC419,졸업논문,3.0,3.0,0.0,아동 전공생 수강 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-229,HK419,졸업논문,3.0,3.0,0.0,국어국문트랙 학생 수강 (한국어교육트랙 학생 수강 금지) // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-230,TE101,신앙수련회1,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-231,NP132,스포츠학개론,3.0,3.0,0.0,특수체육학 1학년 전공선택 과목,https://sugang.hs.ac.kr/course/subject/list
-232,AC101,시스템반도체공학개론,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-233,TT150,신앙수련회Ⅰ,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-234,KA033,토픽 4급,3.0,3.0,0.0,외국인유학생전용,https://sugang.hs.ac.kr/course/subject/list
-235,KA043,현장을통한한국문화의이해1,3.0,3.0,0.0,외국인유학생전용,https://sugang.hs.ac.kr/course/subject/list
-236,KA017,K-pop전공실기Ⅱ,3.0,3.0,0.0,외국인유학생전용,https://sugang.hs.ac.kr/course/subject/list
-237,HP147,비판적사고,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-238,DS201,데이터사이언스입문,3.0,3.0,0.0,2학년 수강신청 가능/데이터사이언스 핵심전공(2026학년도 2023학번 졸업예정자는 유예하여 적용),https://sugang.hs.ac.kr/course/subject/list
-239,TT566,성서헬라어문법,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-240,TR124,심리학개론,3.0,3.0,0.0,발달재활서비스 제공인력(놀이심리재활) 전공 선택과목 (비전공자도 수강 가능),https://sugang.hs.ac.kr/course/subject/list
-241,HD665,기본독일어실습Ⅰ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-242,NS304,표본이론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-243,NS244,통계추론기초,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-244,HW301,시창작실습Ⅰ,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-245,HD658,유럽영화축제기행,3.0,3.0,0.0,도서관 소극장에서 진행,https://sugang.hs.ac.kr/course/subject/list
-246,DV207,한류와문화콘텐츠,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-247,HN272,중국어회화,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-248,TR108,장애아동의이해,3.0,3.0,0.0,발달재활서비스(놀이심리재활) 공통필수 과목,https://sugang.hs.ac.kr/course/subject/list
-249,SH204,데이터사이언스수학,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)",https://sugang.hs.ac.kr/course/subject/list
-250,HW243,드라마작법Ⅰ,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-251,SH201,확률과통계,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-252,NM284,금융기관론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-253,HW238,동시대시강독Ⅰ,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-254,DC621,문화콘텐츠장르론,3.0,3.0,0.0,공통과목,https://sugang.hs.ac.kr/course/subject/list
-255,HC591,초급중국어회화Ⅰ,3.0,3.0,0.0,공통과목,https://sugang.hs.ac.kr/course/subject/list
-256,DC607,전공중국어Ⅰ,3.0,3.0,0.0,공통과목,https://sugang.hs.ac.kr/course/subject/list
-257,DC456,사랑과중국문학,3.0,3.0,0.0,한중콘텐츠전공과목,https://sugang.hs.ac.kr/course/subject/list
-258,HE315,영어연설강독및실습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-259,HK276,현대소설탐구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-260,HJ115,일본사첫걸음,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-261,HE270,영어작문,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-262,HE282,글로벌트렌드영어1,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-263,HD662,독일어듣기말하기실습A1-0 ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-264,TT577,구약학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-265,HD508,영상으로보는유럽문화사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-266,SC202,아동미술,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-267,AC207,회로이론,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-268,DV209,영화제탐사1,2.0,2.0,0.0,P/NP. 디영문콘/디문콘/영상문화 전공자(한국인) 신청 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-269,TR259,발달정신병리학,3.0,3.0,0.0,발달재활서비스(놀이심리재활) 전공필수 과목,https://sugang.hs.ac.kr/course/subject/list
-270,SB202,정신병리학,3.0,3.0,0.0,* 심리아동학 전공생(복수전공생)만 신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-271,AC205,인공지능개론,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-272,EM314,에디팅실습Ⅰ,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-273,DV235,"K-pop의과거,현재,미래",3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-274,HJ256,중급일본어Ⅰ,3.0,3.0,0.0,JLPT N3~N2 수준의 수업,https://sugang.hs.ac.kr/course/subject/list
-275,SB212,인지및학습심리학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-276,SC323,아동상담론,3.0,3.0,0.0,*심리아동학 전공생(복수전공생)만 신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-277,EM233,콘텐츠라이팅,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-278,EZ254,IT경영과혁신,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-279,TT510,기독교윤리학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-280,TR271,재활상담,3.0,3.0,0.0,장애인재활상담사 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-281,DV104,영상문화산업의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-282,DV206,영화학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-283,EB201,경영통계학,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-284,HP204,미학의기초,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-285,DV214,공연예술콘텐츠분석및기획실습,3.0,3.0,0.0,전공(복수포함)자에 한함 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-286,HN614,동아시아문화개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-287,HJ266,일본어한자,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-288,EZ214,마케팅원론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-289,EI232,무역실무,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-290,TS519,아동복지론,3.0,3.0,0.0,사회복지사 1·2급 선택 과목,https://sugang.hs.ac.kr/course/subject/list
-291,EA230,광고심리,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-292,HS216,현대사속의한국사회,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-293,HE281,대중문화연구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-294,EF202,화폐금융의정치경제학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-295,TS268,사회복지와문화다양성,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-296,HR258,종교와문화원형,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-297,NS243,R기초,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-298,AC215,DB이해와실습,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-299,EZ250,시장조사방법론,3.0,3.0,0.0,일학습병행 참여학생 수강신청 가능,https://sugang.hs.ac.kr/course/subject/list
-300,SC203,놀이지도,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-301,HD657,영화이해의길잡이,3.0,3.0,0.0,도서관 소극장에서 진행,https://sugang.hs.ac.kr/course/subject/list
-302,DV106,인문콘텐츠현장학습,1.0,1.0,0.0,전공(복수포함)자에 한함 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-303,EH245,경영환경과시장조사실습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-304,TS502,사회문제론,3.0,3.0,0.0,사회복지사 1·2급 선택 과목,https://sugang.hs.ac.kr/course/subject/list
-305,TT611,조직신학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-306,HR254,한국종교문화사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-307,DC618,콘텐츠스토리텔링,3.0,3.0,0.0,한중콘텐츠전공과목,https://sugang.hs.ac.kr/course/subject/list
-308,EH241,글로벌비즈니스와아시아지역,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-309,HJ128,초급일본어회화1,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-310,AC204,EDA실험,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-311,NP268,노인체육지도법,3.0,3.0,0.0,"이론 수업 시 10201호, 실기 수업 시 10301호/화1,2블록",https://sugang.hs.ac.kr/course/subject/list
-312,NM228,C언어Ⅰ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-313,HJ252,일본문학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-314,HP221,서양근세철학사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-315,HE278,영어회화실습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-316,AT201,AIoT설계입문,3.0,3.0,0.0,2학년 수강신청 가능/지능형IoT 핵심전공(2026학년도 2023학번 졸업예정자는 유예하여 적용),https://sugang.hs.ac.kr/course/subject/list
-317,HS203,성과사회,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-318,EB217,중급재무회계1,3.0,3.0,0.0,선수이수과목 : 회계의이해 또는 회계원리 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-319,DV216,영화음악의이론과실제,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-320,HS102,사회심리학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-321,TS117,사회복지학개론,3.0,3.0,0.0,사회복지사 1·2급 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-322,HK277,고전시가탐구 ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-323,TT647,목회신학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-324,EM229,시네마토그래피실습,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-325,NM136,금융기초수학1,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-326,EM240,영상스토리창작의기초,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-327,DC617,공연콘텐츠의이해,3.0,3.0,0.0,한중콘텐츠전공과목,https://sugang.hs.ac.kr/course/subject/list
-328,NP135,수영지도법,3.0,3.0,0.0,전공 예산으로 실습비 사용하므로 전공자(복수전공자)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-329,HP208,형이상학과인식론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-330,SA106,심리학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-331,NP261,스포츠교육학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-332,HS243,기후변화의사회학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-333,HD222,독일문학과영상문화,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-334,EI253,국제거시경제학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-335,HN277,동아시아국제비교,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-336,TR276,장애이해와재활,3.0,3.0,0.0,AI융합장애인라이프케어 융합전공 분반 / AI융합장애인라이프케어 전공 학생 외 학생 수강 가능,https://sugang.hs.ac.kr/course/subject/list
-337,NM280,미분방정식,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-338,HR239,종교상상력예술,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-339,SB208,사회심리학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-340,HW302,소설창작실습Ⅰ,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-341,NP262,유아체육1,2.0,2.0,0.0,이론 수업 시 10202호,https://sugang.hs.ac.kr/course/subject/list
-342,PS227,파이썬데이터분석기초,3.0,3.0,0.0,AISW계열 및 첨단융합계열 학생 수강금지,https://sugang.hs.ac.kr/course/subject/list
-343,EZ201,e-비즈니스개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-344,HJ271,한일시민사회,3.0,3.0,0.0,"전공(복수전공)자 우선, 세미나/토론과목",https://sugang.hs.ac.kr/course/subject/list
-345,AC202,디지털회로,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-346,SH203,컴퓨터윤리,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)",https://sugang.hs.ac.kr/course/subject/list
-347,HD906,독일히든챔피언과창업,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-348,HE284,영상으로 만나는 영미문화,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-349,XR201,XR콘텐츠입문,3.0,3.0,0.0,"2학년 수강신청 가능/XR콘텐츠 핵심전공(2026학년도 2023학번 졸업예정자는 유예하여 적용)/컴퓨터공학부,IT영상콘텐츠학과 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-350,PS214,형사법,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-351,HI404,국제기구와NGO,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-352,PS231,AI에이전트캡스톤,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-353,PS210,머신러닝이해와활용,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-354,TR372,장애의진단과평가,3.0,3.0,0.0,장애인재활상담사 선택 과목,https://sugang.hs.ac.kr/course/subject/list
-355,PS215,정책분석과기획,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-356,PS313,지방자치및행정,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-357,PS407,데이터기반재무관리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-358,EI380,국제무역과운송물류,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-359,PS417,머신러닝비지도학습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-360,HH344,한국사특강Ⅰ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-361,HI330,미디어와정치,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-362,PS106,웹프로그래밍,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-363,NP273,야외스포츠,3.0,3.0,0.0,"전공 예산으로 실습비 사용하므로 전공자(복수전공자)만 수강 가능/목1,2교시/이론 수업 시 10204호/집중이수제 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-364,PS109,데이터기반조직및인사관리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-365,HI120,정치와법,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-366,HH203,한국민주화운동사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-367,HI408,국제개발협력개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-368,HX506,*영어연습4(C1),1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-369,HZ992,*가치관의변화와현대사회,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-370,HN273,동아시아연구워크숍1,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-371,SH208,IT스마트관광플랫폼,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)",https://sugang.hs.ac.kr/course/subject/list
-372,KH677,패션트렌드와빅데이터분석,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-373,HC216,HSK4급Ⅰ,3.0,3.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-374,HH403,문화유산과박물관전시,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-375,KH678,사회심리와패션테라피,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-376,HC396,글로벌비즈니스예절,3.0,3.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-377,HC592,고사성어와스토리텔링Ⅰ,3.0,3.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-378,HX509,*비즈니스영어2,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-379,HR274,한류와K-종교문화유산,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-380,HH205,관광고고학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-381,HC434,중국소수민족의역사문화,3.0,3.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-382,HC293,중국문화의이해Ⅰ,3.0,3.0,0.0,공통과목,https://sugang.hs.ac.kr/course/subject/list
-383,HC015,HSKK실습1,3.0,3.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-384,HC540,무역중국어,3.0,3.0,0.0,중국어문전공과목,https://sugang.hs.ac.kr/course/subject/list
-385,HC548,중국어문법,3.0,3.0,0.0,공통과목,https://sugang.hs.ac.kr/course/subject/list
-386,HH303,아카이브와콘텐츠,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-387,EI470,금융과회계,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-388,TS459,프로그램개발과평가,3.0,3.0,0.0,사회복지사 1·2급 선택 과목,https://sugang.hs.ac.kr/course/subject/list
-389,TR370,재활사례관리,3.0,3.0,0.0,장애인재활상담사 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-390,TR384,게임심리치료,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-391,DV315,한국영화사특강,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-392,NP334,스포츠영양학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-393,HP518,한국사상,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-394,TS363,사회복지현장실습의이해Ⅰ,2.0,2.0,0.0,"실습전 필수 선수과목//전공생(복수전공생)만 신청가능 (부전공 제외)// 전과, 편입 및 복전생의 경우 학적변동 학기가 첫학기이며, 다음학기 2학기째부터 이수 가능//26학년도 하계실습 및 2학기 중 실습 진행 예정이며, 1학기 수강과목 포함하여 8개 기초과목중(사회복지학 졸시과목) 4과목 이상 이수한 자에 한함 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-395,EA323,매체기획론,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-396,HJ395,프리젠테이션일본어,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-397,EB385,전산회계실무_NCS,3.0,3.0,0.0,2026학년도 IPP형 일학습병행 참여학생(학습근로자) 대상 수업,https://sugang.hs.ac.kr/course/subject/list
-398,EE333,노동경제학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-399,NM384,금융상품론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-400,EE339,재정학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-401,HH304,서양사특강,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-402,TT954,한국교회사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-403,AC305,머신러닝과딥러닝,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-404,EM315,논픽션영상제작실습,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-405,DV306,영상비평의이론과실제,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-406,HH393,고고학이론과방법론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-407,TS525,사회복지제쟁점,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-408,DV307,지역문화콘텐츠디자인,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-409,AC312,자료구조와AI알고리즘,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-410,HW104,현대한국문학사,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-411,EM332,대중문화수용자의이해 ,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-412,HW340,아동문학작품연구,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-413,HI374,현대전쟁의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-414,TS353,지역사회복지론,3.0,3.0,0.0,사회복지사 1·2급 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-415,SC325,가족관계론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-416,NP124,배드민턴지도법,2.0,2.0,0.0,이론 수업 시 10204호,https://sugang.hs.ac.kr/course/subject/list
-417,TT588,어린이ㆍ청소년교육,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-418,HR310,종교인류학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-419,EE364,경제변동론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-420,EE236,한국경제사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-421,NP339,트레이닝방법론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-422,TT521,신학과철학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-423,HJ393,일본경제사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-424,HJ218,일본어강독,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-425,HW245,연극과뮤지컬작법 ,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-426,TR275,인지행동놀이치료,3.0,3.0,0.0,발달재활서비스 과목,https://sugang.hs.ac.kr/course/subject/list
-427,HK383,사회언어학론,3.0,3.0,0.0,한국어교육트랙 2영역,https://sugang.hs.ac.kr/course/subject/list
-428,DV302,테마공간스토리텔링,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-429,DV301,문화콘텐츠비즈니스의이론과실제,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-430,AC311,디지털시스템설계기초,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-431,TS356,사회복지자료분석론,3.0,3.0,0.0,사회복지사 1·2급 선택 과목,https://sugang.hs.ac.kr/course/subject/list
-432,SA102,상담및심리치료,3.0,3.0,0.0,* 심리아동학 전공생(복수전공생)만 신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-433,EA342,ESG커뮤니케이션,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-434,TT484,성서주석방법론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-435,NM316,주식시장론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-436,EA229,캠페인기획론,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-437,EM326,멀티플랫폼스토리텔링전략실습,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-438,SC318,보육교사(인성)론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-439,HK391,한국신화와판타지문화탐구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-440,DC584,한중문화이벤트분석,3.0,3.0,0.0,한중콘텐츠전공과목,https://sugang.hs.ac.kr/course/subject/list
-441,TR508,노동환경과고용동향,3.0,3.0,0.0,장애인재활상담사 선택과목,https://sugang.hs.ac.kr/course/subject/list
-442,TT640,성서인물과성격심리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-443,HD649,독일역사로보는문학이야기I,3.0,3.0,0.0,독일역사로보는문학이야기1 / 독일역사로보는문학이야기2(2학기) 둘중 한과목 내규필수,https://sugang.hs.ac.kr/course/subject/list
-444,SB302,심리검사,3.0,3.0,0.0,*심리아동학 전공생(복수전공생)만 신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-445,AC321,임베디드시스템,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-446,NP381,스포츠행정및정책,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-447,HW402,소설창작실습Ⅲ,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-448,TS352,사회복지실천론,3.0,3.0,0.0,사회복지사 1·2급 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-449,HD417,독일어어휘의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-450,AC317,집적회로설계응용,3.0,3.0,0.0,AI시스템반도체학 학생만 수강신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-451,HK385,현대시인탐구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-452,HH317,인물한국사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-453,HW235,이야기구성법,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-454,HP382,불교철학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-455,NM391,투자론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-456,TT957,오경연구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-457,TS354,사회복지정책론,3.0,3.0,0.0,사회복지사 1·2급 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-458,EA335,소셜마케팅커뮤니케이션,3.0,3.0,0.0,"미디어영상광고홍보학 재학생(복수전공, AI융합장애인라이프케어·AI융합시니어라이프케어 포함)만 수강 가능 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-459,HW328,아동문학창작실습Ⅰ,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-460,EZ313,조직관리론,3.0,3.0,0.0,일학습병행 참여학생 수강신청 가능,https://sugang.hs.ac.kr/course/subject/list
-461,TT580,기독교생태교육,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-462,TT634,서신서연구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-463,HP507,문학철학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-464,HK384,한국어발음교육론,3.0,3.0,0.0,한국어교육트랙 3영역 ,https://sugang.hs.ac.kr/course/subject/list
-465,HI250,선거와정당,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-466,HP309,과학과문화,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-467,HJ397,일본문화콘텐츠분석및비평,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-468,HJ344,일본연구해외자료강독,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-469,NM388,금융과AI,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-470,EE231,계량경제학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-471,TR327,직업적응훈련,3.0,3.0,0.0,장애인재활상담사 선택 과목,https://sugang.hs.ac.kr/course/subject/list
-472,EI374,국제통상정책론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-473,DV341,아시아문화및한류현지조사,3.0,3.0,0.0,디영문콘/디문콘/영상문화 소속 전공자(한국인)에 한함 / 외국인 및 타과생 수강 금지 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-474,SH318,컴퓨터애니메이션,3.0,3.0,0.0,"AISW학, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공",https://sugang.hs.ac.kr/course/subject/list
-475,SH402,AISW캡스톤디자인Ⅰ,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)",https://sugang.hs.ac.kr/course/subject/list
-476,EB251,마케팅커뮤니케이션,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-477,HS365,음식문화의사회학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-478,EB301,인적자원관리,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-479,HS329,자본주의사회와노동,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-480,EZ324,데이터분석종합설계,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-481,PS410,지역공공문제해결,3.0,3.0,0.0,"타과생 수강금지(공공인재학부 또는 공공인재빅데이터융합학 전공생, 복수전공, 부전공 중 3,4학년만 신청)",https://sugang.hs.ac.kr/course/subject/list
-482,SH317,가상증강현실,3.0,3.0,0.0,"AISW학, 소프트웨어, 인공지능, 지능형IoT, 데이터사이언스 교차전공 / 컴퓨터공학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-483,HE274,영어토론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-484,NS365,기계학습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-485,HN390,중국역사스토리텔링,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-486,EK355,글로벌리더십과기업가정신,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-487,HD655,무역·관광독일어실습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-488,PS413,공공혁신,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-489,HK381,한국민속의이해,3.0,3.0,0.0,한국어교육트랙 4영역,https://sugang.hs.ac.kr/course/subject/list
-490,HD669,국내외유럽문화탐사1,3.0,3.0,0.0,"마이크로전공(글로벌문화콘텐츠, 글로컬문화비즈니스기획)",https://sugang.hs.ac.kr/course/subject/list
-491,HK380,한국어이해교육론,3.0,3.0,0.0,한국어교육트랙 3영역 ,https://sugang.hs.ac.kr/course/subject/list
-492,EB304,전산회계실무,3.0,3.0,0.0,선수이수과목 : 회계의이해 또는 회계원리 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-493,HS349,대중문화론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-494,HE332,현대영미시,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-495,HK403,문학을통해본한국근현대탐구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-496,TR374,보조공학의이해,3.0,3.0,0.0,장애인재활상담사 선택 과목/AI융합장애인라이프케어 전공 학생 수강 가능,https://sugang.hs.ac.kr/course/subject/list
-497,EI471,보험학개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-498,NP382,수상스포츠,3.0,3.0,0.0,전공 예산으로 실습비 사용하므로 전공자(복수전공자)만 수강 가능/집중이수제 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-499,SH343,앰비언트컴퓨팅개발1,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)/(앰비언트컴퓨팅전공 학생) AI·SW캡스톤디자인2 대체 교과목",https://sugang.hs.ac.kr/course/subject/list
-500,EB386,서비스운영관리,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-501,HI454,시사문제연구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-502,HN400,중국엘리트와정책,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-503,DS301,데이터응용서비스,3.0,3.0,0.0,"데이터사이언스 핵심전공(2026년도 2023학번졸업예정자는 유예하여 적용) / AISW학, 소프트웨어, 인공지능, 지능형IoT, XR콘텐츠 교차전공",https://sugang.hs.ac.kr/course/subject/list
-504,EB317,전략경영,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-505,EI385,무역계약법규,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-506,HI409,세계지역의개발과평화이슈,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-507,HI314,한미관계의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-508,HK444,한국어교육과정론,3.0,3.0,0.0,한국어교육트랙 3영역,https://sugang.hs.ac.kr/course/subject/list
-509,TR363,자립생활,3.0,3.0,0.0,장애인재활상담사 선택 과목,https://sugang.hs.ac.kr/course/subject/list
-510,TR348,성격심리학,3.0,3.0,0.0,발달재활서비스제공인력(놀이심리재활) 전공 선택과목,https://sugang.hs.ac.kr/course/subject/list
-511,HE314,현대영미소설,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-512,NS301,시계열분석,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-513,HE264,영어문법,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-514,SH312,네트워크보안,3.0,3.0,0.0,"AISW학, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공",https://sugang.hs.ac.kr/course/subject/list
-515,PS321,공공리더십과공직가치,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-516,SH355,텍스트마이닝,3.0,3.0,0.0,"AISW학, 소프트웨어, 인공지능, 지능형IoT, XR콘텐츠 교차전공",https://sugang.hs.ac.kr/course/subject/list
-517,SH322,영상처리,3.0,3.0,0.0,"AISW학, 소프트웨어, 인공지능, XR콘텐츠, 데이터사이언스 교차전공 / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-518,SH403,AISW캡스톤디자인Ⅱ,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)",https://sugang.hs.ac.kr/course/subject/list
-519,SH304,데이터베이스프로그래밍,3.0,3.0,0.0,"AISW학, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공 / 컴퓨터공학부,소프트웨어융합학부,IT영상콘텐츠학과 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-520,EB450,금융제도및기관론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-521,PS418,데이터분석과시각화_NCS,3.0,3.0,0.0,NCS 교과목,https://sugang.hs.ac.kr/course/subject/list
-522,HS366,사회사상특강,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-523,SH340,인지감성컴퓨팅개발1,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)/(인지감성컴퓨팅전공 학생) AI·SW캡스톤디자인2 대체 교과목",https://sugang.hs.ac.kr/course/subject/list
-524,NS310,범주형자료분석,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-525,SH354,정보보안컨설팅,3.0,3.0,0.0,"AISW학, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공",https://sugang.hs.ac.kr/course/subject/list
-526,EI261,영어로보는시사국제경제,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-527,PS409,딥러닝자연어처리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-528,HE440,현대영미희곡,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-529,HH401,임상역사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-530,SH409,디지털라이프케어서비스,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)",https://sugang.hs.ac.kr/course/subject/list
-531,NS302,실험계획법,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-532,SH305,정보보호,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-533,SH310,DBMS활용및실습,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번)",https://sugang.hs.ac.kr/course/subject/list
-534,SH401,IoT융합서비스기획,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-535,SH308,알고리즘,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-536,SH313,게임프로그래밍,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-537,SH320,데이터엔지니어링,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-538,SH302,소프트웨어공학,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-539,HN484,실용중국어회화Ⅰ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-540,SH323,인간컴퓨터상호작용,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-541,SH306,컴퓨터네트워크,3.0,3.0,0.0,"소프트웨어, 인공지능, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공(23학번) / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-542,SH328,딥러닝기초,3.0,3.0,0.0,"인공지능 핵심전공(2026학년도 2023학번 졸업예정자는 유예하여 적용) / AISW학, 소프트웨어, 데이터사이언스, 지능형IoT, XR콘텐츠 교차전공 / 컴퓨터공학부,소프트웨어융합학부 전공 인정 과목",https://sugang.hs.ac.kr/course/subject/list
-543,HN416,중국기업으로보는국제경영,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-544,SC306,보육과정,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-545,SH404,자연어처리,3.0,3.0,0.0,"AISW학, 소프트웨어, 인공지능, 지능형IoT, XR콘텐츠 교차전공",https://sugang.hs.ac.kr/course/subject/list
-546,HD629,독일어듣기말하기실습A2-2,3.0,3.0,0.0,독일어듣기말하기A2-2 / 독일어듣기말하기B1-1(2학기) 둘중 한과목 내규필수,https://sugang.hs.ac.kr/course/subject/list
-547,EZ439,고객분석과데이터관리_NCS,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-548,TR450,놀이치료실습및슈퍼비전,3.0,3.0,0.0,발달재활서비스 전공필수 과목,https://sugang.hs.ac.kr/course/subject/list
-549,EZ436,IT경영세미나Ⅰ,1.0,1.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-550,NP448,라켓스포츠,3.0,3.0,0.0,"이론 수업 시 10201호/실기 수업 시 테니스장/수1,2 연강 수업/증원불가",https://sugang.hs.ac.kr/course/subject/list
-551,TS455,사회복지현장실습Ⅱ,3.0,3.0,0.0,30명초과불가/실습의이해 과목(실습 선수과목)을 이수했으며 동계실습 진행했거나 1학기중 실습예정자만 신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-552,HK451,한국어교육실습,3.0,3.0,0.0,한국어교육트랙 5영역. 한국어교육트랙 1영역과 3영역의 교과목을 이전 학기까지 24학점 이상 이수한 자만 수강 가능.,https://sugang.hs.ac.kr/course/subject/list
-553,SC409,아동관찰및행동연구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-554,EZ447,빅데이터이해및기획_NCS,3.0,3.0,0.0,일학습병행 참여학생만 수강신청 가능,https://sugang.hs.ac.kr/course/subject/list
-555,EB476,마케팅성과관리_NCS,3.0,3.0,0.0,2026학년도 IPP형 일학습병행 참여학생(학습근로자) 대상 수업,https://sugang.hs.ac.kr/course/subject/list
-556,EE401,제도경제학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-557,SH423,프로그래밍언어활용_NCS,3.0,3.0,0.0,IPP만 수강가능,https://sugang.hs.ac.kr/course/subject/list
-558,TR453,재활행정,3.0,3.0,0.0,장애인재활상담사 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-559,NM315,파생상품이론1,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-560,NM441,금융세미나,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-561,NM464,위험관리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-562,TS516,사회복지법제,3.0,3.0,0.0,사회복지사 1·2급 필수 과목,https://sugang.hs.ac.kr/course/subject/list
-563,SH422,통합구현_NCS,3.0,3.0,0.0,IPP만 수강가능,https://sugang.hs.ac.kr/course/subject/list
-564,EA431,마케팅커뮤니케이션프로젝트,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-565,SB410,임상현장실습Ⅱ,3.0,3.0,0.0,*심리아동학 전공생(복수전공생)만 신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-566,HH408,한국사활용콘텐츠,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-567,EB451,경영사례연구,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-568,NP301,운동처방론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-569,EZ438,마케팅관리_NCS,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-570,HW418,소설창작특강Ⅱ,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-571,SC405,부모교육론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-572,SB411,코칭심리학,3.0,3.0,0.0,*심리아동학 전공생(복수전공생)만 신청 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-573,EE440,경제학세미나,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-574,SH427,빅데이터저장 · 처리시스템_NCS,3.0,3.0,0.0,일학습병행 참여학생만 수강신청 가능,https://sugang.hs.ac.kr/course/subject/list
-575,DV402,문화콘텐츠조사연구의이론과실제,3.0,3.0,0.0,전공(복수포함)자에 한함. 한국인만 수강 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-576,HW432,드라마워크숍,3.0,3.0,0.0,전공(복수포함)자 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-577,HW338,시창작특강Ⅱ,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-578,HD377,독일역사와언어변화,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-579,HP406,철학적책읽기,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-580,SB301,임상심리학,3.0,3.0,0.0,블랜디드 수업,https://sugang.hs.ac.kr/course/subject/list
-581,SH424,응용SW설계_NCS,3.0,3.0,0.0,IPP만 수강가능,https://sugang.hs.ac.kr/course/subject/list
-582,EB477,유통관리_NCS,3.0,3.0,0.0,2026학년도 IPP형 일학습병행 참여학생(학습근로자) 대상 수업,https://sugang.hs.ac.kr/course/subject/list
-583,HP407,사회정치철학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-584,HK440,논문연습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-585,HW405,비평이론,3.0,3.0,0.0,전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-586,GP610,고급발달정신병리학,3.0,3.0,0.0,학석사연계과정 /실제수업은 금 11:00~14:15 20301,https://sugang.hs.ac.kr/course/subject/list
-587,TS473,가족상담및가족치료,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-588,EZ431,창업경영론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-589,HJ378,통번역실습Ⅰ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-590,HX510,*적층제조기술및3D프린팅,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-591,HX511,*초등학교실습,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-592,PD004,도전설계기초,3.0,3.0,0.0,지정된 학생외 수강금지(신청시 추후 삭제),https://sugang.hs.ac.kr/course/subject/list
-593,HZ877,*외국인을위한체코어,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-594,RS109,*대학성공영어:대학독해기법,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-595,RS116,*대학구술기법,4.0,4.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-596,HZ998,*문화간훈련및글로벌개발교육,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-597,HZ918,*초등교사를위한영어2,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-598,HZ953,*보빈레이스제작2,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-599,RS117,*구술의사소통기법,4.0,4.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-600,HZ910,*특수학습장애,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-601,PD014,리빙랩PD학기제1,3.0,3.0,0.0,지정된 학생외 수강금지(신청시 추후 삭제),https://sugang.hs.ac.kr/course/subject/list
-602,HZ997,*NGO경영및공공거버넌스,1.0,1.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-603,PD001,자기설계기초,3.0,3.0,0.0,지정된 학생외 수강금지(신청시 추후 삭제),https://sugang.hs.ac.kr/course/subject/list
-604,RS114,*대학작문기법,4.0,4.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-605,HZ991,*체코음악의역사,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-606,HX512,*기술과목교육지원을위한컴퓨터모델개발,2.0,2.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-607,PD011,전공기초설계1,2.0,2.0,0.0,지정된 학생외 수강금지(신청시 추후 삭제),https://sugang.hs.ac.kr/course/subject/list
-608,HZ996,*로마인과사회적배제,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-609,KH676,마케팅원론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-610,RS115,*대학청해기법,4.0,4.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-611,HX508,*정신병리학,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-612,HX507,*효과적인교육방법,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-613,HZ960,*교육이론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-614,EM102,광고학개론,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-615,EM103,홍보학개론,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-616,EM409,디지털게임과문화,3.0,3.0,0.0,미디어영상광고홍보학 재학생(복수전공 포함)만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-617,EN009,기초중국어Ⅰ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-618,MC003,영상제작과정의이해,3.0,3.0,0.0,미디어계열 재학생만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-619,TH015,기독교신앙과자기확립,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-620,GH003,행정학입문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-621,BA005,경영통계,3.0,3.0,0.0,경영계열1학년 수강신청 후 잔여좌석 재학생(타과가능) 수강가능,https://sugang.hs.ac.kr/course/subject/list
-622,TH004,중국문화와스토리텔링,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-623,EC002,기업과금융,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-624,TH009,문학과나의만남:동시대문학읽기와쓰기,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-625,EC005,빅데이터분석개론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-626,TH010,영미문화탐색,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-627,GH001,국제학입문,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-628,MC002,홍보학개론,3.0,3.0,0.0,미디어계열 재학생만 수강 가능 / 미영광홍 수강 불가 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-629,TH001,유럽문화와비전,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-630,MC001,미디어의이해,3.0,3.0,0.0,미디어계열 재학생만 수강 가능 // 전공(복수포함)자,https://sugang.hs.ac.kr/course/subject/list
-631,EN010,동아시아지역의이해,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-632,TH011,기독교와세계문명,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-633,BA001,경영학원론,3.0,3.0,0.0,경영계열1학년 수강신청 후 잔여좌석 재학생(타과가능) 수강가능,https://sugang.hs.ac.kr/course/subject/list
-634,SS002,휴먼서비스의이해 ,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-635,AS002,C언어,3.0,3.0,0.0,"AI·SW계열생 수강 / 컴퓨터공학부,소프트웨어융합학부,IT영상콘텐츠학과 전공 인정 과목 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-636,SS007,인간관계의심리,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-637,AS003,공학설계입문,3.0,3.0,0.0,"AI·SW계열생 수강 / 소프트웨어융합학부,IT영상콘텐츠학과 전공 인정 과목 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-638,AS001,AI.SW개론,3.0,3.0,0.0,"AI·SW계열생 수강 / 컴퓨터공학부,소프트웨어융합학부,IT영상콘텐츠학과 전공 인정 과목 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-639,BA003,회계원리,3.0,3.0,0.0,"2,3,4학년 재학생만 수강(1학년 제외)",https://sugang.hs.ac.kr/course/subject/list
-640,EN007,경제금융학의기초,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-641,AS010,데이터통신,3.0,3.0,0.0,"컴퓨터공학부,소프트웨어융합학부 전공 인정 과목 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-642,AS008,자바프로그래밍,3.0,3.0,0.0,"컴퓨터공학부,소프트웨어융합학부 전공 인정 과목 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-643,AS007,자료구조,3.0,3.0,0.0,"컴퓨터공학부,소프트웨어융합학부 전공 인정 과목 // 전공(복수포함)자",https://sugang.hs.ac.kr/course/subject/list
-644,GP152,고급직업재활상담,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-645,GP156,스포츠교육학연구,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-646,GP636,토기론Ⅱ,3.0,3.0,0.0,학석사연계과정생 외 수강 불가//실제수업 화 09:30~12:15  2307,https://sugang.hs.ac.kr/course/subject/list
-647,GP649,기록관경영론,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-648,GP153,집단치료,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-649,GP157,SW융합기획,3.0,3.0,0.0, ,https://sugang.hs.ac.kr/course/subject/list
-650,KS309,인적자원개발론,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-651,KS310,교육사회학,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-652,KS305,평생교육경영론,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-653,KS209,시민교육론,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-654,KS206,성인학습및상담,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-655,KS420,교육공학,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-656,KS205,평생교육론,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-657,KS412,평생교육실습,3.0,3.0,0.0,평생교육학·HRD 전공 재학생 우선 수강신청 후 신청 가능.,https://sugang.hs.ac.kr/course/subject/list
-658,SD001,AI·SW개론_융합,3.0,3.0,0.0,AI융합장애인라이프케어·AI융합시니어라이프케어 전공 학생 수강 가능,https://sugang.hs.ac.kr/course/subject/list
-659,SD003,AI융합라이프케어캡스톤디자인1,3.0,3.0,0.0,AI융합장애인라이프케어·AI융합시니어라이프케어 전공 학생 수강 가능,https://sugang.hs.ac.kr/course/subject/list
-660,SD419,졸업논문,3.0,3.0,0.0,AI융합시니어라이프케어 졸업대상자 수강과목,https://sugang.hs.ac.kr/course/subject/list
-661,MI401,감성컴퓨팅,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-662,NE341,기계학습,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-663,NI140,머신러닝,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-664,SH309,기계학습,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-665,SH319,UI/UX프로그래밍,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-666,SH325,AIoT설계와응용,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-667,SH329,딥러닝응용,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-668,SH331,청각지능,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-669,SH339,인지감성컴퓨팅기획,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-670,SH341,인지감성컴퓨팅개발2,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-671,SH342,앰비언트컴퓨팅기획,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-672,SH344,앰비언트컴퓨팅개발2,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-673,SH350,인지컴퓨팅,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-674,SH351,인지감성AI에이전트,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-675,SH352,자율지능IoT시스템,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-676,SH405,컴퓨터비전,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-677,XR401,XR콘텐츠입문,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-678,AI402,인공지능과사회,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-679,EM234,의료인공지능기초,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-680,EZ336,시니어케어와기술,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-681,NEW-001,장애인레저스포츠와SW,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-682,NEW-002,장애인복지와정책,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-683,NEW-003,보조공학기기실습,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-684,NEW-004,AI기반장애인서비스설계,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-685,NEW-005,시니어생활지원서비스,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-686,NEW-006,AI기반시니어케어시스템,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-687,NEW-007,노인인지훈련콘텐츠개발,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-688,NEW-008,디지털리터러시와시니어,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-689,NEW-009,스마트홈과케어로봇,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-690,NEW-010,장애인AI응용프로젝트,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-691,FLOW-001,SW와인공지능개론,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-692,FLOW-002,프로그래밍기초,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-693,FLOW-003,데이터구조와알고리즘,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-694,FLOW-004,컴퓨터구조,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-695,FLOW-005,운영체제,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-696,FLOW-006,데이터베이스,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-697,FLOW-007,네트워크,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-698,FLOW-008,소프트웨어공학,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-699,FLOW-009,인공지능개론,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-700,FLOW-010,기계학습,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-701,FLOW-011,딥러닝,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-702,FLOW-012,자연어처리,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-703,FLOW-013,컴퓨터비전,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-704,FLOW-014,데이터사이언스입문,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-705,FLOW-015,통계학,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-706,FLOW-016,빅데이터분석,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-707,FLOW-017,데이터시각화,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-708,FLOW-018,XR개론,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-709,FLOW-019,3D프로그래밍,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-710,FLOW-020,XR콘텐츠디자인,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-711,FLOW-021,IoT개론,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-712,FLOW-022,임베디드시스템,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-713,FLOW-023,센서네트워크,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-714,FLOW-024,알고리즘과프로그래밍,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-715,FLOW-025,선형대수,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-716,FLOW-026,이산수학,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-717,FLOW-027,확률과통계,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-718,FLOW-028,수치해석,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-719,FLOW-029,컴퓨터그래픽스,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-720,FLOW-030,게임프로그래밍,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-721,FLOW-031,영상처리,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-722,FLOW-032,음성처리,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-723,FLOW-033,로봇공학,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-724,FLOW-034,HCI,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-725,FLOW-035,정보보안,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-726,FLOW-036,클라우드컴퓨팅,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-727,FLOW-037,블록체인,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-728,FLOW-038,임베디드AI,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-729,FLOW-039,엣지컴퓨팅,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-730,FLOW-040,데이터통신,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-731,FLOW-041,소프트웨어테스트,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-732,FLOW-042,디자인씽킹,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-733,FLOW-043,캡스톤디자인1,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-734,FLOW-044,캡스톤디자인2,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-735,FLOW-045,산학협력프로젝트1,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-736,FLOW-046,산학협력프로젝트2,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-737,FLOW-047,SW창업,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-738,FLOW-048,AI윤리,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-739,FLOW-049,오픈소스SW,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-740,FLOW-050,웹프로그래밍,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-741,FLOW-051,모바일프로그래밍,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-742,FLOW-052,클라우드아키텍처,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-743,FLOW-053,마이크로서비스,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-744,FLOW-054,DevOps,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-745,FLOW-055,AI서비스개발,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-746,FLOW-056,AI시스템운영,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-747,FLOW-057,추천시스템,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-748,FLOW-058,시계열분석,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-749,FLOW-059,텍스트마이닝,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-750,FLOW-060,그래프데이터분석,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-751,FLOW-061,디지털트윈,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-752,FLOW-062,메타버스,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-753,FLOW-063,스마트팩토리,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-754,FLOW-064,자율주행,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-755,FLOW-065,AISW종합설계,3.0,3.0,0.0,,https://swuniv.hs.ac.kr/02/02.php
-756,DOC-C001,SW기초실습,2.0,2.0,0.0,SW 기초 실습,https://swuniv.hs.ac.kr/02/02.php
-757,DOC-C002,파이썬프로그래밍,3.0,3.0,0.0,파이썬 기초 프로그래밍,https://swuniv.hs.ac.kr/02/02.php
-758,DOC-C003,자바프로그래밍,3.0,3.0,0.0,자바 기초 프로그래밍,https://swuniv.hs.ac.kr/02/02.php
-759,DOC-C004,데이터베이스실습,2.0,2.0,0.0,데이터베이스 실습,https://swuniv.hs.ac.kr/02/02.php
-760,DOC-C005,웹개발기초,2.0,2.0,0.0,웹 개발 기초,https://swuniv.hs.ac.kr/02/02.php
-761,DOC-C006,알고리즘실습,2.0,2.0,0.0,알고리즘 실습,https://swuniv.hs.ac.kr/02/02.php
-762,DOC-C007,인공지능입문,2.0,2.0,0.0,인공지능 입문,https://swuniv.hs.ac.kr/02/02.php
-763,DOC-C008,클라우드실습,2.0,2.0,0.0,클라우드 컴퓨팅 실습,https://swuniv.hs.ac.kr/02/02.php
-764,DOC-C009,모바일앱개발,2.0,2.0,0.0,모바일 앱 개발,https://swuniv.hs.ac.kr/02/02.php
-765,DOC-C010,AI코딩실습,2.0,2.0,0.0,AI 기반 코딩 실습,https://swuniv.hs.ac.kr/02/02.php
+1,*KY021,사이버한국여행1,3.0,,,,
+2,*KY032,초급한국어문법Ⅱ,3.0,,,,
+3,*KY033,초급한국어회화Ⅱ,3.0,,,,
+4,*KY034,중급한국어문법Ⅱ,3.0,,,,
+5,*KY035,중급한국어회화Ⅱ,3.0,,,,
+6,*KY036,한국의음식문화,3.0,,,,
+7,*KY037,한류문화의이해,3.0,,,,
+8,*KY110,고급한국어회화2,2.0,,,,
+9,*KY112,고급한국어문법2,2.0,,,,
+10,*KY114,한국어듣기기초2,3.0,,,,
+11,*KY117,한국어쓰기기초2,3.0,,,,
+12,*KY119,한국어말하기기초2,3.0,,,,
+13,*KY121,한국생활배우기2,3.0,,,,
+14,*KY123,K-art실습,3.0,,,,
+15,*KYC71,스포츠실습,3.0,,,,
+16,*KYC72,신체표현활동,3.0,,,,
+17,KY100,채플,1.0,,,,
+18,KY101,채플,0.5,,,,
+19,KY201,채플,0.5,,,,
+20,KY209,기업가정신및창업실무,2.0,,,,
+21,KY217,성서의세계,2.0,,,,
+22,KY241,노벨상으로보는과학의역사,3.0,,,,
+23,KY245,수재수학:수포자를위한재미있는수학,3.0,,,,
+24,KY286,서양사의이해,3.0,,,,
+25,KY304,채플,1.0,,,,
+26,KY309,생활속의실용금융,3.0,,,,
+27,KY313,기독교와문화,2.0,,,,
+28,KY361,문학과성,3.0,,,,
+29,KY382,종교와인간,3.0,,,,
+30,KY410,진로와상담,0.0,,,,
+31,*KY015,영상으로보는한국사회,3.0,,,,
+32,*KY02,한국문화지리,3.0,,,,
+33,*KY020,한국의전통문화,3.0,,,,
+34,*KY038,초급한국어문법1,3.0,,,,
+35,*KY039,초급한국어회화1,3.0,,,,
+36,*KY040,중급한국어문법1,3.0,,,,
+37,*KY041,중급한국어회화1,3.0,,,,
+38,*KY113,한국어듣기기초1,3.0,,,,
+39,*KY116,한국어쓰기기초1,3.0,,,,
+40,*KY118,한국어말하기기초1,3.0,,,,
+41,*KY120,한국생활배우기1,3.0,,,,
+42,*KY122,K-culture의이해,3.0,,,,
+43,*KY124,신체표현활동2,3.0,,,,
+44,*KY125,스포츠실습2,3.0,,,,
+45,*KY126,K문화예술경영개론,3.0,,,,
+46,*KY127,K-뮤직활동,3.0,,,,
+47,*KY128,뮤지컬의이해,3.0,,,,
+48,*KY131,고급한국어문법1,3.0,,,,
+49,KY205,초급일본어회화Ⅱ,1.0,,,,
+50,KY206,현대서양사상의길잡이,3.0,,,,
+51,KY677,대학생활길잡이,1.0,,,,
+52,KY909,사이버영어토익(초급),2.0,,,,
+53,KY910,사이버영어토익(중급),2.0,,,,
+54,KY917,해외봉사활동,2.0,,,,
+55,KY921,사회생활길잡이,1.0,,,,
+56,KY949,유럽속의독일문화,3.0,,,,
+57,KYC01,좋은기업찾기프로젝트,3.0,,,,
+58,KYC03,컴퓨터활용능력을위한엑셀2016,2.0,,,,
+59,KYC04,컴퓨터활용능력을위한파워포인트2016,2.0,,,,
+60,KYC53,미래사회를위한시민교육,3.0,,,,
+61,TT416,졸업논문,3.0,,,,
+62,HC468,OJT2,3.0,,,,
+63,DC616,OJT2,3.0,,,,
+64,DV422,OJT2,3.0,,,,
+65,HD901,현지독일어실습,3.0,,,,
+66,TR347,집단상담,3.0,,,,
+67,HN473,타이완지역연구Ⅱ,3.0,,,,
+68,HJ451,일본현지연수및실습Ⅰ,3.0,,,,
+69,EH103,경제원론,3.0,,,,
+70,EH421,OJT2,3.0,,,,
+71,EK419,졸업논문,3.0,,,,
+72,EA335,소셜마케팅커뮤니케이션,3.0,,,,
+73,EA337,브랜딩트렌드,3.0,,,,
+74,EA409,졸업논문,3.0,,,,
+75,EM104,영상의이해,3.0,,,,
+76,EM412,캡스톤디자인I,3.0,,,,
+77,EM413,캡스톤디자인II,3.0,,,,
+78,EM419,졸업논문,3.0,,,,
+79,EE476,OJT2,3.0,,,,
+80,EB101,경영학원론,3.0,,,,
+81,EB212,회계원리,3.0,,,,
+82,EB249,경영전산처리,3.0,,,,
+83,EB479,OJT2,3.0,,,,
+84,NM460,OJT2,3.0,,,,
+85,NE202,고급프로그래밍,3.0,,,,
+86,NE444,IPP3(장기현장실습),3.0,,,,
+87,NE445,IPP4(장기현장실습),3.0,,,,
+88,NE450,OJT2,3.0,,,,
+89,NI500,OJT2,3.0,,,,
+90,NI510,IPP3(장기현장실습),3.0,,,,
+91,NI511,IPP4(장기현장실습),3.0,,,,
+92,OC108,범죄와범죄심리,3.0,,,,
+93,OC112,생활속의심리학,3.0,,,,
+94,OC129,TED로배우는영화속바이오테크놀로지,3.0,,,,
+95,OC134,몸매만들기와보디빌딩,3.0,,,,
+96,OC159,마음을읽어주는미술치료,3.0,,,,
+97,OC217,e스포츠의세계,3.0,,,,
+98,EZ212,전산회계,3.0,,,,
+99,EZ441,OJT2,3.0,,,,
+100,HI116,정치학입문,3.0,,,,
+101,HD624,독일의여가문화와맥주,3.0,,,,
+102,HD637,스포츠와문화,3.0,,,,
+103,HD904,손짓언어와글로벌커뮤니케이션,3.0,,,,
+104,HD906,독일히든챔피언과창업,3.0,,,,
+105,DC134,동아시아의전통문화,3.0,,,,
+106,DC565,차마고도사이버여행,3.0,,,,
+107,DC604,중국언어문화탐사,3.0,,,,
+108,DC902,젊은이를위한맹자,3.0,,,,
+109,HC609,중국음식문화의이해,2.0,,,,
+110,HC909,중국어기초한자,2.0,,,,
+111,KYC84,브랜드인문학,3.0,,,,
+112,HK530,IPP3(장기현장실습),3.0,,,,
+113,HK531,IPP4(장기현장실습),3.0,,,,
+114,HD641,IPP3(장기현장실습),3.0,,,,
+115,HD642,IPP4(장기현장실습),3.0,,,,
+116,DC228,스토리를가진사자성어,3.0,,,,
+117,HM420,SF영화와미래사회,3.0,,,,
+118,HS420,IPP3(장기현장실습),3.0,,,,
+119,HS421,IPP4(장기현장실습),3.0,,,,
+120,TS479,국제사회복지론,3.0,,,,
+121,TR372,장애의진단과평가,3.0,,,,
+122,EA336,비즈니스모델과마케팅전략,3.0,,,,
+123,SB419,졸업논문,3.0,,,,
+124,SC325,가족관계론,3.0,,,,
+125,EE473,IPP3(장기현장실습),3.0,,,,
+126,EB333,경영정보시스템,3.0,,,,
+127,EX060,*일본어Ⅱ,3.0,,,,
+128,EX069,*일본문화론,3.0,,,,
+129,EX223,*생산관리,3.0,,,,
+130,EX846,*통계학,3.0,,,,
+131,EX897,*정보수학Ⅰ,3.0,,,,
+132,EX898,*국제정보분석,3.0,,,,
+133,EX899,*고급영어회화Ⅱ,3.0,,,,
+134,KH488,자료구조,3.0,,,,
+135,OC106,뮤지컬영화감상과이해,3.0,,,,
+136,OC192,생활과화학,3.0,,,,
+137,EZ253,전산회계Ⅰ,3.0,,,,
+138,EZ429,IPP3(장기현장실습),3.0,,,,
+139,EZ430,IPP4(장기현장실습),3.0,,,,
+140,IT515,IPP3(장기현장실습),3.0,,,,
+141,IT516,IPP4(장기현장실습),3.0,,,,
+142,HC219,HSK4급Ⅱ,3.0,,,,
+143,HC910,영화로배우는매너와에티켓,2.0,,,,
+144,PS419,IPP3(장기현장실습),3.0,,,,
+145,PS420,IPP4(장기현장실습),3.0,,,,
+146,*KY130,고급한국어회화2,3.0,,,,
+147,*KY132,고급한국어문법2,3.0,,,,
+148,*KY133,소통의기술,3.0,,,,
+149,*KY134,K-POP실습,3.0,,,,
+150,*KY135,기타교실,3.0,,,,
+151,KY419,현대사회와복지,3.0,,,,
+152,KY448,한국사회와사회문제,3.0,,,,
+153,KY471,논리와비판적사고,3.0,,,,
+154,KY472,생활법률,3.0,,,,
+155,KY508,1인미디어만들기,3.0,,,,
+156,KY509,채플,1.0,,,,
+157,KY532,한신탐구,2.0,,,,
+158,KY554,e-비즈니스의이해,3.0,,,,
+159,KY588,생활속의수학,3.0,,,,
+160,KY593,진로선택과취업준비,3.0,,,,
+161,KY612,성서입문,2.0,,,,
+162,KY620,드라마속의기독교,2.0,,,,
+163,KY646,프랑스어회화및실습Ⅰ,2.0,,,,
+164,KY661,취창업스쿨1,3.0,,,,
+165,KY662,초급일본어Ⅰ,2.0,,,,
+166,KY667,초급일본어회화Ⅰ,1.0,,,,
+167,KY692,쟁점으로본한국현대사,3.0,,,,
+168,KY693,광고와삶,3.0,,,,
+169,KY696,문학과영화에서죽음의의미,3.0,,,,
+170,KY721,영어Ⅰ,2.0,,,,
+171,KY724,드라마의이해,3.0,,,,
+172,KY734,영화입문,3.0,,,,
+173,KY747,중국사의이해,3.0,,,,
+174,KY755,철학이란무엇인가,3.0,,,,
+175,KY756,현대사회와윤리,3.0,,,,
+176,KY765,정치란무엇인가,3.0,,,,
+177,KY786,뉴턴과근대과학탄생의비밀,3.0,,,,
+178,KY793,우주의한마을:지구의이해,3.0,,,,
+179,KY800,구급과안전교육,2.0,,,,
+180,KY817,축구,2.0,,,,
+181,KY818,농구,2.0,,,,
+182,KY820,테니스,2.0,,,,
+183,KY826,호신술,2.0,,,,
+184,KY828,등산과트래킹,2.0,,,,
+185,KY835,봉사활동Ⅰ,1.0,,,,
+186,KY842,중국어Ⅰ,2.0,,,,
+187,KY844,중국어회화Ⅰ,2.0,,,,
+188,KY861,올바른언어생활,2.0,,,,
+189,KY876,노동과인간,3.0,,,,
+190,KY879,기독교와인문학,2.0,,,,
+191,KY882,기독교와세계종교,2.0,,,,
+192,KY883,영화속의기독교,2.0,,,,
+193,KY890,교회음악Ⅰ,2.0,,,,
+194,KY898,재미있는광고이야기,3.0,,,,
+195,KY952,한국미술의감상과이해,3.0,,,,
+196,KY961,결혼과가족,3.0,,,,
+197,KY963,예술로말하기1,3.0,,,,
+198,KY964,시각문화의역사,3.0,,,,
+199,KY965,언어와문화의이해,3.0,,,,
+200,KY967,명화의사회사,3.0,,,,
+201,KY968,미술로의초대,3.0,,,,
+202,KY983,시사영어,3.0,,,,
+203,KY991,기초영어회화1,2.0,,,,
+204,KY993,중급영어회화1,2.0,,,,
+205,KYA21,물리란무엇인가,3.0,,,,
+206,KYA22,인간과교육,3.0,,,,
+207,KYA24,중국문화길잡이,3.0,,,,
+208,KYA30,기초독일어실습Ⅰ,2.0,,,,
+209,KYA47,북한의문화와일상생활,3.0,,,,
+210,KYA67,지혜로운소비와재테크,3.0,,,,
+211,KYA69,연기예술1:행동,3.0,,,,
+212,KYA70,감정수업:침묵과말,3.0,,,,
+213,KYA76,기술과인간의미래,3.0,,,,
+214,KYA77,도시와환경,3.0,,,,
+215,KYA80,통일과북한의이해,3.0,,,,
+216,KYA81,금융과사회,3.0,,,,
+217,KYA82,아동발달과양육사의이해,3.0,,,,
+218,KYA88,기독교와음식문화,3.0,,,,
+219,KYA89,4차산업기술의이해와미래,3.0,,,,
+220,KYA94,문학으로읽는동아시아의평화,3.0,,,,
+221,KYB24,빅데이터분석원리및분석방법론(중급),3.0,,,,
+222,KYC21,오르간연주법1,2.0,,,,
+223,KYC41,나를찾아떠나는여행,2.0,,,,
+224,KYC45,게임과e스포츠영상의이해,3.0,,,,
+225,KYC46,국제개발협력과글로벌이슈,3.0,,,,
+226,KYC54,Essential English,3.0,,,,
+227,KYC55,글쓰기의기초,3.0,,,,
+228,KYC56,컴퓨팅사고와SW코딩,3.0,,,,
+229,KYC57,세계지역과글로벌이슈의이해,3.0,,,,
+230,KYC58,아시아도시문화탐방,3.0,,,,
+231,KYC60,먼나라이웃나라,3.0,,,,
+232,KYC61,어서와한국은처음이지,3.0,,,,
+233,KYC63,책읽기와말하기,3.0,,,,
+234,KYC67,미디어일본어,3.0,,,,
+235,KYC68,디지털게임개발을통한컴퓨터의이해,3.0,,,,
+236,KYC69,실용영어,3.0,,,,
+237,KYC70,문화산업과콘텐츠,3.0,,,,
+238,KYC82,음악의이해와기악실습,2.0,,,,
+239,KYC85,우리가몰랐던동남아시아,3.0,,,,
+240,KYC86,e스포츠경영의이해,3.0,,,,
+241,KYC87,인공지능시대말과글,3.0,,,,
+242,KYC88,인간관계와의사소통,3.0,,,,
+243,KYC89,세계의전쟁과평화,3.0,,,,
+244,KYC90,모두의AI교양수학,3.0,,,,
+245,KYC91,중국사를통해본리더십,3.0,,,,
+246,KYC95,경제생활과법,3.0,,,,
+247,KYC96,공정거래와법정책이야기,3.0,,,,
+248,TT111,목회실습Ⅰ,1.0,,,,
+249,TT112,목회실습Ⅱ,1.0,,,,
+250,TT150,신앙수련회Ⅰ,1.0,,,,
+251,TT151,신앙수련회Ⅱ,1.0,,,,
+252,TT152,신앙수련회Ⅲ,1.0,,,,
+253,TT153,신앙수련회Ⅳ,1.0,,,,
+254,TT159,신앙수련회,1.0,,,,
+255,TT217,목회실습Ⅲ,1.0,,,,
+256,TT218,목회실습Ⅳ,1.0,,,,
+257,TT501,요한복음이해,3.0,,,,
+258,TT509,목회실습,1.0,,,,
+259,TT510,기독교윤리학개론,3.0,,,,
+260,TT566,성서헬라어문법,3.0,,,,
+261,TT577,구약학개론,3.0,,,,
+262,TT588,어린이ㆍ청소년교육,3.0,,,,
+263,TT611,조직신학개론,3.0,,,,
+264,TT632,그리스도교신학과문화,3.0,,,,
+265,TT638,발달심리학,3.0,,,,
+266,TT647,목회신학개론,3.0,,,,
+267,TT912,한국교회선교역사,3.0,,,,
+268,TT923,한국교회논쟁사,3.0,,,,
+269,TT931,목회와상담의실제,3.0,,,,
+270,TT957,오경연구,3.0,,,,
+271,DC419,졸업논문,3.0,,,,
+272,DC579,한중문화관광기획,3.0,,,,
+273,DC594,한중전시콘텐츠실습,3.0,,,,
+274,DC605,콘텐츠중국어Ⅰ,3.0,,,,
+275,HP137,철학여행Ⅰ,1.0,,,,
+276,HP141,서양고중세철학사,3.0,,,,
+277,HP150,철학개론,3.0,,,,
+278,HP204,미학의기초,3.0,,,,
+279,HP208,형이상학과인식론,3.0,,,,
+280,HP221,서양근세철학사,3.0,,,,
+281,HP287,철학여행Ⅱ,1.0,,,,
+282,HP309,과학과문화,3.0,,,,
+283,HP327,노장사상,3.0,,,,
+284,HP419,졸업논문,3.0,,,,
+285,HP496,논문작성법,1.0,,,,
+286,HP507,문학철학,3.0,,,,
+287,HP518,한국사상,3.0,,,,
+288,HR102,종교학개론,3.0,,,,
+289,HR239,종교상상력예술,3.0,,,,
+290,HR254,한국종교문화사,3.0,,,,
+291,HR270,영화로읽는종교갈등사,3.0,,,,
+292,HR273,악마의문화사,3.0,,,,
+293,HR314,종교문화유산답사Ⅱ,1.0,,,,
+294,HR371,종교문화워크숍3,1.0,,,,
+295,HR406,종교문화유산답사Ⅲ,1.0,,,,
+296,HR419,졸업논문,3.0,,,,
+297,HR434,논문지도,3.0,,,,
+298,DR419,졸업논문,3.0,,,,
+299,HM419,졸업논문,3.0,,,,
+300,TS117,사회복지학개론,3.0,,,,
+301,TS269,사회복지와인권,3.0,,,,
+302,TS352,사회복지실천론,3.0,,,,
+303,TS353,지역사회복지론,3.0,,,,
+304,TS354,사회복지정책론,3.0,,,,
+305,TS356,사회복지자료분석론,3.0,,,,
+306,TS362,의료사회복지론,3.0,,,,
+307,TS363,사회복지현장실습의이해Ⅰ,2.0,,,,
+308,TS419,졸업논문,3.0,,,,
+309,TS455,사회복지현장실습Ⅱ,3.0,,,,
+310,TS459,프로그램개발과평가,3.0,,,,
+311,TS473,가족상담및가족치료,3.0,,,,
+312,TS502,사회문제론,3.0,,,,
+313,TS516,사회복지법제,3.0,,,,
+314,TS519,아동복지론,3.0,,,,
+315,PD001,자기설계기초,3.0,,,,
+316,PD004,도전설계기초,3.0,,,,
+317,GP668,XR콘텐츠특론,3.0,,,,
+318,NE302,알고리즘,3.0,,,,
+319,NE306,인터넷프로토콜,3.0,,,,
+320,NE309,인공지능,3.0,,,,
+321,NE317,소프트웨어공학,3.0,,,,
+322,NE320,정보보호론,3.0,,,,
+323,NE325,데이터베이스프로그래밍,3.0,,,,
+324,NE329,리눅스프로그래밍,3.0,,,,
+325,NE339,인간-컴퓨터상호작용,3.0,,,,
+326,NE403,게임프로그래밍,3.0,,,,
+327,NE419,졸업논문,3.0,,,,
+328,NE447,캡스톤디자인1,3.0,,,,
+329,NE448,캡스톤디자인2,3.0,,,,
+330,NE457,데이터베이스와NoSQL_NCS,3.0,,,,
+331,NE507,통합구현_NCS,3.0,,,,
+332,NI302,빅데이터개론,3.0,,,,
+333,NI305,암호이론및보안,3.0,,,,
+334,NI317,디지털시스템설계및실험,3.0,,,,
+335,NI386,컴퓨터비전,3.0,,,,
+336,NI400,졸업논문,3.0,,,,
+337,NI421,객체지향프로그래밍,3.0,,,,
+338,NI451,VLSI설계입문,3.0,,,,
+339,NI470,컴퓨터네트워크,3.0,,,,
+340,NI513,응용SW설계_NCS,3.0,,,,
+341,NI514,프로그래밍언어활용_NCS,3.0,,,,
+342,NI523,소프트웨어융합종합설계1,3.0,,,,
+343,NI524,소프트웨어융합종합설계2,3.0,,,,
+344,NI526,빅데이터플랫폼_NCS,3.0,,,,
+345,NA419,졸업논문,3.0,,,,
+346,MO419,졸업논문,3.0,,,,
+347,KS205,평생교육론,3.0,,,,
+348,KS206,성인학습및상담,3.0,,,,
+349,KS209,시민교육론,3.0,,,,
+350,KS305,평생교육경영론,3.0,,,,
+351,KS309,인적자원개발론,3.0,,,,
+352,KS310,교육사회학,3.0,,,,
+353,KS412,평생교육실습,3.0,,,,
+354,KS419,졸업논문,3.0,,,,
+355,KS420,교육공학,3.0,,,,
+356,CX401,*초급한어청력Ⅱ,3.0,,,,
+357,CX425,*기초중국어Ⅲ,4.0,,,,
+358,CX426,*중급영어Ⅱ,2.0,,,,
+359,CX434,*HSKⅢ,4.0,,,,
+360,CX484,*중국어1,4.0,,,,
+361,CX485,*중국어2,4.0,,,,
+362,CX489,*한국어(기본)Ⅱ,2.0,,,,
+363,CX491,*영어회화(Ⅱ),1.0,,,,
+364,CX492,*영어회화및듣기Ⅱ,2.0,,,,
+365,CX496,*배드민턴,2.0,,,,
+366,CX509,*기초중국어 Ⅰ,3.0,,,,
+367,CX520,*어휘및문법,6.0,,,,
+368,CX531,*에어로빅운동지도실습,2.0,,,,
+369,CX532,*탁구Ⅳ,0.0,,,,
+370,CX533,*스포츠감사,2.0,,,,
+371,CX534,*스포트특기Ⅱ,3.0,,,,
+372,CX535,*기초중국어말하기Ⅱ,4.0,,,,
+373,CX536,*기초중국어듣기Ⅱ,4.0,,,,
+374,CX537,*기초중국어종합Ⅱ,10.0,,,,
+375,CX538,*기초중국어읽기/쓰기Ⅱ,4.0,,,,
+376,CX539,*초등중국어통합과정Ⅱ,10.0,,,,
+377,CX540,*초등중국어읽기와쓰기Ⅱ,4.0,,,,
+378,CX541,*기초중국어Ⅲ,3.0,,,,
+379,CX542,*홀치기염색저(전통침염),2.0,,,,
+380,CX543,*수공자수,2.0,,,,
+381,CX544,*도예,3.0,,,,
+382,CX545,*인물촬영,2.0,,,,
+383,CX546,*풍경사생,2.0,,,,
+384,CX547,*중국소수민족복식,2.0,,,,
+385,CX548,*IELTS준비Ⅰ,2.0,,,,
+386,CX549,*TOEIC준비Ⅰ,2.0,,,,
+387,CX550,*영어어휘&독해Ⅱ,2.0,,,,
+388,CX551,*영어커뮤니케이션,2.0,,,,
+389,CX552,*환대영어Ⅳ,2.0,,,,
+390,CX553,*일본문화소개Ⅱ,2.0,,,,
+391,CX554,*영어화화와듣기이해 Ⅳ,2.0,,,,
+392,CX555,*비즈니스프레젠테이션,2.0,,,,
+393,CX556,*제2외국어-일본Ⅱ,2.0,,,,
+394,CX557,*관광일본어Ⅱ,2.0,,,,
+395,CX558,*영어듣기능력:상거래 Ⅱ,2.0,,,,
+396,CX559,*인터넷마케팅,3.0,,,,
+397,CX560,*고전중국어Ⅱ,2.0,,,,
+398,CX561,*중국사Ⅱ,2.0,,,,
+399,CX562,*고급중국어시청각-구어중국어Ⅱ,2.0,,,,
+400,CX563,*한자교육,2.0,,,,
+401,CX564,*중국어어휘의가르침,2.0,,,,
+402,CX565,*언어학입문,2.0,,,,
+403,CX566,*제2외국어로중국어를가르침,2.0,,,,
+404,CX567,*현대중국어Ⅱ,2.0,,,,
+405,CX568,*중국가요의배경이되는언어와문화,2.0,,,,
+406,DX046,*Reading & Writing,2.0,,,,
+407,DX697,*DaF-B2.2,3.0,,,,
+408,DX771,*외국어로서의독일어B1-어휘,2.0,,,,
+409,DX780,*외국어로서의독일어B1.2,3.0,,,,
+410,DX784,*창의적글쓰기2(B2),5.0,,,,
+411,DX785,*독일역사를통한여행독일어실습(B2),3.0,,,,
+412,DX786,*제2외국어로서독일어입문,0.0,,,,
+413,DX787,*비즈니스방법론,0.0,,,,
+414,DX788,*훈련과학에대한입문,1.0,,,,
+415,DX789,*운동학에대한입문,1.0,,,,
+416,DX790,*독일역사의이해(B2/B1),3.0,,,,
+417,DX791,*독일역사를통한여행독일어실습,3.0,,,,
+418,DX793,"*일반독일어 코스,CERR레벨 B1.2",8.0,,,,
+419,DX795,*외국어로서의독일어B2.1,3.0,,,,
+420,DX796,*교차-문화경영1,3.0,,,,
+421,DX797,*교차-문화경영2,3.0,,,,
+422,DX798,*외국어로서의독일어B2-어휘(vhb),2.0,,,,
+423,DX801,*DaF B2-학술적읽기(vhb),2.0,,,,
+424,DX802,*DaF B2-어휘(vhb),2.0,,,,
+425,DX803,*독일연구의본질:독일연방의회Ⅱ,2.0,,,,
+426,DX804,*DaF B2.1(집중과정),3.0,,,,
+427,DX805,"*일반독일어코스,CERR레벨B1.2",4.0,,,,
+428,DX806,*특수교육에대한국제적고찰2,3.0,,,,
+429,DX807,*국제성인교육,3.0,,,,
+430,DX808,*문화경제교류2–다문화경제선도,3.0,,,,
+431,DX809,*외국어로서의독일어B1.2(집중 과정),3.0,,,,
+432,DX810,*외국어로서의독일어A2소통구조(vhb),2.0,,,,
+433,DX811,*외국어로서의독일어(vhb),2.0,,,,
+434,DX812,*독일연방의회Ⅱ,2.0,,,,
+435,DX813,*외국어로서의독일어B2-학문읽기(vhb),2.0,,,,
+436,EX161,*종합영어,3.0,,,,
+437,EX166,*일본어Ⅲ,2.0,,,,
+438,EX252,*생활원예Ⅰ,1.0,,,,
+439,EX269,*국제정치학,2.0,,,,
+440,EX778,*일본어학,2.0,,,,
+441,EX791,*사상과종교연구입문,1.0,,,,
+442,EX817,*일본어언어학입문(1),2.0,,,,
+443,EX850,*종교문화론,2.0,,,,
+444,EX873,*글로벌역량개발입문,1.0,,,,
+445,EX881,*기독교입문Ⅰ,2.0,,,,
+446,EX882,*평화연구입문Ⅰ,2.0,,,,
+447,EX883,*인문학기초세미나Ⅰ,1.0,,,,
+448,EX884,*일본어능력Ⅰ,1.0,,,,
+449,EX885,*일본어Ⅰ,2.0,,,,
+450,EX901,*커리어개발,2.0,,,,
+451,EX902,*인류학기초(생태와사회),1.0,,,,
+452,EX903,*언어학기초A,1.0,,,,
+453,EX934,*정보리터리시연습,3.0,,,,
+454,EX935,*초급중국어,3.0,,,,
+455,EX936,*기초영어회화,3.0,,,,
+456,EX937,*글쓰기614,1.0,,,,
+457,EX938,*국제비즈니스와JETRO의역할(JETRO의옴니버스강의시리즈),2.0,,,,
+458,EX939,*다문화사회와언어,2.0,,,,
+459,EX940,*인류학기초(민속학),1.0,,,,
+460,EX941,*문화표상론,2.0,,,,
+461,EX942,"*지역사료론(구,일란교류사)",2.0,,,,
+462,EX943,*중급일본어Ⅱ한자,1.0,,,,
+463,EX944,*리서치기초(촬영),2.0,,,,
+464,EX945,*다문화사회학의문제들,1.0,,,,
+465,HX107,*중국어정독,4.0,,,,
+466,HX108,*중국어말하기,4.0,,,,
+467,HX343,*문화체험,2.0,,,,
+468,HX404,*중국어작문,4.0,,,,
+469,HX414,*초급회화중국어2,3.0,,,,
+470,HX439,*중국당대국정,2.0,,,,
+471,HX440,*중국어작문,2.0,,,,
+472,HX441,*고급중국어듣고말하기2,8.0,,,,
+473,HX442,*HSK6급,2.0,,,,
+474,HX443,*고급중국어읽고쓰기2,8.0,,,,
+475,HX444,*언어실천4,0.5,,,,
+476,HX446,*종합중국어,4.0,,,,
+477,HX449,*중국문화체험,2.0,,,,
+478,HX450,*듣기,3.0,,,,
+479,HX451,*말하기,4.0,,,,
+480,HZ225,*일본학입문,2.0,,,,
+481,HZ702,*영어말하기,1.0,,,,
+482,HZ877,*외국인을위한체코어,3.0,,,,
+483,HZ884,*효과적인교수법,3.0,,,,
+484,HZ889,*보빈레이스만들기,1.0,,,,
+485,HZ912,*여가교육학,2.0,,,,
+486,HZ918,*초등교사를위한영어2,1.0,,,,
+487,HZ943,*통합일본어601a,3.0,,,,
+488,HZ949,*비즈니스영어Ⅱ,1.0,,,,
+489,HZ950,*근대사,2.0,,,,
+490,HZ951,*초보자용독일어,1.0,,,,
+491,HZ952,*문화론2:가족과친족의인류학,3.0,,,,
+492,HZ953,*보빈레이스제작2,1.0,,,,
+493,HZ954,*전형적인스포츠경기(초등교육용),1.0,,,,
+494,HZ955,*인지언어학과언어학적세계해석학개론,1.0,,,,
+495,HZ956,*주류교실에서의언어와언어의개입,2.0,,,,
+496,HZ957,*일본문화고급연구2,2.0,,,,
+497,HZ958,*일본문화고급연구7,2.0,,,,
+498,HZ959,*젠더연구입문Ⅰ,2.0,,,,
+499,HZ976,*일본어문법411,1.0,,,,
+500,HZ977,*일본어독해312,1.0,,,,
+501,HZ978,*일본어청해413,1.0,,,,
+502,HZ979,*일본어작문314,1.0,,,,
+503,HZ980,*일본어커뮤니케이션415,1.0,,,,
+504,HZ981,*한자901,1.0,,,,
+505,HZ982,*일본어입문(1),2.0,,,,
+506,RS101,*대학성공영어:대학독해기법,3.0,,,,
+507,RS102,*대학성공영어:대학청해기법,3.0,,,,
+508,RS103,*대학성공영어:대학구술기법,3.0,,,,
+509,RS104,*대학성공영어:구술의사소통기법,3.0,,,,
+510,RS105,*대학성공영어:대학작문기법,3.0,,,,
+511,KH570,사회문제론,3.0,,,,
+512,KH668,평생교육방법론,3.0,,,,
+513,KM015,심리학START,3.0,,,,
+514,OC122,호신술과자기방어,3.0,,,,
+515,OC160,식생활과건강,3.0,,,,
+516,OC206,모두의인공지능,3.0,,,,
+517,OC233,이야기로치유하기,3.0,,,,
+518,OC235,나를찾는행복레슨,3.0,,,,
+519,HC224,고사성어,3.0,,,,
+520,HC294,고급중국어회화Ⅰ,3.0,,,,
+521,HC313,HSK5급Ⅰ,3.0,,,,
+522,HC419,졸업논문,3.0,,,,
+523,IT213,게임플랫폼실습,3.0,,,,
+524,IT231,IT스마트관광플랫폼,3.0,,,,
+525,IT302,웹DB와빅데이터실습,3.0,,,,
+526,IT310,스마트네트워크실습,3.0,,,,
+527,IT319,IoT콘텐츠플랫폼,3.0,,,,
+528,IT401,개인미디어실습,3.0,,,,
+529,IT413,딥러닝응용,3.0,,,,
+530,IT419,졸업논문,3.0,,,,
+531,TH001,유럽문화와비전,3.0,,,,
+532,TH004,중국문화와스토리텔링,3.0,,,,
+533,TH005,철학으로생각하기,3.0,,,,
+534,TH009,문학과나의만남:동시대문학읽기와쓰기,3.0,,,,
+535,TH011,기독교와세계문명,3.0,,,,
+536,KA017,K-pop전공실기Ⅱ,3.0,,,,
+537,GP202,유럽문화콘텐츠산업연구,3.0,,,,
+538,HB101,총괄세미나,1.0,,,,
+539,HD158,한-EU문화콘텐츠산업의이해,3.0,,,,
+540,HD222,독일문학과영상문화,3.0,,,,
+541,HD377,독일역사와언어변화,3.0,,,,
+542,HD417,독일어어휘의이해,3.0,,,,
+543,HD419,졸업논문,3.0,,,,
+544,HD629,독일어듣기말하기실습A2-2,3.0,,,,
+545,HD649,독일역사로보는문학이야기I,3.0,,,,
+546,HD653,문화텍스트로보는유럽의젠더,3.0,,,,
+547,HD657,영화이해의길잡이,3.0,,,,
+548,HD658,유럽영화축제기행,3.0,,,,
+549,HD659,영상콘텐츠제작실습2,3.0,,,,
+550,HD662,독일어듣기말하기실습A1-0,3.0,,,,
+551,HD665,기본독일어실습Ⅰ,3.0,,,,
+552,HE219,영문학개관,3.0,,,,
+553,HE264,영어문법,3.0,,,,
+554,HE270,영어작문,2.0,,,,
+555,HE271,고급영어Ⅰ,3.0,,,,
+556,HE274,영어토론,3.0,,,,
+557,HE275,영미문화의이해,3.0,,,,
+558,HE276,영어회화실습,2.0,,,,
+559,HE313,근대영문학,3.0,,,,
+560,HE314,현대영미소설,3.0,,,,
+561,HE315,영어연설강독및실습,3.0,,,,
+562,HE332,현대영미시,3.0,,,,
+563,HE358,영어통사론,3.0,,,,
+564,HE412,졸업논문,3.0,,,,
+565,HE435,영문학특강,3.0,,,,
+566,HE440,현대영미희곡,3.0,,,,
+567,HW228,현대소설연구,3.0,,,,
+568,HW238,동시대시강독Ⅰ,3.0,,,,
+569,HW240,서사학입문,3.0,,,,
+570,HW243,드라마작법Ⅰ,3.0,,,,
+571,HW301,시창작실습Ⅰ,3.0,,,,
+572,HW302,소설창작실습Ⅰ,3.0,,,,
+573,HW328,아동문학창작실습Ⅰ,3.0,,,,
+574,HW332,드라마창작의기초-영화,3.0,,,,
+575,HW337,시창작특강Ⅰ,3.0,,,,
+576,HW340,아동문학작품연구,3.0,,,,
+577,HW402,소설창작실습Ⅲ,3.0,,,,
+578,HW405,비평이론,3.0,,,,
+579,HW418,소설창작특강Ⅱ,3.0,,,,
+580,HW419,졸업논문,3.0,,,,
+581,HK105,한국문학개론,3.0,,,,
+582,HK241,중세국어강독,3.0,,,,
+583,HK273,국어국문학현장답사2,1.0,,,,
+584,HK274,한국어음운의이해,3.0,,,,
+585,HK275,한국어통사의이해,3.0,,,,
+586,HK276,현대소설탐구,3.0,,,,
+587,HK277,고전시가탐구,3.0,,,,
+588,HK320,한국어사전의이해,3.0,,,,
+589,HK334,현대시인론,3.0,,,,
+590,HK360,한국한문학의이해,3.0,,,,
+591,HK381,한국민속의이해,3.0,,,,
+592,HK419,졸업논문,3.0,,,,
+593,HK440,논문연습,3.0,,,,
+594,HK516,현대산문강독,3.0,,,,
+595,HK521,한국문학과테마,3.0,,,,
+596,HH116,한국사학입문,3.0,,,,
+597,HH205,관광고고학,3.0,,,,
+598,HH263,고고학입문,3.0,,,,
+599,HH272,기록학입문,3.0,,,,
+600,HH303,아카이브와콘텐츠,3.0,,,,
+601,HH304,서양사특강,3.0,,,,
+602,HH344,한국사특강Ⅰ,3.0,,,,
+603,HH390,동아시아근현대사,3.0,,,,
+604,HH393,고고학이론과방법론,3.0,,,,
+605,HH401,임상역사,3.0,,,,
+606,HH403,문화유산과박물관전시,3.0,,,,
+607,HH406,한국사사료읽기1,2.0,,,,
+608,HH411,졸업논문,3.0,,,,
+609,HH463,한국사논문연습,3.0,,,,
+610,HH466,학술답사C,1.0,,,,
+611,HH470,학술답사A,0.5,,,,
+612,DC164,현대중국사회와문화,3.0,,,,
+613,DC456,사랑과중국문학,3.0,,,,
+614,DC462,중국고전과스토리텔링,3.0,,,,
+615,DC603,한중콘텐츠스토리텔링,3.0,,,,
+616,DC607,전공중국어Ⅰ,3.0,,,,
+617,HC216,HSK4급Ⅰ,3.0,,,,
+618,HC293,중국문화의이해Ⅰ,3.0,,,,
+619,HC296,HSK실습Ⅰ,3.0,,,,
+620,HC396,글로벌비즈니스예절,3.0,,,,
+621,HC540,무역중국어,3.0,,,,
+622,HC548,중국어문법,3.0,,,,
+623,HC591,초급중국어회화Ⅰ,3.0,,,,
+624,DV101,문화콘텐츠학,3.0,,,,
+625,DV102,영상문화학,3.0,,,,
+626,DV206,영화학,3.0,,,,
+627,DV207,한류와문화콘텐츠,3.0,,,,
+628,DV209,영화제탐사1,2.0,,,,
+629,DV214,공연예술콘텐츠분석및기획실습,3.0,,,,
+630,DV235,"K-pop의과거,현재,미래",3.0,,,,
+631,DV301,문화콘텐츠비즈니스의이론과실제,3.0,,,,
+632,DV302,테마공간스토리텔링,3.0,,,,
+633,DV303,다큐멘터리분석및제작워크숍,3.0,,,,
+634,DV304,방송영상콘텐츠분석및제작워크숍,3.0,,,,
+635,DV307,지역문화콘텐츠디자인,3.0,,,,
+636,DV310,글로벌문화콘텐츠인프라탐사Ⅱ,2.0,,,,
+637,DV402,문화콘텐츠조사연구의이론과실제,3.0,,,,
+638,DV419,졸업논문,3.0,,,,
+639,EN001,경제학의기초,3.0,,,,
+640,EN003,국제지역의이해,3.0,,,,
+641,EN005,외국어기초Ⅰ,3.0,,,,
+642,HN216,중국정치개론,3.0,,,,
+643,HN217,중국문화개론,3.0,,,,
+644,HN241,지역연구워크숍Ⅰ,2.0,,,,
+645,HN266,중국어실습Ⅰ,3.0,,,,
+646,HN268,중국어회화Ⅰ,3.0,,,,
+647,HN370,집중중국어실습,3.0,,,,
+648,HN390,중국역사스토리텔링,3.0,,,,
+649,HN419,졸업논문,3.0,,,,
+650,HJ115,일본사첫걸음,3.0,,,,
+651,HJ128,초급일본어회화1,2.0,,,,
+652,HJ256,중급일본어Ⅰ,3.0,,,,
+653,HJ266,일본어한자,3.0,,,,
+654,HJ269,일본학조사연구Ⅰ,3.0,,,,
+655,HJ271,한일시민사회,3.0,,,,
+656,HJ319,현대일본정치,3.0,,,,
+657,HJ359,일본학조사연구Ⅲ,3.0,,,,
+658,HJ378,통번역실습Ⅰ,3.0,,,,
+659,HJ392,현대일본사회와대중문화,3.0,,,,
+660,HJ419,졸업논문,3.0,,,,
+661,HJ442,일본사연습,3.0,,,,
+662,EI108,경제학개론Ⅱ,3.0,,,,
+663,EI109,경제학개론Ⅰ,3.0,,,,
+664,EI221,무역관계법,3.0,,,,
+665,EI232,무역실무,3.0,,,,
+666,EI251,미시경제론,3.0,,,,
+667,EI256,현대경제와기업,3.0,,,,
+668,EI258,기초통계학,3.0,,,,
+669,EI374,국제통상정책론,3.0,,,,
+670,EI380,국제무역과운송물류,3.0,,,,
+671,EI383,무역클레임의예방과해결,3.0,,,,
+672,EI411,졸업논문,3.0,,,,
+673,EI415,시사국제금융세미나,3.0,,,,
+674,EI468,현대경제학특강,3.0,,,,
+675,EI471,보험학개론,3.0,,,,
+676,EE112,경제학원론,3.0,,,,
+677,EE231,계량경제학,3.0,,,,
+678,EE236,한국경제사,3.0,,,,
+679,EE254,경제사,3.0,,,,
+680,EE333,노동경제학,3.0,,,,
+681,EE339,재정학,3.0,,,,
+682,EE344,경제통계학,3.0,,,,
+683,EE367,거시경제학,3.0,,,,
+684,EE411,졸업논문,3.0,,,,
+685,EE440,경제학세미나,3.0,,,,
+686,EE452,금융정책,3.0,,,,
+687,GH001,국제학입문,3.0,,,,
+688,GH002,정치학입문,3.0,,,,
+689,GH003,행정학입문,3.0,,,,
+690,HI269,국제관계의이론과역사,3.0,,,,
+691,HI323,정치사상의이해,3.0,,,,
+692,HI330,미디어와정치,3.0,,,,
+693,HI340,유라시아외교론,3.0,,,,
+694,HI374,현대전쟁의이해,3.0,,,,
+695,HI404,국제기구와NGO,3.0,,,,
+696,HI408,국제개발협력개론,3.0,,,,
+697,HI419,졸업논문,3.0,,,,
+698,HI420,글로벌리더십연구,3.0,,,,
+699,HI423,선거정치론,3.0,,,,
+700,HI427,글로벌커뮤니케이션,3.0,,,,
+701,HI428,사회과학분석기법,3.0,,,,
+702,HI440,동아시아국제정치경제론,3.0,,,,
+703,HI441,지정학의이론과실재,3.0,,,,
+704,HI442,민주주의이론과현실,3.0,,,,
+705,SP419,졸업논문,3.0,,,,
+706,PS106,웹프로그래밍,3.0,,,,
+707,PS109,데이터기반조직및인사관리,3.0,,,,
+708,PS110,공공조직관리론,3.0,,,,
+709,PS214,형사법,3.0,,,,
+710,PS215,정책분석과기획,3.0,,,,
+711,PS227,파이썬데이터분석기초,3.0,,,,
+712,PS317,빅데이터분석캡스톤디자인3,1.0,,,,
+713,PS321,공공리더십과공직가치,3.0,,,,
+714,PS407,데이터기반재무관리,3.0,,,,
+715,PS409,딥러닝자연어처리,3.0,,,,
+716,PS410,지역공공문제해결,3.0,,,,
+717,PS414,사회조사분석,3.0,,,,
+718,PS417,머신러닝비지도학습,3.0,,,,
+719,PS418,데이터분석과시각화_NCS,3.0,,,,
+720,BM001,경영의이해,3.0,,,,
+721,BM002,회계의이해,3.0,,,,
+722,BM003,미디어의이해,3.0,,,,
+723,EB201,경영통계학,3.0,,,,
+724,EB203,조직행동론,3.0,,,,
+725,EB251,마케팅커뮤니케이션,3.0,,,,
+726,EB304,전산회계실무,3.0,,,,
+727,EB312,재무관리,3.0,,,,
+728,EB317,전략경영,3.0,,,,
+729,EB385,전산회계실무_NCS,3.0,,,,
+730,EB386,서비스운영관리,3.0,,,,
+731,EB412,졸업논문,3.0,,,,
+732,EB450,금융제도및기관론,3.0,,,,
+733,EB476,마케팅성과관리_NCS,3.0,,,,
+734,EB477,유통관리_NCS,3.0,,,,
+735,EZ109,IT융합개론,3.0,,,,
+736,EZ201,e-비즈니스개론,3.0,,,,
+737,EZ214,마케팅원론,3.0,,,,
+738,EZ227,웹프로그래밍활용,3.0,,,,
+739,EZ238,파이썬프로그래밍기초,3.0,,,,
+740,EZ239,데이터분석,3.0,,,,
+741,EZ250,시장조사방법론,3.0,,,,
+742,EZ313,조직관리론,3.0,,,,
+743,EZ324,데이터분석종합설계,3.0,,,,
+744,EZ419,졸업논문,3.0,,,,
+745,EZ431,창업경영론,3.0,,,,
+746,EZ436,IT경영세미나Ⅰ,1.0,,,,
+747,EZ438,마케팅관리_NCS,3.0,,,,
+748,EZ439,고객분석과데이터관리_NCS,3.0,,,,
+749,EZ447,빅데이터이해및기획_NCS,3.0,,,,
+750,EH105,글로벌사회입문,3.0,,,,
+751,EH223,비즈니스커뮤니케이션,3.0,,,,
+752,EH243,국제무역통상영어Ⅰ,3.0,,,,
+753,EH245,경영환경과시장조사실습,3.0,,,,
+754,EJ349,협동조합비즈니스모델,3.0,,,,
+755,EJ419,졸업논문,3.0,,,,
+756,EK201,글로벌경영론,3.0,,,,
+757,EK345,글로벌경영전략,3.0,,,,
+758,EK353,국제무역통상실무,3.0,,,,
+759,EK403,글로벌비즈니스세미나,3.0,,,,
+760,EA203,설득커뮤니케이션,3.0,,,,
+761,EA220,광고캠페인론,3.0,,,,
+762,EA323,매체기획론,3.0,,,,
+763,EA425,여론과정치PR,3.0,,,,
+764,EM102,광고학개론,3.0,,,,
+765,EM103,홍보학개론,3.0,,,,
+766,EM202,영상과스토리텔링,3.0,,,,
+767,EM229,시네마토그래피실습,3.0,,,,
+768,EM301,영상산업론,3.0,,,,
+769,EM312,영상작가론,3.0,,,,
+770,EM314,에디팅실습Ⅰ,3.0,,,,
+771,EM315,논픽션영상제작실습,3.0,,,,
+772,EM325,디지털캠페인을위한마켓인사이트,3.0,,,,
+773,EM409,디지털게임과문화,3.0,,,,
+774,SS002,휴먼서비스의이해,3.0,,,,
+775,SS007,인간관계의심리,3.0,,,,
+776,HS102,사회심리학,3.0,,,,
+777,HS107,신문읽기와사회분석,3.0,,,,
+778,HS113,사회학길잡이,3.0,,,,
+779,HS207,정치사회학,3.0,,,,
+780,HS217,고전사회학탐구,3.0,,,,
+781,HS324,사회변동과지구화,3.0,,,,
+782,HS327,문화와일상생활,3.0,,,,
+783,HS332,영상문화와사회,3.0,,,,
+784,HS356,한국사회연구실습3-1,2.0,,,,
+785,HS358,범죄와일탈,3.0,,,,
+786,HS419,졸업논문,3.0,,,,
+787,TR108,장애아동의이해,3.0,,,,
+788,TR124,심리학개론,3.0,,,,
+789,TR259,발달정신병리학,3.0,,,,
+790,TR271,재활상담,3.0,,,,
+791,TR348,성격심리학,3.0,,,,
+792,TR365,재활프로그램개발,3.0,,,,
+793,TR370,재활사례관리,3.0,,,,
+794,TR371,재활윤리와철학,3.0,,,,
+795,TR374,보조공학의이해,3.0,,,,
+796,TR419,졸업논문,3.0,,,,
+797,TR432,보호및지원고용,3.0,,,,
+798,TR450,놀이치료실습및슈퍼비전,3.0,,,,
+799,TR453,재활행정,3.0,,,,
+800,TR508,노동환경과고용동향,3.0,,,,
+801,SA106,심리학개론,3.0,,,,
+802,SB202,정신병리학,3.0,,,,
+803,SB207,인지심리학,3.0,,,,
+804,SB301,임상심리학,3.0,,,,
+805,SB302,심리검사,3.0,,,,
+806,SB307,심리설계,3.0,,,,
+807,SB410,임상현장실습Ⅱ,3.0,,,,
+808,SB425,가족치료,3.0,,,,
+809,SC203,놀이지도,3.0,,,,
+810,SC304,아동수학지도,3.0,,,,
+811,SC306,보육과정,3.0,,,,
+812,SC312,영유아교수방법론,3.0,,,,
+813,SC315,아동권리와복지,3.0,,,,
+814,SC323,아동상담론,3.0,,,,
+815,SC409,아동관찰및행동연구,3.0,,,,
+816,SC419,졸업논문,3.0,,,,
+817,SC421,영유아보육프로그램개발과평가,3.0,,,,
+818,NP124,배드민턴지도법,2.0,,,,
+819,NP132,스포츠학개론,3.0,,,,
+820,NP133,하계스포츠,3.0,,,,
+821,NP201,특수체육개론,3.0,,,,
+822,NP253,노인건강마사지및테이핑,3.0,,,,
+823,NP261,스포츠교육학,3.0,,,,
+824,NP268,노인체육지도법,3.0,,,,
+825,NP339,트레이닝방법론,3.0,,,,
+826,NP375,수중재활운동,3.0,,,,
+827,NP376,의학용어,3.0,,,,
+828,NP401,스포츠사회학,3.0,,,,
+829,NP419,졸업논문,3.0,,,,
+830,NP427,특수체육현장실습,1.0,,,,
+831,EC001,응용통계학개론,3.0,,,,
+832,EC002,기업과금융,3.0,,,,
+833,NM216,금융공학1,3.0,,,,
+834,NM220,수리통계학,3.0,,,,
+835,NM227,금융수치해석,3.0,,,,
+836,NM283,수리금융의이해,3.0,,,,
+837,NM311,보험수리학1,3.0,,,,
+838,NM313,확률론,3.0,,,,
+839,NM315,파생상품이론1,3.0,,,,
+840,NM318,편미분방정식,3.0,,,,
+841,NM324,해석학개론,3.0,,,,
+842,NM325,재무관리,3.0,,,,
+843,NM381,수학기초론,3.0,,,,
+844,NM440,투자분석,3.0,,,,
+845,NM450,졸업논문,3.0,,,,
+846,NS237,회귀분석및실습,3.0,,,,
+847,NS239,중급R프로그래밍,3.0,,,,
+848,NS301,시계열분석,3.0,,,,
+849,NS302,실험계획법,3.0,,,,
+850,NS323,통계조사실습,3.0,,,,
+851,NS358,보건의학통계,3.0,,,,
+852,NS363,Python프로그래밍,3.0,,,,
+853,NS365,기계학습,3.0,,,,
+854,NS419,졸업논문,3.0,,,,
+855,AS001,AI.SW개론,3.0,,,,
+856,AS002,C언어,3.0,,,,
+857,AS003,공학설계입문,3.0,,,,
+858,AS007,자료구조,3.0,,,,
+859,AS008,자바프로그래밍,3.0,,,,
+860,AS010,데이터통신,3.0,,,,
+861,SH203,컴퓨터윤리,3.0,,,,
+862,SH201,확률과통계,3.0,,,,
+863,DS201,데이터사이언스입문,3.0,,,,
+864,XR201,XR콘텐츠입문,3.0,,,,
+865,AT201,AIoT설계입문,3.0,,,,
+866,AC101,시스템반도체공학개론,3.0,,,,
+867,*KY129,고급한국어회화1,3.0,,,,
+868,KY290,성서와문학,2.0,,,,
+869,KY447,현대세계정치의이해,3.0,,,,
+870,KY553,인권과법,3.0,,,,
+871,KY603,NCS직업기초능력다지기,3.0,,,,
+872,KY613,신학입문,2.0,,,,
+873,KY647,조선왕실의삶과문화,3.0,,,,
+874,KY656,프랑스어회화및실습Ⅱ,2.0,,,,
+875,KY671,심리운동과놀이,3.0,,,,
+876,KY674,한국의세계문화유산,3.0,,,,
+877,KY676,수학으로세상읽기,3.0,,,,
+878,KY695,노동의의미,3.0,,,,
+879,KY698,수학과문명,3.0,,,,
+880,KY700,3D콘텐츠제작,2.0,,,,
+881,KY720,글쓰기의기초,2.0,,,,
+882,KY722,영어Ⅱ,2.0,,,,
+883,KY723,내삶을바꿀소설세편,3.0,,,,
+884,KY735,건축의미학,3.0,,,,
+885,KY736,사진예술의이해,3.0,,,,
+886,KY750,일본근현대와동아시아,3.0,,,,
+887,KY777,현대인의정신건강,3.0,,,,
+888,KY780,초급일본어Ⅱ,2.0,,,,
+889,KY806,현대환경문제의이해,3.0,,,,
+890,KY819,배구,2.0,,,,
+891,KY821,탁구,2.0,,,,
+892,KY822,배드민턴,2.0,,,,
+893,KY827,조깅과워킹,2.0,,,,
+894,KY831,취창업스쿨2,3.0,,,,
+895,KY832,정의란무엇인가,3.0,,,,
+896,KY836,봉사활동Ⅱ,1.0,,,,
+897,KY845,중국어회화Ⅱ,2.0,,,,
+898,KY862,인간관계와예절,2.0,,,,
+899,KY864,영화와사회심리,3.0,,,,
+900,KY891,인물로읽는성서,2.0,,,,
+901,KY893,성서와예술,2.0,,,,
+902,KY894,성서와여성,2.0,,,,
+903,KY895,교회음악Ⅱ,2.0,,,,
+904,KY899,독일문학길잡이,3.0,,,,
+905,KY931,재미있는정신분석이야기,3.0,,,,
+906,KY951,일본문학길잡이,3.0,,,,
+907,KY953,서양미술의감상과이해,3.0,,,,
+908,KY972,예술로말하기2,3.0,,,,
+909,KY974,미술과사회,3.0,,,,
+910,KY977,문화콘텐츠로만나는정조,3.0,,,,
+911,KY984,멀티미디어영어,3.0,,,,
+912,KY992,기초영어회화2,2.0,,,,
+913,KY994,중급영어회화2,2.0,,,,
+914,KYA31,기초독일어실습Ⅱ,3.0,,,,
+915,KYA37,심리와교육,3.0,,,,
+916,KYA44,돈과인간,3.0,,,,
+917,KYA49,영화로보는남북통일문제,3.0,,,,
+918,KYA52,직업기초능력과현장실습,3.0,,,,
+919,KYA54,성서와평화,2.0,,,,
+920,KYA56,소통과의사결정과정,3.0,,,,
+921,KYA59,연기예술2:관찰,3.0,,,,
+922,KYA60,연기와마음치료,3.0,,,,
+923,KYA75,재테크와금융,3.0,,,,
+924,KYA93,전환기시대의리더십,3.0,,,,
+925,KYA96,과학의위대한순간들,3.0,,,,
+926,KYA97,공공미술과도시재생,3.0,,,,
+927,KYC10,한국현대생활사,3.0,,,,
+928,KYC11,도시의역사,3.0,,,,
+929,KYC14,빅데이터분석기초,3.0,,,,
+930,KYC15,21세기사회와유대인의문화,3.0,,,,
+931,KYC16,21세기대안사회모델독일,3.0,,,,
+932,KYC17,오르간연주법2,2.0,,,,
+933,KYC24,플랫폼시대의상상력과브랜딩,3.0,,,,
+934,KYC26,5주만행렬에집중,1.0,,,,
+935,KYC28,창의력은어디서오는가,3.0,,,,
+936,KYC31,빅데이터분석실습,3.0,,,,
+937,KYC37,디지털사회와e스포츠,3.0,,,,
+938,KYC38,문화적상상력과몸의이미지,3.0,,,,
+939,KYC42,유럽영화예술의세계,3.0,,,,
+940,KYC51,뉴노멀시대지식과정보,3.0,,,,
+941,KYC52,유라시아문명과미래세계,3.0,,,,
+942,KYC59,마음돌봄과힐링,3.0,,,,
+943,KYC64,발표하기와토론하기,3.0,,,,
+944,KYC71,키워드로보는대중문화,3.0,,,,
+945,KYC72,알기쉬운세계경제와비즈니스,3.0,,,,
+946,KYC75,민주시민과헌법,3.0,,,,
+947,KYC76,광고에서배우는창의적문제해결,3.0,,,,
+948,KYC77,코드로읽는동북아시아의옛그림,3.0,,,,
+949,KYC79,영어로떠나는한국문화,3.0,,,,
+950,KYC80,기악과합주,2.0,,,,
+951,KYC81,디지털시대의리더십,3.0,,,,
+952,KYC83,북한미술의어제와오늘,3.0,,,,
+953,KYC92,과학으로의산책,3.0,,,,
+954,KYC97,한중일청년세대의이해,3.0,,,,
+955,KYC98,건강라이프스킬,3.0,,,,
+956,TT294,교회사개론,3.0,,,,
+957,TT462,칼빈신학,3.0,,,,
+958,TT564,신학영어,3.0,,,,
+959,TT565,성서히브리어문법,3.0,,,,
+960,TT567,성정의와교회,3.0,,,,
+961,TT570,성서해석과설교,3.0,,,,
+962,TT578,신약학개론,3.0,,,,
+963,TT585,기독교교육개론,3.0,,,,
+964,TT633,한신신학의기초,3.0,,,,
+965,TT650,기독교상담의이론과실제,3.0,,,,
+966,TT941,바울의삶과신학,3.0,,,,
+967,TT945,민중신학,3.0,,,,
+968,TT955,현대선교학,3.0,,,,
+969,DC595,한중공연콘텐츠기획,3.0,,,,
+970,DC606,콘텐츠중국어Ⅱ,3.0,,,,
+971,HP142,중국철학사,3.0,,,,
+972,HP205,미디어철학,3.0,,,,
+973,HP209,실존주의,3.0,,,,
+974,HP223,한국철학사,3.0,,,,
+975,HP246,언어철학,3.0,,,,
+976,HP315,윤리학,3.0,,,,
+977,HP340,심리철학,3.0,,,,
+978,HP469,영화철학,3.0,,,,
+979,HP497,논문작성법,1.0,,,,
+980,HR234,신화와문화,3.0,,,,
+981,HR263,유럽의신화와종교,3.0,,,,
+982,HR264,인도의신화와종교,3.0,,,,
+983,HR265,종교문화워크숍2,1.0,,,,
+984,HR302,종교심리학,3.0,,,,
+985,HR370,종교문화워크숍3,1.0,,,,
+986,HR373,종교상징의이해,3.0,,,,
+987,HR502,종교문화유산답사Ⅱ,1.0,,,,
+988,HR503,종교문화유산답사Ⅲ,1.0,,,,
+989,HR525,영화와종교문화,3.0,,,,
+990,GP641,지방기록관과지방사,3.0,,,,
+991,TS116,사회복지역사,3.0,,,,
+992,TS253,복지국가론,3.0,,,,
+993,TS271,정신건강사회복지론,3.0,,,,
+994,TS272,학교사회복지론,3.0,,,,
+995,TS303,사회보장론,3.0,,,,
+996,TS364,사회복지현장실습의이해Ⅱ,2.0,,,,
+997,TS517,사회복지조사론,3.0,,,,
+998,TS518,노인복지론,3.0,,,,
+999,TS520,사회복지행정론,3.0,,,,
+1000,TS522,사회복지실천기술론,3.0,,,,
+1001,TS523,사회복지현장실습Ⅰ,3.0,,,,
+1002,TS524,가족복지론,3.0,,,,
+1003,NE255,보안프로그래밍,3.0,,,,
+1004,NE322,컴퓨터그래픽스,3.0,,,,
+1005,NE331,안드로이드프로그래밍,3.0,,,,
+1006,NE333,빅데이터분석,3.0,,,,
+1007,NE341,기계학습,3.0,,,,
+1008,NE343,IoT특론,3.0,,,,
+1009,NE344,IoT네트워크프로그래밍,3.0,,,,
+1010,NE402,시스템분석및설계,3.0,,,,
+1011,NE405,디지털영상처리,3.0,,,,
+1012,NE442,IPP1(장기현장실습),9.0,,,,
+1013,NE449,OJT1,9.0,,,,
+1014,NE455,RnD,9.0,,,,
+1015,NI215,운영체제,3.0,,,,
+1016,NI217,고급프로그래밍,3.0,,,,
+1017,NI232,인터넷프로그래밍,3.0,,,,
+1018,NI247,데이터엔지니어링,3.0,,,,
+1019,NI295,게임프로그래밍,3.0,,,,
+1020,NI325,모바일프로그래밍,3.0,,,,
+1021,NI328,정보보호,3.0,,,,
+1022,NI371,데이터통신,3.0,,,,
+1023,NI396,임베디드SOC설계,3.0,,,,
+1024,NI482,영상정보처리,3.0,,,,
+1025,NI499,OJT1,9.0,,,,
+1026,SE419,졸업논문,3.0,,,,
+1027,KS207,청소년교육론,3.0,,,,
+1028,KS306,평생교육방법론,3.0,,,,
+1029,KS308,평생교육프로그램개발론,3.0,,,,
+1030,KS311,특수교육론,3.0,,,,
+1031,KS312,교육조사방법론,3.0,,,,
+1032,KS411,원격교육론,3.0,,,,
+1033,KS421,기업교육론,3.0,,,,
+1034,AK201,한류와아시아문화콘텐츠,3.0,,,,
+1035,CX504,*요가,2.0,,,,
+1036,CX513,*기초중국어 II,3.0,,,,
+1037,CX522,*논문작성,2.0,,,,
+1038,CX523,*문화간커뮤니케이션,3.0,,,,
+1039,CX528,*중국어발음의가르침,2.0,,,,
+1040,CX530,*중국어발음교정,2.0,,,,
+1041,CX569,*중한한중번역,2.0,,,,
+1042,CX570,*테니스,2.0,,,,
+1043,CX571,*영어시청각,2.0,,,,
+1044,CX572,*도예,2.0,,,,
+1045,CX573,*중국어1,2.0,,,,
+1046,CX574,*기초중국어말하기2,4.0,,,,
+1047,CX575,*기초중국어듣기2,4.0,,,,
+1048,CX576,*기초중국어종합2,10.0,,,,
+1049,CX577,*기초중국어읽기/쓰기2,4.0,,,,
+1050,CX578,*도예,2.0,,,,
+1051,CX579,*탁구,2.0,,,,
+1052,CX580,*영상,2.0,,,,
+1053,CX581,*촬영,2.0,,,,
+1054,CX582,*중국역사1,2.0,,,,
+1055,CX583,*현대중국어1,2.0,,,,
+1056,CX584,*고급중국어듣기·말하기1,2.0,,,,
+1057,CX585,*고대중국어1,2.0,,,,
+1058,CX586,*한국어(기초)Ⅰ,2.0,,,,
+1059,CX587,*페이스트리케이크만들기,3.0,,,,
+1060,CX588,*종교속여성이야기,2.0,,,,
+1061,CX589,*신입생영어Ⅰ,2.0,,,,
+1062,CX590,*식사개요,2.0,,,,
+1063,CX591,*중국어번체,3.0,,,,
+1064,CX592,*프랑스어(기초)Ⅰ,2.0,,,,
+1065,DX646,*Text Comprehension and Text Production A,3.0,,,,
+1066,DX752,"*General German Language Course,CEFR Level A2.1",5.0,,,,
+1067,DX757,"*General German Language Course,CEFR Level B1.1",5.0,,,,
+1068,DX794,*창의적글쓰기1(B1),5.0,,,,
+1069,DX814,"*일반독일어코스,CEFR레벨B2.1",4.0,,,,
+1070,DX815,*프랑스어A1,3.0,,,,
+1071,DX816,"*일반독일어코스,CEFR레벨B1.1",4.0,,,,
+1072,DX817,*IDeFix극장과정:학업및경력에서의성공적인커뮤니케이션,3.0,,,,
+1073,DX818,"*일반독일어코스,CEFR레벨B1.2",5.0,,,,
+1074,EX214,*전문재미2-1,3.0,,,,
+1075,EX215,*전문재미2-2,3.0,,,,
+1076,EX218,*일본어4,3.0,,,,
+1077,EX290,*문화자원론,2.0,,,,
+1078,EX296,*중급중국어,3.0,,,,
+1079,EX854,*고급일본어Ⅱ b,2.0,,,,
+1080,EX856,*종교학기초,1.0,,,,
+1081,EX872,*일본어학기초A,1.0,,,,
+1082,EX875,*평화학,2.0,,,,
+1083,EX918,*사회학개론,1.0,,,,
+1084,EX946,*중급프로그래밍실습,3.0,,,,
+1085,EX947,*기초영어회화2,3.0,,,,
+1086,EX948,*일본어학기초B,1.0,,,,
+1087,EX949,*국제사회학,2.0,,,,
+1088,EX950,*아시아공동체강좌,2.0,,,,
+1089,EX951,*다문화공생사회로의초대,2.0,,,,
+1090,EX952,*글로벌사회리스크를파악하기위한인문사회과학개론,2.0,,,,
+1091,EX953,*역사학입문,1.0,,,,
+1092,EX954,*역사학기초(일본),1.0,,,,
+1093,HX013,*중국문화,2.0,,,,
+1094,HX090,*중국어듣기,4.0,,,,
+1095,HX099,*중국어회화,4.0,,,,
+1096,HX426,*중국어종합,6.0,,,,
+1097,HX447,*중국문화체험,2.0,,,,
+1098,HX452,*중국물질문화,2.0,,,,
+1099,HX453,*중국현대문학,2.0,,,,
+1100,HX454,*국제중국어어법교육학,3.0,,,,
+1101,HX455,*국제중국어교수법,3.0,,,,
+1102,HX456,*논문연구,6.0,,,,
+1103,HX457,*한자쓰기,2.0,,,,
+1104,HX458,*중국어독해,4.0,,,,
+1105,HX459,*중국개황,3.0,,,,
+1106,HX460,*기초중국어읽기와쓰기1,6.0,,,,
+1107,HX461,*과학기술중국어:읽기와쓰기,8.0,,,,
+1108,HX462,*실용중국어쓰기Ⅲ,2.0,,,,
+1109,HX463,*중국어발음및본음,2.0,,,,
+1110,HX464,*종합중국어1,4.0,,,,
+1111,HX465,*소비자행동연구,3.0,,,,
+1112,HX466,*다문화교제,2.0,,,,
+1113,HX467,*고급중국어1,6.0,,,,
+1114,HZ277,*비즈니스영어,2.0,,,,
+1115,HZ319,*일본문화유산,2.0,,,,
+1116,HZ341,*평화연구입문Ⅱ,2.0,,,,
+1117,HZ748,*영어작문,1.0,,,,
+1118,HZ806,*문화연구입문,1.0,,,,
+1119,HZ818,*통합일본어701,2.0,,,,
+1120,HZ887,*시제품제작및학생창의력개발에3D프린팅사용,2.0,,,,
+1121,HZ960,*교육이론,3.0,,,,
+1122,HZ961,*스포츠-컨디션운동,1.0,,,,
+1123,HZ962,*보빈레이스제작,3.0,,,,
+1124,HZ963,*일반역사,2.0,,,,
+1125,HZ964,*음성교육1,1.0,,,,
+1126,HZ965,*스포츠활동,1.0,,,,
+1127,HZ966,*교양기초연습Ⅱ,1.0,,,,
+1128,HZ967,*일본어Ⅱ(유학생),2.0,,,,
+1129,HZ968,*일본사정(유학생),2.0,,,,
+1130,HZ969,*일본문화기초Ⅱ,2.0,,,,
+1131,HZ970,*일본어교육문법,2.0,,,,
+1132,HZ971,*일본문화특강Ⅷ,2.0,,,,
+1133,HZ972,*일본문화유산,1.0,,,,
+1134,HZ973,*문화연구입문-세계의페미니즘과영화,2.0,,,,
+1135,HZ974,*크리티컬리딩(일본의우수한논문읽기),2.0,,,,
+1136,HZ975,*비즈니스일본어,2.0,,,,
+1137,HZ983,*일본어독해512,1.0,,,,
+1138,HZ984,*일본어작문414,1.0,,,,
+1139,HZ985,*일본어커뮤니케이션515,1.0,,,,
+1140,HZ986,*한자902,1.0,,,,
+1141,HZ987,*아시아태평양지역일본사,2.0,,,,
+1142,HZ988,*동시대한국소설읽기,2.0,,,,
+1143,HZ989,*한국어어휘문법세미나2,2.0,,,,
+1144,HZ990,*민주화운동과민주주의,2.0,,,,
+1145,RS109,*대학성공영어:대학독해기법,2.0,,,,
+1146,KH079,수학Ⅰ,3.0,,,,
+1147,KH375,수학Ⅱ,3.0,,,,
+1148,OC141,창의적문제해결TRIZ기본,3.0,,,,
+1149,OC236,한국이민의역사와문화이야기,3.0,,,,
+1150,OC237,인문학과자기경영의만남,3.0,,,,
+1151,OC238,인퓨징마케팅,3.0,,,,
+1152,HC227,역사를움직인중국의여인,3.0,,,,
+1153,HC309,HSK5급Ⅱ,3.0,,,,
+1154,HC321,영상중국어Ⅱ,3.0,,,,
+1155,HC467,OJT1,9.0,,,,
+1156,IT217,모바일미디어실습,3.0,,,,
+1157,IT219,게임콘텐츠실습,3.0,,,,
+1158,IT318,머신러닝,3.0,,,,
+1159,IT324,IoT-XR영상콘텐츠실습,3.0,,,,
+1160,IT412,딥러닝,3.0,,,,
+1161,IT420,OJT1,9.0,,,,
+1162,IT427,RnD,9.0,,,,
+1163,TH006,"역사와현재,미래",3.0,,,,
+1164,TH007,"문화적다양성,상상력,콘텐츠",3.0,,,,
+1165,TH008,우리말우리글산책,3.0,,,,
+1166,TH010,영미문화탐색,3.0,,,,
+1167,TH012,"종교,전쟁그리고평화",3.0,,,,
+1168,HB227,영화와예술,3.0,,,,
+1169,HD227,독일동화의세상,3.0,,,,
+1170,HD290,독일어학개론,3.0,,,,
+1171,HD468,국내외독일어권문화탐사2,3.0,,,,
+1172,HD496,시사독일어실습,3.0,,,,
+1173,HD508,영상으로보는유럽문화사,3.0,,,,
+1174,HD628,독일어듣기말하기실습A2-1,3.0,,,,
+1175,HD630,독일어듣기말하기실습B1-1,3.0,,,,
+1176,HD648,다큐멘터리및실험영화의세계,3.0,,,,
+1177,HD650,독일역사로보는문학이야기II,3.0,,,,
+1178,HD663,독일어듣기말하기AⅠ-Ⅰ,3.0,,,,
+1179,HD666,기본독일어실습II,3.0,,,,
+1180,HD667,OJT1,9.0,,,,
+1181,HE211,영어학개론,3.0,,,,
+1182,HE261,영어음성음운론,3.0,,,,
+1183,HE272,고급영어작문,2.0,,,,
+1184,HE273,고급영어Ⅱ,3.0,,,,
+1185,HE277,고급영어회화실습,2.0,,,,
+1186,HE316,자본주의와영문학,3.0,,,,
+1187,HE337,미국문학개관,3.0,,,,
+1188,HE347,중세르네상스영문학,3.0,,,,
+1189,HE368,현대이론과영문학,3.0,,,,
+1190,HE371,영미문화연구,3.0,,,,
+1191,HE372,영미서사강독,3.0,,,,
+1192,HE439,실용영어,3.0,,,,
+1193,HE441,셰익스피어,3.0,,,,
+1194,HE444,현대영어권문학의이해,3.0,,,,
+1195,HW239,동시대시강독Ⅱ,3.0,,,,
+1196,HW244,드라마작법Ⅱ,3.0,,,,
+1197,HW247,동시대소설강독Ⅱ,3.0,,,,
+1198,HW307,시창작실습Ⅱ,3.0,,,,
+1199,HW308,소설창작실습Ⅱ,3.0,,,,
+1200,HW322,외국소설문학강독Ⅱ,3.0,,,,
+1201,HW334,드라마창작의기초-연극과뮤지컬,3.0,,,,
+1202,HW336,소설창작특강Ⅰ,3.0,,,,
+1203,HW338,시창작특강Ⅱ,3.0,,,,
+1204,HW339,상상력연구,3.0,,,,
+1205,HW408,비평연습,3.0,,,,
+1206,HW416,현대시론,3.0,,,,
+1207,HW422,아동문학창작실습Ⅱ,3.0,,,,
+1208,HK106,한국어학개론,3.0,,,,
+1209,HK234,현대작가론,3.0,,,,
+1210,HK278,한국어문법교육론,3.0,,,,
+1211,HK279,현대시탐구,3.0,,,,
+1212,HK280,한국문학사탐구1,3.0,,,,
+1213,HK317,한국문학사Ⅱ,3.0,,,,
+1214,HK321,한국어사,3.0,,,,
+1215,HK371,고전소설론,3.0,,,,
+1216,HK372,구비문학론,3.0,,,,
+1217,HK377,한국어교육론,3.0,,,,
+1218,HK380,한국어이해교육론,3.0,,,,
+1219,HK515,고전작가론,3.0,,,,
+1220,GP624,건물지고고학Ⅰ,3.0,,,,
+1221,HH238,서양사입문,3.0,,,,
+1222,HH270,역사고고학,3.0,,,,
+1223,HH273,디지털박물관학,3.0,,,,
+1224,HH309,한국여성사,3.0,,,,
+1225,HH310,구술사연습,3.0,,,,
+1226,HH314,문화재학개론,3.0,,,,
+1227,HH331,한국중세사,3.0,,,,
+1228,HH405,아카이브의이해와실제,3.0,,,,
+1229,HH407,한국사사료읽기2,2.0,,,,
+1230,HH431,한국현대사,3.0,,,,
+1231,HH460,고고자료의정리와해석,3.0,,,,
+1232,HH467,학술답사D,1.0,,,,
+1233,HH468,한국사연구방법론,3.0,,,,
+1234,HH471,학술답사B,0.5,,,,
+1235,DC464,한중문화콘텐츠원소스발굴,3.0,,,,
+1236,DC592,한중문화마케팅론,3.0,,,,
+1237,DC599,한중지역콘텐츠분석,3.0,,,,
+1238,DC601,한중영상문화분석,3.0,,,,
+1239,DC608,전공중국어Ⅱ,3.0,,,,
+1240,HC317,중국문화의이해Ⅱ,3.0,,,,
+1241,HC320,고급중국어회화Ⅱ,3.0,,,,
+1242,HC584,중국관광지리,3.0,,,,
+1243,HC595,초급중국어회화Ⅱ,3.0,,,,
+1244,DV104,영상문화산업의이해,3.0,,,,
+1245,DV216,영화음악의이론과실제,3.0,,,,
+1246,DV217,트랜스미디어콘텐츠분석및기획실습,3.0,,,,
+1247,DV218,영상미학,3.0,,,,
+1248,DV219,영화제현장학습1,2.0,,,,
+1249,DV312,박물관및전시콘텐츠분석및기획실습,3.0,,,,
+1250,DV315,한국영화사특강,3.0,,,,
+1251,DV316,단편영화분석및제작워크숍,3.0,,,,
+1252,DV322,콘텐츠액티비즘,3.0,,,,
+1253,DV328,세계유네스코콘텐츠탐사Ⅱ,2.0,,,,
+1254,DV340,OTT콘텐츠분석및기획워크숍,3.0,,,,
+1255,DV406,문화콘텐츠산업정책및제도,3.0,,,,
+1256,DV410,문화콘텐츠기획및제작워크숍2,3.0,,,,
+1257,DV421,OJT1,9.0,,,,
+1258,DV429,영상시나리오분석및창작워크숍,3.0,,,,
+1259,EN002,국제통상학개론,3.0,,,,
+1260,EN004,지역학입문,3.0,,,,
+1261,EN006,외국어기초Ⅱ,3.0,,,,
+1262,HN212,중국경제개론,3.0,,,,
+1263,HN213,중국사회개론,3.0,,,,
+1264,HN257,현대중국인물탐구,3.0,,,,
+1265,HN267,중국어실습Ⅱ,3.0,,,,
+1266,HN269,중국어회화Ⅱ,3.0,,,,
+1267,HN271,실용중국어회화Ⅱ,2.0,,,,
+1268,HN311,중국어번역실습,3.0,,,,
+1269,HN355,비즈니스중국어,3.0,,,,
+1270,HN395,중국대중문화,3.0,,,,
+1271,HN481,OJT1,9.0,,,,
+1272,HJ127,일본어한자Ⅱ,3.0,,,,
+1273,HJ220,일본정치의이해,3.0,,,,
+1274,HJ226,사건으로보는일본사,3.0,,,,
+1275,HJ261,동아시아와일본문학,3.0,,,,
+1276,HJ264,중급일본어Ⅱ,3.0,,,,
+1277,HJ268,일본사회와문화,3.0,,,,
+1278,HJ270,일본학조사연구Ⅱ,3.0,,,,
+1279,HJ328,현대일본외교,3.0,,,,
+1280,HJ336,비즈니스일본어,3.0,,,,
+1281,HJ360,일본학조사연구Ⅳ,3.0,,,,
+1282,HJ385,일본명작감상,3.0,,,,
+1283,HJ462,OJT1,9.0,,,,
+1284,EI215,국제무역론,3.0,,,,
+1285,EI219,증권경제론,3.0,,,,
+1286,EI220,국제비즈니스계약론,3.0,,,,
+1287,EI247,국제정치경제학,3.0,,,,
+1288,EI250,금융거시경제론,3.0,,,,
+1289,EI255,화폐경제와금융,3.0,,,,
+1290,EI261,영어로보는시사국제경제,3.0,,,,
+1291,EI268,실용미시경제론,3.0,,,,
+1292,EI344,무역영어,3.0,,,,
+1293,EI381,국제무역과결제,3.0,,,,
+1294,EI469,계량경제학,3.0,,,,
+1295,EI472,사회보험론,3.0,,,,
+1296,EE105,경제수학,3.0,,,,
+1297,EE235,정치경제학,3.0,,,,
+1298,EE237,근대경제사,3.0,,,,
+1299,EE331,화폐금융론,3.0,,,,
+1300,EE340,현대자본주의론,3.0,,,,
+1301,EE364,경제변동론,3.0,,,,
+1302,EE366,미시경제학,3.0,,,,
+1303,EE379,게임이론,3.0,,,,
+1304,EE382,조세경제학,3.0,,,,
+1305,EE441,경제학특강,3.0,,,,
+1306,EE477,OJT1,9.0,,,,
+1307,GH004,글로벌사회이해,3.0,,,,
+1308,GH006,공공빅데이터분석입문,3.0,,,,
+1309,GH007,공공정책의이해,3.0,,,,
+1310,HI312,동아시아국제관계론,3.0,,,,
+1311,HI314,한미관계의이해,3.0,,,,
+1312,HI356,의회정치론,3.0,,,,
+1313,HI369,전공논문과글쓰기,3.0,,,,
+1314,HI398,글로벌이슈분석,3.0,,,,
+1315,HI401,국제사회의미래,3.0,,,,
+1316,HI409,세계지역의개발과평화이슈,3.0,,,,
+1317,HI429,국제정치와경제학,3.0,,,,
+1318,HI430,신세계질서론,3.0,,,,
+1319,HI431,한국정치와리더십연구,3.0,,,,
+1320,HI432,동서양사유의비교,3.0,,,,
+1321,HI434,비교정부론,3.0,,,,
+1322,HI435,미국사회와인권법,3.0,,,,
+1323,HI453,국제금융의이해,3.0,,,,
+1324,PS108,행정법,3.0,,,,
+1325,PS201,조사연구방법론,3.0,,,,
+1326,PS216,공공인사관리,3.0,,,,
+1327,PS217,데이터베이스와SQL,3.0,,,,
+1328,PS224,딥러닝기초,3.0,,,,
+1329,PS226,머신러닝과텍스트마이닝,3.0,,,,
+1330,PS228,재무행정론,3.0,,,,
+1331,PS229,데이터결합과정책,3.0,,,,
+1332,PS314,정책평가,3.0,,,,
+1333,PS319,딥러닝영상데이터분석,3.0,,,,
+1334,PS401,공기업론,3.0,,,,
+1335,PS405,빅데이터와개인정보보호,3.0,,,,
+1336,PS415,GIS를이용한공간정보분석,3.0,,,,
+1337,PS421,OJT1,9.0,,,,
+1338,PSA01,졸업논문,3.0,,,,
+1339,PSB01,졸업논문,3.0,,,,
+1340,BM004,통계의이해,3.0,,,,
+1341,EB111,마케팅관리론,3.0,,,,
+1342,EB112,경영을위한경제학,3.0,,,,
+1343,EB202,리더십과조직문화,3.0,,,,
+1344,EB218,중급재무회계2,3.0,,,,
+1345,EB305,비즈니스문제해결워크숍,3.0,,,,
+1346,EB311,생산관리,3.0,,,,
+1347,EB313,관리회계,3.0,,,,
+1348,EB323,세무개론,3.0,,,,
+1349,EB324,영업관리,3.0,,,,
+1350,EB350,기업경영의법적측면,3.0,,,,
+1351,EB387,인공지능기반인적자원경영,3.0,,,,
+1352,EB388,AI기반비즈니스애널리틱스,3.0,,,,
+1353,EB394,스타트업경영,3.0,,,,
+1354,EB478,OJT1,9.0,,,,
+1355,EZ208,경영정보시스템,3.0,,,,
+1356,EZ236,인터넷마케팅과창업,3.0,,,,
+1357,EZ237,파이썬프로그래밍활용,3.0,,,,
+1358,EZ249,데이터활용기초,3.0,,,,
+1359,EZ302,인공지능과스타트업,3.0,,,,
+1360,EZ335,물류관리론,3.0,,,,
+1361,EZ336,경영전략론,3.0,,,,
+1362,EZ339,시장조사와사업계획서,3.0,,,,
+1363,EZ341,글로벌경영과비즈니스모델,3.0,,,,
+1364,EZ435,기술경영과지식재산,3.0,,,,
+1365,EZ440,OJT1,9.0,,,,
+1366,EZ446,IT경영세미나Ⅱ,1.0,,,,
+1367,EH106,글로벌비즈니스거시경제론,3.0,,,,
+1368,EH244,국제무역통상영어Ⅱ,3.0,,,,
+1369,EH420,OJT1,9.0,,,,
+1370,EJ203,국제개발협력의이해,3.0,,,,
+1371,EJ204,사회적경제경영입문,3.0,,,,
+1372,EJ205,사회적기업비즈니스모델,3.0,,,,
+1373,EJ207,사회적가치와기업가정신,3.0,,,,
+1374,EK204,국제무역통상개론,3.0,,,,
+1375,EK301,전략경영,3.0,,,,
+1376,EK303,재무관리,3.0,,,,
+1377,EK306,글로벌마케팅론,3.0,,,,
+1378,EA206,소비자행동론,3.0,,,,
+1379,EA314,홍보관리론,3.0,,,,
+1380,EA339,PR라이팅,3.0,,,,
+1381,EA509,연구방법론,3.0,,,,
+1382,EM207,마케팅원론,3.0,,,,
+1383,EM230,소셜게임의이해,3.0,,,,
+1384,EM234,디지털미디어리터리시론,3.0,,,,
+1385,EM308,시나리오워크숍,3.0,,,,
+1386,EM319,픽션영상제작실습,3.0,,,,
+1387,EM320,에디팅실습Ⅱ,3.0,,,,
+1388,EM324,디지털광고론,3.0,,,,
+1389,EM326,멀티플랫폼스토리텔링전략실습,3.0,,,,
+1390,EM405,디지털미디어프로젝트,3.0,,,,
+1391,SS005,사회와휴먼서비스,3.0,,,,
+1392,SS006,인간행동과사회환경,3.0,,,,
+1393,SS008,장애인복지론,3.0,,,,
+1394,HS116,한국사회연구실습3,1.0,,,,
+1395,HS214,사회조사방법Ⅰ,3.0,,,,
+1396,HS220,한국사회문제의식,3.0,,,,
+1397,HS234,시민사회운동실습,3.0,,,,
+1398,HS240,사회연구실습Ⅰ,3.0,,,,
+1399,HS312,집합행동과사회운동,3.0,,,,
+1400,HS317,역사와사회학,3.0,,,,
+1401,HS337,노사관계와노동운동,3.0,,,,
+1402,HS338,현대사회학이론의이해,3.0,,,,
+1403,HS364,사회학특강,3.0,,,,
+1404,TR211,놀이치료이론과실제,3.0,,,,
+1405,TR244,발달심리학,3.0,,,,
+1406,TR248,직업재활개론,3.0,,,,
+1407,TR260,재활연구방법론,3.0,,,,
+1408,TR338,재활실습Ⅰ,3.0,,,,
+1409,TR341,직업평가,3.0,,,,
+1410,TR355,상담이론과실제,3.0,,,,
+1411,TR369,재활정책,3.0,,,,
+1412,TR373,발달진단및심리평가,3.0,,,,
+1413,TR380,직무개발과배치,3.0,,,,
+1414,TR382,놀이치료관찰및실습,3.0,,,,
+1415,TR452,부모교육및상담,3.0,,,,
+1416,TR454,직업상담,3.0,,,,
+1417,TR455,노동법규와재활,3.0,,,,
+1418,GP145,개별연구지도,3.0,,,,
+1419,GP674,고급면담기법,3.0,,,,
+1420,GP675,영유아정신건강세미나,3.0,,,,
+1421,SA105,보육학개론,3.0,,,,
+1422,SB203,집단치료,3.0,,,,
+1423,SB206,심리통계,3.0,,,,
+1424,SB208,사회심리학,3.0,,,,
+1425,SB303,성격심리학,3.0,,,,
+1426,SB304,심리평가실습,3.0,,,,
+1427,SB305,개인심리치료,3.0,,,,
+1428,SB421,청소년심리치료,3.0,,,,
+1429,SB424,범죄심리학,3.0,,,,
+1430,SB426,산업및조직심리학,3.0,,,,
+1431,SC209,영유아발달,3.0,,,,
+1432,SC302,아동생활지도,3.0,,,,
+1433,SC303,아동음악,3.0,,,,
+1434,SC317,영유아사회정서지도,3.0,,,,
+1435,SC330,아동학의통계학적기초,3.0,,,,
+1436,SC401,보육실습,3.0,,,,
+1437,SC405,부모교육론,3.0,,,,
+1438,GP669,트레이닝방법론,3.0,,,,
+1439,GP670,체육통계학,3.0,,,,
+1440,NP130,스키및장애인스키,3.0,,,,
+1441,NP134,기능해부학,3.0,,,,
+1442,NP214,운동생리학,3.0,,,,
+1443,NP256,스포츠심리학,3.0,,,,
+1444,NP263,좌식배구지도법,2.0,,,,
+1445,NP264,유아체육Ⅱ,2.0,,,,
+1446,NP266,장애인체육Ⅱ,3.0,,,,
+1447,NP269,노인스포츠,3.0,,,,
+1448,NP270,피트니스헬스케어,3.0,,,,
+1449,NP349,체육측정평가및통계학,3.0,,,,
+1450,NP372,게이트볼지도법,3.0,,,,
+1451,NP378,스포츠마케팅,3.0,,,,
+1452,NP380,축구지도법,3.0,,,,
+1453,NP447,스포츠윤리학,3.0,,,,
+1454,EC003,금융기초,3.0,,,,
+1455,EC004,R프로그래밍기초,3.0,,,,
+1456,NM217,금융공학2,3.0,,,,
+1457,NM222,금융프로그래밍,3.0,,,,
+1458,NM235,고등미적분학,3.0,,,,
+1459,NM279,선형대수학,3.0,,,,
+1460,NM280,미분방정식,3.0,,,,
+1461,NM312,보험수리학2,3.0,,,,
+1462,NM320,측도론,3.0,,,,
+1463,NM322,C언어Ⅱ,3.0,,,,
+1464,NM327,고급재무관리,3.0,,,,
+1465,NM328,채권분석,3.0,,,,
+1466,NM439,파생상품이론2,3.0,,,,
+1467,NS221,SAS프로그래밍,3.0,,,,
+1468,NS304,표본이론,3.0,,,,
+1469,NS306,다변량분석,3.0,,,,
+1470,NS310,범주형자료분석,3.0,,,,
+1471,NS345,통계자료분석실습,3.0,,,,
+1472,NS346,응용통계세미나Ⅱ,3.0,,,,
+1473,NS347,비모수통계자료분석,3.0,,,,
+1474,NS361,공공데이터분석,3.0,,,,
+1475,NS362,R데이터분석,3.0,,,,
+1476,NS367,데이터관리,3.0,,,,
+1477,AS004,AI·SW수학,3.0,,,,
+1478,AS005,문제해결형프로그래밍,3.0,,,,
+1479,AS006,웹프로그래밍,3.0,,,,
+1480,AS009,논리회로,3.0,,,,
+1481,AS011,운영체제,3.0,,,,
+1482,AS012,데이터베이스,3.0,,,,
+1483,SH202,고급프로그래밍,3.0,,,,
+1484,SH309,기계학습,3.0,,,,
+1485,SH301,데이터수집및시각화,3.0,,,,
+1486,XR202,XR콘텐츠응용,3.0,,,,
+1487,AT301,임베디드시스템설계,3.0,,,,
+1488,GP672,데이터사이언스특론,3.0,,,,
+1489,GP673,감성컴퓨팅,3.0,,,,
+1490,AC102,반도체수학,3.0,,,,
+1491,DV420,SF영화와미래사회,3.0,,,,
+1492,HD668,OJT2,3.0,,,,
+1493,HN483,OJT2,3.0,,,,
+1494,HJ463,OJT2,3.0,,,,
+1495,SA109,심리아동체험학습Ⅱ,0.0,,,,
+1496,NI140,머신러닝,3.0,,,,
+1497,KH669,초급영어청취,3.0,,,,
+1498,KH670,인물로풀어본중국역사,2.0,,,,
+1499,IT416,AWS클라우드서비스,3.0,,,,
+1500,IT421,OJT2,3.0,,,,
+1501,PS422,OJT2,3.0,,,,
+1502,EM235,대중문화와다중,3.0,,,,
+1503,HD625,한독문화교류의자취를찾아서,3.0,,,,
+1504,TR275,인지행동놀이치료,3.0,,,,
+1505,SA110,심리아동체험학습Ⅲ,0.0,,,,
+1506,NE115,확률과통계,3.0,,,,
+1507,NE116,선형대수,3.0,,,,
+1508,NE118,웹프로그래밍기초,3.0,,,,
+1509,NE209,컴퓨터구조,3.0,,,,
+1510,*KY042,영화로배우는한국어와한국문화,3.0,,,,
+1511,*KY043,외국인을위한한국세계유산탐방,3.0,,,,
+1512,*KY044,응급처치와생존수영,2.0,,,,
+1513,*KY045,고급심화한국어문법1,3.0,,,,
+1514,*KY046,고급심화한국어회화1,3.0,,,,
+1515,KY796,"식품,건강,사회",3.0,,,,
+1516,KY896,서양고전문학길잡이,3.0,,,,
+1517,KYC94,문화유산으로만나는정조시대,3.0,,,,
+1518,KYD01,자기탐색과소통,1.0,,,,
+1519,KYD03,AI아트코딩과윤리,3.0,,,,
+1520,KYD04,신체활동과긍정적인자아정체성,3.0,,,,
+1521,KYD05,AI시대창의성과브랜딩,3.0,,,,
+1522,KYD06,한반도와국제평화론,3.0,,,,
+1523,KYD07,쟁점으로본한국근현대사,3.0,,,,
+1524,KYD09,우주의기원과진화,3.0,,,,
+1525,TT430,복음서이해,3.0,,,,
+1526,TT484,성서주석방법론,3.0,,,,
+1527,TT521,신학과철학,3.0,,,,
+1528,TT574,기도와영성훈련의실제,3.0,,,,
+1529,TT580,기독교생태교육,3.0,,,,
+1530,TT640,성서인물과성격심리,3.0,,,,
+1531,TT954,한국교회사,3.0,,,,
+1532,HP318,현대영미철학,3.0,,,,
+1533,HP382,불교철학,3.0,,,,
+1534,HP471,신화와사상,3.0,,,,
+1535,HR266,종교문화워크숍2,1.0,,,,
+1536,HR413,한국의민간신앙과샤머니즘,3.0,,,,
+1537,GP627,기록학개론,3.0,,,,
+1538,GP644,고급발달심리학,3.0,,,,
+1539,NI430,멀티미디어영상처리,3.0,,,,
+1540,CX121,*한어청력,4.0,,,,
+1541,CX481,*재미있는중국어,2.0,,,,
+1542,CX505,*사진촬영,3.0,,,,
+1543,CX512,*제과제빵,3.0,,,,
+1544,CX593,*HSK2,4.0,,,,
+1545,CX594,*읽기와쓰기,2.0,,,,
+1546,CX595,*문화연구입문,2.0,,,,
+1547,CX596,*컴퓨터지원번역과편집,2.0,,,,
+1548,CX597,*기념품으로구운페이스트리,3.0,,,,
+1549,CX598,*한국어Ⅱ(중급),2.0,,,,
+1550,CX599,*여행일정기획및설계,2.0,,,,
+1551,CX600,*게임번역(중-영),2.0,,,,
+1552,CX601,*유럽식디저트,3.0,,,,
+1553,CX602,*배드민턴,1.0,,,,
+1554,CX603,*요가,1.0,,,,
+1555,CX604,*영상후기편집,3.0,,,,
+1556,CX605,*영상저작(글쓰기)입문,3.0,,,,
+1557,CX606,*문화시장마케팅학,2.0,,,,
+1558,CX607,*티비편집기초,3.0,,,,
+1559,CX608,*외국어로중국어교육에대한일반적인소개,2.0,,,,
+1560,CX609,*중국관용어문화와사용,2.0,,,,
+1561,DX061,*Film Studies,1.0,,,,
+1562,DX629,*Vocabulary A,3.0,,,,
+1563,DX764,*소그룹대화A,3.0,,,,
+1564,DX819,"*일반독일어코스,CEFR레벨B2.2",4.0,,,,
+1565,DX820,*프랑스어A2.2,3.0,,,,
+1566,DX821,"*일반독일어코스,CEFR레벨A2.2",8.0,,,,
+1567,DX822,*탄뎀파트너와함께하는언어학습,3.0,,,,
+1568,EX253,*교양기초연습Ⅰ,1.0,,,,
+1569,EX776,*고급일본어Ⅱa,2.0,,,,
+1570,EX851,*문화인류학기초(관광),1.0,,,,
+1571,EX910,*문자와사회,2.0,,,,
+1572,EX912,*초등습자교육,1.0,,,,
+1573,EX955,*윤리·철학,2.0,,,,
+1574,EX956,*지방자치론,2.0,,,,
+1575,EX957,*가족심리학,2.0,,,,
+1576,EX958,*일본문화기초Ⅴ,2.0,,,,
+1577,EX959,*커뮤니케이션입문,2.0,,,,
+1578,EX960,*프레젠테이션기초,2.0,,,,
+1579,EX961,*응용언어학기초A,1.0,,,,
+1580,EX962,*응용언어학기초B,1.0,,,,
+1581,EX963,*일본어연습C,1.0,,,,
+1582,EX964,*인류학및민속학인문,1.0,,,,
+1583,EX965,*가족사회학기초,1.0,,,,
+1584,EX966,*윤리학기초,1.0,,,,
+1585,EX967,*문화간이해와가족,2.0,,,,
+1586,EX968,*고급일본어Ⅰ,2.0,,,,
+1587,EX969,*대체보육Ⅰ,2.0,,,,
+1588,EX970,*초등학교미술,1.0,,,,
+1589,EX971,*일본현대언어학입문(세미나),2.0,,,,
+1590,EX972,*악기성능연구a,1.0,,,,
+1591,EX977,*고급일본어Ⅱa,2.0,,,,
+1592,EX978,*일본어작문,1.0,,,,
+1593,EX980,*모노폴리게임을통한비즈니스기반®,2.0,,,,
+1594,EX981,*언어와문화의연결A(중국어),1.0,,,,
+1595,EX982,*인도학입문과정,2.0,,,,
+1596,EX983,*조각a,2.0,,,,
+1597,HX298,*구어,4.0,,,,
+1598,HX377,*문화체험,4.0,,,,
+1599,HX399,*사자,4.0,,,,
+1600,HX432,*구어,6.0,,,,
+1601,HX468,*종합중국어501,10.0,,,,
+1602,HX469,*중국어읽기&쓰기501,4.0,,,,
+1603,HX470,*문화활동,3.0,,,,
+1604,HX471,*중국어듣기&말하기501,4.0,,,,
+1605,HX485,*일본어독해712,1.0,,,,
+1606,HX486,*일본어작문714,1.0,,,,
+1607,HX487,*일본어한자904,1.0,,,,
+1608,HX488,*대학생세계사1,2.0,,,,
+1609,HX489,*일본문화이론,2.0,,,,
+1610,HX490,*한국어문학번역실습,2.0,,,,
+1611,HX491,*메이지시대와다이쇼시대의근대일본시읽기,2.0,,,,
+1612,HX500,*기초베트남어,1.0,,,,
+1613,HZ155,*윤리학,2.0,,,,
+1614,HZ306,*고급일본어1,2.0,,,,
+1615,HZ321,*사회복지,2.0,,,,
+1616,HZ338,*기독교의소개Ⅱ,2.0,,,,
+1617,HZ363,*기독교입문,2.0,,,,
+1618,HZ364,*건강을위한농구와배구,1.0,,,,
+1619,HZ365,*기초컴퓨팅,2.0,,,,
+1620,HZ366,*응용컴퓨팅,2.0,,,,
+1621,HZ367,*문화간이해,2.0,,,,
+1622,HZ368,*기초세미나Ⅰ,2.0,,,,
+1623,HZ369,*다문화사회,2.0,,,,
+1624,HZ370,*류큐/오키나와 역사문화입문,2.0,,,,
+1625,HZ371,*일본역사문화입문,2.0,,,,
+1626,HZ372,*일본수어입문,2.0,,,,
+1627,HZ896,*정량적방법론:요소와예시,4.0,,,,
+1628,HZ991,*체코음악의역사,3.0,,,,
+1629,HZ992,*가치관의변화와현대사회,3.0,,,,
+1630,HZ993,*전통섬유기법2,1.0,,,,
+1631,HZ994,*정량적방법론:요소와예시,3.0,,,,
+1632,HZ995,*가족사회학,3.0,,,,
+1633,RS110,*EFAS:대학작문기법,4.0,,,,
+1634,RS111,*EFAS:대학청해기법,4.0,,,,
+1635,RS112,*EFAS:대학구술기법,4.0,,,,
+1636,RS113,*EFAS:구술의사소통기법,4.0,,,,
+1637,KH070,법학개론,3.0,,,,
+1638,KH424,경영의이해,3.0,,,,
+1639,KH671,실전토익700,2.0,,,,
+1640,KH672,StepbyStep피아노,1.0,,,,
+1641,KH673,휴먼커뮤니케이션입문,3.0,,,,
+1642,OC214,현대음악의이해,3.0,,,,
+1643,OC219,문학과상상력,3.0,,,,
+1644,OC239,챗GPT의이해와활용,3.0,,,,
+1645,OC240,제4차산업혁명과자기경영,3.0,,,,
+1646,OC241,부자들의성공심리학,3.0,,,,
+1647,IT325,AI-XR영상콘텐츠제작실습,3.0,,,,
+1648,HD669,국내외유럽문화탐사1,3.0,,,,
+1649,HE282,글로벌트렌드영어1,3.0,,,,
+1650,HE376,디지털문화읽기,3.0,,,,
+1651,HW245,연극과뮤지컬작법,3.0,,,,
+1652,HW246,동시대소설강독Ⅰ,3.0,,,,
+1653,HW331,현대시연구,3.0,,,,
+1654,HW401,시창작실습Ⅲ,3.0,,,,
+1655,HK383,사회언어학론,3.0,,,,
+1656,HK384,한국어발음교육론,3.0,,,,
+1657,HK385,현대시인탐구,3.0,,,,
+1658,HK391,한국신화와판타지문화탐구,3.0,,,,
+1659,HK444,한국어교육과정론,3.0,,,,
+1660,GP146,취락고고학2,3.0,,,,
+1661,HH307,유교문화사,3.0,,,,
+1662,HH472,학술답사C,0.5,,,,
+1663,HH496,개인사,3.0,,,,
+1664,DC163,한중공연콘텐츠의이해,3.0,,,,
+1665,DC460,한중관광콘텐츠디자인,3.0,,,,
+1666,DC586,한중문화콘텐츠장르론,3.0,,,,
+1667,HC592,고사성어와스토리텔링Ⅰ,3.0,,,,
+1668,HC599,중급중국어회화Ⅰ,1.0,,,,
+1669,HC600,HSK5급Ⅰ,2.0,,,,
+1670,DV107,글로컬문화비즈니스입문,3.0,,,,
+1671,DV210,영화제탐사2,2.0,,,,
+1672,DV221,글로컬문화콘텐츠인프라탐사,3.0,,,,
+1673,DV306,영상비평의이론과실제,3.0,,,,
+1674,DV311,글로벌문화콘텐츠인프라탐사Ⅲ,2.0,,,,
+1675,HN244,지역연구워크숍Ⅱ,2.0,,,,
+1676,HN385,개혁기중국정치,3.0,,,,
+1677,HN396,중국도시와문학,3.0,,,,
+1678,HN484,실용중국어회화Ⅰ,3.0,,,,
+1679,HN485,중국소비트렌드분석,3.0,,,,
+1680,HJ218,일본어강독,3.0,,,,
+1681,HJ344,일본연구해외자료강독,3.0,,,,
+1682,HJ393,일본경제사,3.0,,,,
+1683,HJ395,프리젠테이션일본어,3.0,,,,
+1684,HJ465,일본과동아시아국제관계,3.0,,,,
+1685,EI253,국제거시경제학,3.0,,,,
+1686,EI269,거시경제입문,3.0,,,,
+1687,EI270,미시경제입문,3.0,,,,
+1688,EI385,무역계약법규,3.0,,,,
+1689,EI470,금융과회계,3.0,,,,
+1690,HI407,평화학과평화운동의이해,3.0,,,,
+1691,HI443,미국정치와사회,3.0,,,,
+1692,HI454,시사문제연구,3.0,,,,
+1693,HI457,인문콘텐츠와정치적상상력,3.0,,,,
+1694,PS210,머신러닝이해와활용,3.0,,,,
+1695,PS231,AI에이전트캡스톤,3.0,,,,
+1696,PS313,지방자치및행정,3.0,,,,
+1697,PS322,행정사특강,3.0,,,,
+1698,PS413,공공혁신,3.0,,,,
+1699,EN007,경제금융학의기초,3.0,,,,
+1700,EN009,기초중국어Ⅰ,3.0,,,,
+1701,EN010,동아시아지역의이해,3.0,,,,
+1702,EB217,중급재무회계1,3.0,,,,
+1703,EB301,인적자원관리,3.0,,,,
+1704,EB451,경영사례연구,3.0,,,,
+1705,EZ254,IT경영과혁신,3.0,,,,
+1706,EK350,글로벌경영사례연구,3.0,,,,
+1707,EK355,글로벌리더십과기업가정신,3.0,,,,
+1708,EA229,캠페인기획론,3.0,,,,
+1709,EM233,콘텐츠라이팅,3.0,,,,
+1710,HS203,성과사회,3.0,,,,
+1711,HS216,현대사속의한국사회,3.0,,,,
+1712,HS316,사회조사방법Ⅱ,3.0,,,,
+1713,HS329,자본주의사회와노동,3.0,,,,
+1714,HS366,사회사상특강,3.0,,,,
+1715,TR276,장애이해와재활,3.0,,,,
+1716,TR327,직업적응훈련,3.0,,,,
+1717,TR363,자립생활,3.0,,,,
+1718,GP147,아동정신화기반심리치료및상담,3.0,,,,
+1719,SA102,상담및심리치료,3.0,,,,
+1720,SB210,신경심리평가,3.0,,,,
+1721,SB411,코칭심리학,3.0,,,,
+1722,SC202,아동미술,3.0,,,,
+1723,SC314,특수아동이해,3.0,,,,
+1724,SC318,보육교사(인성)론,3.0,,,,
+1725,SC326,아동멀티미디어교육,3.0,,,,
+1726,SC329,아동청소년학대예방,3.0,,,,
+1727,SC422,정신건강,3.0,,,,
+1728,NP135,수영지도법,3.0,,,,
+1729,NP262,유아체육1,2.0,,,,
+1730,NP273,야외스포츠,3.0,,,,
+1731,NP301,운동처방론,3.0,,,,
+1732,NP412,골프지도법,2.0,,,,
+1733,NP448,라켓스포츠,3.0,,,,
+1734,NM228,C언어Ⅰ,3.0,,,,
+1735,NM316,주식시장론,3.0,,,,
+1736,NM391,투자론,3.0,,,,
+1737,NM393,핀테크와금융,3.0,,,,
+1738,NM441,금융세미나,3.0,,,,
+1739,NS342,응용통계세미나Ⅰ,3.0,,,,
+1740,NS343,통계활용사례연구,3.0,,,,
+1741,NS437,텍스트마이닝,3.0,,,,
+1742,SH302,소프트웨어공학,3.0,,,,
+1743,SH304,데이터베이스프로그래밍,3.0,,,,
+1744,SH305,정보보호,3.0,,,,
+1745,SH306,컴퓨터네트워크,3.0,,,,
+1746,SH308,알고리즘,3.0,,,,
+1747,SH313,게임프로그래밍,3.0,,,,
+1748,SH317,가상증강현실,3.0,,,,
+1749,SH328,딥러닝기초,3.0,,,,
+1750,SH401,IoT융합서비스기획,3.0,,,,
+1751,SH320,데이터엔지니어링,3.0,,,,
+1752,SH322,영상처리,3.0,,,,
+1753,SH323,인간컴퓨터상호작용,3.0,,,,
+1754,GP148,음향AI특론,3.0,,,,
+1755,GP150,게임콘텐츠특론,3.0,,,,
+1756,GP151,디지털비즈니스특론,3.0,,,,
+1757,AC202,디지털회로,3.0,,,,
+1758,AC204,EDA실험,3.0,,,,
+1759,AC205,인공지능개론,3.0,,,,
+1760,AC207,회로이론,3.0,,,,
+1761,AC215,DB이해와실습,3.0,,,,
+1762,EC005,빅데이터분석개론,3.0,,,,
+1763,*KY137,한국의인문지리탐구,3.0,,,,
+1764,*KY138,한국의생활문화,3.0,,,,
+1765,*KY139,고급심화한국어문법2,3.0,,,,
+1766,*KY140,고급심화한국어회화2,3.0,,,,
+1767,*KY141,글로컬스포츠&무브먼트실습,3.0,,,,
+1768,KY748,현대중국의역사적이해,3.0,,,,
+1769,KY942,영화로이해하는아시아,3.0,,,,
+1770,KYC39,세계도시와시민,3.0,,,,
+1771,KYC93,미술과인권,3.0,,,,
+1772,KYD02,진로탐구와도전,1.0,,,,
+1773,KYD08,영어로공부하는긍정심리학,3.0,,,,
+1774,KYD11,신화와정치,3.0,,,,
+1775,KYD14,영화로보는현대사회,3.0,,,,
+1776,KYD16,세계문학콘텐츠,3.0,,,,
+1777,TT291,교회봉사Ⅲ,1.0,,,,
+1778,TT293,교회봉사Ⅳ,1.0,,,,
+1779,TT517,서양기독교사상사,3.0,,,,
+1780,TT569,생태윤리,3.0,,,,
+1781,TT573,예배와설교학개론,3.0,,,,
+1782,TT583,성서이야기와하나님의교육,3.0,,,,
+1783,TT626,인간관계심리학,3.0,,,,
+1784,TT916,예언서연구,3.0,,,,
+1785,HP206,서양고대사상,3.0,,,,
+1786,HP312,논리학,3.0,,,,
+1787,HP317,현대유럽철학,3.0,,,,
+1788,HP495,근현대유학사상,3.0,,,,
+1789,HR219,종교와윤리문제,3.0,,,,
+1790,HR245,문화와의례,3.0,,,,
+1791,HR256,종교와사회,3.0,,,,
+1792,HR358,종교학과문화비평,3.0,,,,
+1793,HR372,대중문화와종교,3.0,,,,
+1794,GP625,기록학세미나,3.0,,,,
+1795,TS458,청소년복지론,3.0,,,,
+1796,TS461,여성복지론,3.0,,,,
+1797,GP463,고급발달진단및심리평가,3.0,,,,
+1798,SD002,문제해결형프로그래밍_융합,3.0,,,,
+1799,CX029,*한어청력,4.0,,,,
+1800,CX511,*조깅,2.0,,,,
+1801,CX526,*중국어고전Ⅰ,2.0,,,,
+1802,CX529,*한자와문화,2.0,,,,
+1803,CX610,*영어회화및듣기의이해Ⅰ,2.0,,,,
+1804,CX611,*중국어회화1,4.0,,,,
+1805,CX612,*대학영어C1,4.0,,,,
+1806,CX613,*대학영어C3,2.0,,,,
+1807,CX614,*모바일사진및영상제작,3.0,,,,
+1808,CX615,*중국어작문1,4.0,,,,
+1809,CX616,*도예디자인,2.0,,,,
+1810,CX617,*체육교육3(유산소운동),2.0,,,,
+1811,DX823,*독일어듣기말하기실습A2-1,3.0,,,,
+1812,DX824,*독일어듣기말하기실습B1-2,3.0,,,,
+1813,DX825,*독일어듣기말하기실습B2-1,3.0,,,,
+1814,DX826,"*일반독일어코스,CEFR레벨A2.2",5.0,,,,
+1815,DX827,*소그룹대화(B1),3.0,,,,
+1816,DX828,*독일어독해및작문(B1),3.0,,,,
+1817,DX829,*독문학개론I,4.0,,,,
+1818,DX830,"*일반독일어코스,CEFR레벨B1.1",5.0,,,,
+1819,DX831,*소그룹대화B1,3.0,,,,
+1820,DX832,*어휘B1,3.0,,,,
+1821,EX207,*발달심리학,2.0,,,,
+1822,EX927,*세계화시대의준비,2.0,,,,
+1823,EX929,*사회의평준화,2.0,,,,
+1824,EX973,*지적장애아동교육커리큘럼,2.0,,,,
+1825,EX974,*건강장애아동을위한교육방법,2.0,,,,
+1826,EX975,*인권교육,2.0,,,,
+1827,EX976,*일본어읽기,2.0,,,,
+1828,EX979,*장애아동교육의역사,2.0,,,,
+1829,HX002,*사작(寫作),2.0,,,,
+1830,HX009,*중국어강독,2.0,,,,
+1831,HX029,*중국문화,2.0,,,,
+1832,HX472,*중국어종합,6.0,,,,
+1833,HX473,*유럽음악의역사,3.0,,,,
+1834,HX474,*영어권국가3(미국),2.0,,,,
+1835,HX475,*비교교육학,3.0,,,,
+1836,HX476,*특수학습장애,3.0,,,,
+1837,HX477,*영어권국가5(호주+뉴질랜드),2.0,,,,
+1838,HX478,*영어음성학실습세미나,1.0,,,,
+1839,HX479,*사회학입문,1.0,,,,
+1840,HX480,*교육철학,1.0,,,,
+1841,HX481,*보빈레이스만들기3,2.0,,,,
+1842,HX482,*야간드로잉1,1.0,,,,
+1843,HX483,*현대기술트렌드,1.0,,,,
+1844,HX484,*보빈레이스제작3,2.0,,,,
+1845,HX492,*일본어청해713,1.0,,,,
+1846,HX493,*일본어커뮤니케이션715,1.0,,,,
+1847,HX494,*미국젠더역사 : 식민지시대부터20세기초까지,2.0,,,,
+1848,HX495,*일문문화예술의방법론과이상,2.0,,,,
+1849,HX496,*한국학교문법입문2,2.0,,,,
+1850,HX497,*쇼와시대전전일본시읽기,2.0,,,,
+1851,HX498,*대조언어기초연구B,2.0,,,,
+1852,HX499,*근대일본문학사,2.0,,,,
+1853,HX501,*일본사,2.0,,,,
+1854,HX502,*경력향상스킬Ⅰ,2.0,,,,
+1855,HX503,*인류학,2.0,,,,
+1856,HX504,*류큐인역사입문,2.0,,,,
+1857,HX505,*호스피탈리티문화간이해,2.0,,,,
+1858,HZ146,*교육원론,2.0,,,,
+1859,HZ355,*가라테,1.0,,,,
+1860,HZ356,*기초비판적사고,2.0,,,,
+1861,HZ357,*언어적의사소통과사고,2.0,,,,
+1862,HZ358,*민속학입문,2.0,,,,
+1863,HZ359,*관광비즈니스입문,2.0,,,,
+1864,HZ360,*한국문화이론,2.0,,,,
+1865,HZ361,*인턴십,2.0,,,,
+1866,HZ362,*항공서비스,2.0,,,,
+1867,HZ373,*미디어활용능력,2.0,,,,
+1868,HZ374,*수어입문,2.0,,,,
+1869,HZ506,*문화자원소통입문,2.0,,,,
+1870,HZ507,*자연환경이론,2.0,,,,
+1871,HZ508,*음식관광,2.0,,,,
+1872,HZ819,*일본어문법 711,1.0,,,,
+1873,HZ845,*심리학개론,2.0,,,,
+1874,HZ901,*사회단체의관찰실습,3.0,,,,
+1875,HZ938,*생활원예Ⅰ,1.0,,,,
+1876,KH674,기초프랑스어,3.0,,,,
+1877,KH675,기초러시아어,3.0,,,,
+1878,OC242,부동산학개론,3.0,,,,
+1879,OC243,기후위기와미래사회,3.0,,,,
+1880,TH013,아시아와일본,3.0,,,,
+1881,HD670,국내외유럽문화탐사2,3.0,,,,
+1882,HE283,글로벌트렌드영어2,3.0,,,,
+1883,HE285,영상콘텐츠영어,3.0,,,,
+1884,HE375,근대영미문학,3.0,,,,
+1885,HW205,문학사회학,3.0,,,,
+1886,HW242,드라마특강,3.0,,,,
+1887,HW341,시나리오작법,3.0,,,,
+1888,HK281,고전작품의이해,3.0,,,,
+1889,HK379,한국어표현교육론,3.0,,,,
+1890,HK386,한국어사개론,3.0,,,,
+1891,HK387,한국어어휘교육론,3.0,,,,
+1892,HK388,현대작가탐구,3.0,,,,
+1893,HK389,고전소설탐구,3.0,,,,
+1894,HK390,한국문학사탐구2,3.0,,,,
+1895,HK446,구비문학탐구,3.0,,,,
+1896,HK447,한국어교재론,3.0,,,,
+1897,HK448,대조언어학론,3.0,,,,
+1898,GP676,야외고고학,3.0,,,,
+1899,GP678,기록관리실습,3.0,,,,
+1900,HH117,문화유산콘텐츠,3.0,,,,
+1901,HH119,구술아카이빙,3.0,,,,
+1902,HH120,기록인류학,3.0,,,,
+1903,HH121,세상을바꾸는기록이야기,3.0,,,,
+1904,HH123,공공역사와역사콘텐츠,3.0,,,,
+1905,HH332,한국근대사,3.0,,,,
+1906,HH473,학술답사D,0.5,,,,
+1907,DC155,중국문화산업트랜드,3.0,,,,
+1908,DC461,한중문화관광콘텐츠제작실습,3.0,,,,
+1909,DC578,한중문화상품개발론,3.0,,,,
+1910,DC615,OJT1,9.0,,,,
+1911,HC322,HSK실습Ⅱ,3.0,,,,
+1912,HC395,의료서비스회화,3.0,,,,
+1913,HC397,그림으로읽는한국과중국의길상문화,3.0,,,,
+1914,HC616,중급중국어회화Ⅱ,1.0,,,,
+1915,HC617,HSK5급Ⅱ,2.0,,,,
+1916,DV201,문화콘텐츠의기술사적이해,3.0,,,,
+1917,DV213,축제콘텐츠분석및기획워크숍,3.0,,,,
+1918,DV220,영화제현장학습2,2.0,,,,
+1919,DV308,"영상문화와젠더,섹슈얼리티",3.0,,,,
+1920,DV313,콘텐츠투어리즘사례분석및기획실습,3.0,,,,
+1921,DV317,문화콘텐츠비평의이론과실제,3.0,,,,
+1922,DV329,세계유네스코콘텐츠탐사Ⅲ,2.0,,,,
+1923,KA012,무용연기법,3.0,,,,
+1924,KA016,K-pop전공실기Ⅰ,3.0,,,,
+1925,KA027,K-영화와한국문화1,3.0,,,,
+1926,KA034,토픽 5급,3.0,,,,
+1927,KA042,스포츠의이해,3.0,,,,
+1928,HN287,실용중국어회화2,3.0,,,,
+1929,HN375,영화와현대중국,3.0,,,,
+1930,HN392,중화권문학과문화,3.0,,,,
+1931,HN401,한중관계론,3.0,,,,
+1932,HN415,중국어통번역실습,3.0,,,,
+1933,HJ129,초급일본어회화2,2.0,,,,
+1934,HJ251,일본어작문,3.0,,,,
+1935,HJ304,한일관계사,3.0,,,,
+1936,HJ461,시청각일본어,3.0,,,,
+1937,HJ466,현대일본사회조사,3.0,,,,
+1938,EI375,부동산경제학,3.0,,,,
+1939,EI384,한국경제의미래,3.0,,,,
+1940,EI478,관세법,3.0,,,,
+1941,EE443,노사관계와노동조합,3.0,,,,
+1942,EF303,응용계량경제학,3.0,,,,
+1943,HI119,글로벌사회의이해,3.0,,,,
+1944,HI258,제국론,3.0,,,,
+1945,HI448,한반도통합문제세미나,3.0,,,,
+1946,HI455,국제통상론,3.0,,,,
+1947,PS230,사회과학데이터분석기초,3.0,,,,
+1948,PS232,AI데이터개발과MLOps,3.0,,,,
+1949,PS310,딥러닝영상처리,3.0,,,,
+1950,PS315,시민참여,3.0,,,,
+1951,PS323,소셜미디어빅데이터분석,3.0,,,,
+1952,PS324,정책분석과평가방법,3.0,,,,
+1953,PS325,행정사사례연습,3.0,,,,
+1954,PS408,데이터기반정책관리,3.0,,,,
+1955,EN008,글로벌경제입문,3.0,,,,
+1956,EN011,기초중국어Ⅱ,3.0,,,,
+1957,EN012,동아시아통상학입문,3.0,,,,
+1958,EB318,중소기업경영론,3.0,,,,
+1959,EB368,기업재무론,3.0,,,,
+1960,EB384,인사전략과동기부여,3.0,,,,
+1961,EJ357,지속가능경영과ESG전략,3.0,,,,
+1962,EK348,아시아기업론,3.0,,,,
+1963,EK354,다국적기업론,3.0,,,,
+1964,EM310,영상광고제작실습,3.0,,,,
+1965,EM416,소셜미디어제작실습,3.0,,,,
+1966,HS221,사회계층과불평등,3.0,,,,
+1967,HS238,근대사속의한국사회,3.0,,,,
+1968,HS241,사회연구실습Ⅱ,3.0,,,,
+1969,HS334,북한사회의이해,3.0,,,,
+1970,HS362,민주화와정치변동,3.0,,,,
+1971,TR273,아동심리치료,3.0,,,,
+1972,TR383,발달기반놀이치료,3.0,,,,
+1973,TR385,자폐아동평가와치료,3.0,,,,
+1974,TR510,지역사회재활시설론,3.0,,,,
+1975,SA112,아동심리치료,3.0,,,,
+1976,SB401,생리심리학,3.0,,,,
+1977,SC207,언어지도,3.0,,,,
+1978,SC321,아동과학지도,3.0,,,,
+1979,NP271,캠핑,3.0,,,,
+1980,NM218,글로벌금융이슈,3.0,,,,
+1981,NM385,금융과빅데이터,3.0,,,,
+1982,NM392,채권론,3.0,,,,
+1983,NM451,금융수치해석기법,3.0,,,,
+1984,NM465,재테크와금융,3.0,,,,
+1985,NM469,신용분석,3.0,,,,
+1986,NM470,투자실무,3.0,,,,
+1987,NS364,빅데이터시각화분석,3.0,,,,
+1988,NS366,SQL프로그래밍,3.0,,,,
+1989,NS410,통계컨설팅,3.0,,,,
+1990,SH314,모바일프로그래밍,3.0,,,,
+1991,SH315,리눅스프로그래밍,3.0,,,,
+1992,SH319,UI/UX프로그래밍,3.0,,,,
+1993,SH327,고급웹프로그래밍,3.0,,,,
+1994,SH329,딥러닝응용,3.0,,,,
+1995,SH330,음성공학,3.0,,,,
+1996,SH335,디지털비즈니스개론,3.0,,,,
+1997,SH324,프로그래밍언어,3.0,,,,
+1998,SH405,컴퓨터비전,3.0,,,,
+1999,SH311,보안프로그래밍,3.0,,,,
+2000,SH307,컴퓨터그래픽스,3.0,,,,
+2001,SH318,컴퓨터애니메이션,3.0,,,,
+2002,GP677,컴퓨터비전특론,3.0,,,,
+2003,MI401,감성컴퓨팅,3.0,,,,
+2004,NI338,시스템분석설계,3.0,,,,
+2005,SH207,오픈소스SW개론,3.0,,,,
+2006,SH321,빅데이터플랫폼,3.0,,,,
+2007,SH325,AIoT설계와응용,3.0,,,,
+2008,SH339,인지감성컴퓨팅기획,3.0,,,,
+2009,SH342,앰비언트컴퓨팅기획,3.0,,,,
+2010,SH351,인지감성AI에이전트,3.0,,,,
+2011,SH352,자율지능IoT시스템,3.0,,,,
+2012,SH402,AISW캡스톤디자인Ⅰ,3.0,,,,
+2013,AC203,기초회로실험,3.0,,,,
+2014,AC209,디지털회로실험,3.0,,,,
+2015,AC214,객체지향프로그래밍입문,3.0,,,,
+2016,AC216,집적회로설계입문,3.0,,,,
+2017,AC217,데이터분석및활용,3.0,,,,
+2018,EC006,데이터분석프로그래밍기초,3.0,,,,
+2019,NE208,운영체제,3.0,,,,
+2020,NE210,데이터베이스,3.0,,,,
+2021,NI125,C++이론및실습,3.0,,,,
+2022,NI241,자바프로그래밍,3.0,,,,
+2023,NI431,알고리즘,3.0,,,,
+2024,HC388,중국음식문화의이해,3.0,,,,
+2025,SB204,발달심리학,3.0,,,,
+2026,SH345,AWS클라우드서비스,3.0,,,,
+2027,TT609,교회봉사,1.0,,,,
+2028,HC911,영화를통해서배우는매너와에티켓,3.0,,,,
+2029,EB943,전산회계실무Ⅰ,3.0,,,,
+2030,SH412,IPP3(장기현장실습),3.0,,,,
+2031,SH413,IPP4(장기현장실습),3.0,,,,
+2032,*KY142,컴퓨터기초1,3.0,,,,
+2033,*KY143,컴퓨터기초2,3.0,,,,
+2034,KY843,중국어Ⅱ,2.0,,,,
+2035,KYC13,한반도통일의현재와미래,3.0,,,,
+2036,KYD23,과학자의발자취를따라,3.0,,,,
+2037,KYD25,인공지능이해와활용,3.0,,,,
+2038,TT320,목회실습V,1.0,,,,
+2039,TT321,목회실습Ⅵ,1.0,,,,
+2040,TT559,성문서연구,3.0,,,,
+2041,TT562,현대신학연구,3.0,,,,
+2042,TT590,성서의역사와해석,3.0,,,,
+2043,HP151,AI와인간,3.0,,,,
+2044,HP231,정치철학,3.0,,,,
+2045,HP328,중국사상,3.0,,,,
+2046,HP408,사랑학통론,3.0,,,,
+2047,HR223,종교학사,3.0,,,,
+2048,HR275,"종교와미디어,그리고현대문화",3.0,,,,
+2049,HR320,종교학특강,3.0,,,,
+2050,TS260,자원봉사론,3.0,,,,
+2051,TS270,산업복지론,3.0,,,,
+2052,TS357,사회운동과복지,3.0,,,,
+2053,PE419,졸업논문,3.0,,,,
+2054,SD004,AI융합라이프케어캡스톤디자인2,3.0,,,,
+2055,SD409,졸업논문,3.0,,,,
+2056,SD419,졸업논문,3.0,,,,
+2057,OC119,지중해문화산책,3.0,,,,
+2058,OC156,교양한자,3.0,,,,
+2059,OC245,전통한옥의아름다움,3.0,,,,
+2060,TH016,글로벌문화탐색,3.0,,,,
+2061,HD579,언어와문화,3.0,,,,
+2062,HD607,20세기독문학과문화,3.0,,,,
+2063,HD633,유럽여행과문화,3.0,,,,
+2064,HD661,문화콘텐츠커리어탐구,3.0,,,,
+2065,HE377,문화콘텐츠주제세미나,3.0,,,,
+2066,HE379,프리젠테이션영어,3.0,,,,
+2067,HE401,영미문화학특강,3.0,,,,
+2068,HW342,상상력연구Ⅱ,3.0,,,,
+2069,HW433,OJT1,9.0,,,,
+2070,HK107,한국어어문규범의이해,3.0,,,,
+2071,HK111,"세상읽기,현대산문탐구",3.0,,,,
+2072,HK409,졸업논문,3.0,,,,
+2073,GP506,역사고고학특강Ⅰ,3.0,,,,
+2074,GP554,필름아카이브,3.0,,,,
+2075,HH206,문화유산과평화교육,3.0,,,,
+2076,HH371,한국사회경제사,3.0,,,,
+2077,DC165,콘텐츠서사디자인,3.0,,,,
+2078,DC463,한중문화산업분석,3.0,,,,
+2079,DC627,지역콘텐츠분석,3.0,,,,
+2080,HC013,HSKK실습2,3.0,,,,
+2081,HC436,대만의생활문화,3.0,,,,
+2082,HC619,초급중국어듣기와말하기2,3.0,,,,
+2083,DV106,인문콘텐츠현장학습,1.0,,,,
+2084,DV211,문화콘텐츠의예술사적이해,3.0,,,,
+2085,DV323,한국영화감독론,3.0,,,,
+2086,DV407,트래블링쇼츠분석및제작워크숍,3.0,,,,
+2087,KA045,태권도,3.0,,,,
+2088,KA047,마케팅의이해,3.0,,,,
+2089,KA048,학문목적한국어,3.0,,,,
+2090,HJ387,통번역실습Ⅱ,3.0,,,,
+2091,HN139,동아시아경제와기업환경,3.0,,,,
+2092,HN279,세계경제와중국경제개론,3.0,,,,
+2093,HN282,현대동아시아인물탐구,3.0,,,,
+2094,HN284,동아시아경제입문,3.0,,,,
+2095,HN482,중국외교정책,3.0,,,,
+2096,HN615,동아시아국제관계,3.0,,,,
+2097,EE337,경제학설사,3.0,,,,
+2098,EF203,기초통계학,3.0,,,,
+2099,EI409,OJT1,9.0,,,,
+2100,HI262,유라시아지역연구,3.0,,,,
+2101,HI371,국제기구와국제관계,3.0,,,,
+2102,HI437,정치심리학,3.0,,,,
+2103,PS111,조직진단사례연습,3.0,,,,
+2104,EB113,인공지능기반인적자원경영,3.0,,,,
+2105,EB321,경영세미나2,3.0,,,,
+2106,EB322,혁신경영론,3.0,,,,
+2107,EB335,투자론,3.0,,,,
+2108,EZ140,자율사물과활용사례,3.0,,,,
+2109,EA341,AI와정책홍보,3.0,,,,
+2110,BA001,경영학원론,3.0,,,,
+2111,BA003,회계원리,3.0,,,,
+2112,BA006,비즈니스프로그래밍,3.0,,,,
+2113,MC004,영상의이해,3.0,,,,
+2114,MC005,광고학개론,3.0,,,,
+2115,SS009,특수체육의이해,3.0,,,,
+2116,SS010,일상생활과사회학적상상력,3.0,,,,
+2117,HS343,결혼사랑가족제도,3.0,,,,
+2118,HS367,합리성과합리적행위탐구,3.0,,,,
+2119,TR126,응용행동분석,3.0,,,,
+2120,GP549,발달장애의진단및치료,3.0,,,,
+2121,SC423,아동학의통계학적기초,3.0,,,,
+2122,GP550,전공특강Ⅰ,3.0,,,,
+2123,NP102,체육사,3.0,,,,
+2124,NP136,뉴스포츠,2.0,,,,
+2125,NP137,동계스포츠,3.0,,,,
+2126,NP255,스포츠재활,3.0,,,,
+2127,SH210,AISW실무형프로젝트,6.0,,,,
+2128,SH415,OJT1,9.0,,,,
+2129,SH519,졸업논문,3.0,,,,
+2130,AI403,졸업논문,3.0,,,,
+2131,DS403,졸업논문,3.0,,,,
+2132,XR401,졸업논문,3.0,,,,
+2133,AT401,졸업논문,3.0,,,,
+2134,NM138,금융기초수학2,3.0,,,,
+2135,NS359,바이오통계자료분석,3.0,,,,
+2136,NS372,통계패키지를활용한분석,3.0,,,,
+2137,GP551,IoT통신특론,3.0,,,,
+2138,GP552,데이터엔지니어링특론,3.0,,,,
+2139,GP553,소셜컴퓨팅,3.0,,,,
+2140,SH209,감성컴퓨팅,3.0,,,,
+2141,SH312,네트워크보안,3.0,,,,
+2142,SH344,앰비언트컴퓨팅개발2,3.0,,,,
+2143,SH353,시스템분석설계,3.0,,,,
+2144,SH403,AISW캡스톤디자인Ⅱ,3.0,,,,
+2145,AC218,반도체소자,3.0,,,,
+2146,AC307,마이크로프로세서,3.0,,,,
+2147,AC313,디지털시스템설계응용,3.0,,,,
+2148,AC316,컴퓨터비전및실습,3.0,,,,
+2149,AC319,아날로그IC설계기초,3.0,,,,
+2150,AC408,SoC설계,3.0,,,,
+2151,KYD21,MOS 365 Power Point Associate,2.0,,,,
+2152,KYD22,MOS 365 Excel Associate,2.0,,,,
+2153,OC191,부동산의이해,3.0,,,,
+2154,EI408,OJT2,3.0,,,,
+2155,HN601,중국현지연구및실습Ⅰ,3.0,,,,
+2156,EB944,마케팅원론Ⅰ,3.0,,,,
+2157,EM420,K-pop과한국대중음악,3.0,,,,
+2158,NM390,보험론,3.0,,,,
+2159,SH211,AISW실무형프로젝트 2,3.0,,,,
+2160,SH416,OJT2,3.0,,,,
