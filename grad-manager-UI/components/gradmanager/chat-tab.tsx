@@ -894,7 +894,13 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                   <div className="relative">
                     <select
                       value={easyConv}
-                      onChange={(e) => setEasyConv(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setEasyConv(val)
+                        if (val !== "") {
+                          setEasySpec("")
+                        }
+                      }}
                       className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3 text-sm text-foreground appearance-none cursor-pointer"
                     >
                       <option value="">선택 안 함 (일반 전공)</option>
@@ -916,7 +922,13 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                   <div className="relative">
                     <select
                       value={easySpec}
-                      onChange={(e) => setEasySpec(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value
+                        setEasySpec(val)
+                        if (val !== "") {
+                          setEasyConv("")
+                        }
+                      }}
                       className="w-full rounded-2xl border border-transparent bg-secondary px-4 py-3 text-sm text-foreground appearance-none cursor-pointer"
                     >
                       <option value="">선택 안 함 (일반 트랙)</option>

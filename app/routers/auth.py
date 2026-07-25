@@ -5,6 +5,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.database import get_db
 from app.models import User, Student
+from app import schemas
 from backend.core.data.students import get_student, STUDENTS
 from backend.core.data.csv_loader import load_courses
 import hashlib
@@ -105,13 +106,18 @@ def login(req: LoginRequest, db: Session = Depends(get_db)):
     }
 
 @router.post("/register", summary="실제 회원가입 API")
-def register(req: RegisterRequest):
+def register(req: RegisterRequest, db: Session = Depends(get_db)):
     if req.studentId in STUDENTS:
+        raise HTTPException(status_code=400, detail="이미 등록된 학번입니다.")
+        
+    db_student = db.query(Student).filter(Student.student_number == req.studentId).first()
+    if db_student:
         raise HTTPException(status_code=400, detail="이미 등록된 학번입니다.")
         
     # STUDENTS 가상 데이터베이스에 추가
     STUDENTS[req.studentId] = {
         "name": req.name,
+        "password": req.password,
         "student_id": req.studentId,
         "department": req.department,
         "major_tracks": ["AISW 본전공"],
@@ -129,18 +135,36 @@ def register(req: RegisterRequest):
         "avoid_times": [],
     }
     
+    # SQLite DB에 사용자와 학생 즉시 연동 생성
+    max_user_id = db.query(func.max(User.user_id)).scalar() or 0
+    next_user_id = max_user_id + 1
+
+    new_user = User(
+        user_id=next_user_id,
+        login_id=req.studentId,
+        password_hash=hash_password(req.password),
+        role="STUDENT"
+    )
+    db.add(new_user)
+    db.commit()
+
+    max_student_id = db.query(func.max(Student.student_id)).scalar() or 0
+    next_student_id = max_student_id + 1
+
+    db_student_new = Student(
+        student_id=next_student_id,
+        user_id=next_user_id,
+        student_number=req.studentId,
+        admission_year=int(req.studentId[:4]) if len(req.studentId) >= 4 else 2026,
+        current_grade=1
+    )
+    db.add(db_student_new)
+    db.commit()
+    
     return {"message": "회원가입이 완료되었습니다."}
 
-class ProfileUpdateRequest(BaseModel):
-    name: str
-    studentId: str
-    department: str
-    mileage: Optional[int] = None
-    current_semester: Optional[int] = None
-    major_tracks: Optional[List[str]] = None
-
 @router.put("/profile", summary="실제 프로필 정보 수정 API")
-def update_profile(req: ProfileUpdateRequest):
+def update_profile(req: schemas.ProfileUpdateRequest):
     student = get_student(req.studentId)
     if not student:
         raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
