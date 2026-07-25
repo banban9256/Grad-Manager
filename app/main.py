@@ -463,6 +463,14 @@ def get_student_course_history(
             courses_db = load_courses()
             db_course_type = get_course_category(course_code, courses_db)
 
+        # semester_taken 파싱 (예: "2024-1학기" -> year="2024", semester="1학기")
+        year = ""
+        semester = ""
+        if h.semester_taken and "-" in h.semester_taken:
+            parts = h.semester_taken.split("-", 1)
+            year = parts[0]
+            semester = parts[1]
+
         result.append({
             "history_id": h.history_id,
             "student_id": h.student_id,
@@ -473,7 +481,9 @@ def get_student_course_history(
             "grade": h.grade,
             "earned_credit": h.earned_credit,
             "is_retake": h.is_retake,
-            "course_type": db_course_type
+            "course_type": db_course_type,
+            "year": year,
+            "semester": semester
         })
     return {
         "status": "success",

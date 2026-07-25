@@ -11,6 +11,10 @@ router = APIRouter()
 class ChatRequest(BaseModel):
     message: str
     history: Optional[List[dict]] = None
+    convergenceMajor: Optional[str] = None
+    specializedTrack: Optional[str] = None
+    semester: Optional[str] = None
+    department: Optional[str] = None
 
 def get_student_from_token(authorization: Optional[str]) -> dict:
     if not authorization:
@@ -33,11 +37,25 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
     student = get_student_from_token(authorization)
     student_id = student["student_id"]
     
+    # 전달된 학기, 전공, 트랙, 학과 정보를 학생 정보 객체에 갱신 및 캐시 동기화
+    if req.department:
+        student["department"] = req.department
+    if req.convergenceMajor:
+        student["convergence_major"] = req.convergenceMajor
+    if req.specializedTrack:
+        student["specialized_track"] = req.specializedTrack
+    if req.semester:
+        student["target_semester"] = req.semester
+
+    from backend.core.data.students import STUDENTS
+    STUDENTS[student_id] = student
+    
     # backend/core/chatbot.py 의 chat 함수 호출
     ai_response = chat(
         user_message=req.message,
         student_id=student_id,
-        history=req.history or []
+        history=req.history or [],
+        target_semester=req.semester
     )
     
     # 최신의 갱신된 학생 정보 기준 실제 시간표 생성

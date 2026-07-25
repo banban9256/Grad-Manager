@@ -84,20 +84,47 @@ def get_recommendations(authorization: Optional[str] = Header(None)):
     }
 
 @router.get("/mock-courses", summary="실제 개설 과목 목록 반환 (검색 지원)")
-def get_all_courses(q: Optional[str] = Query(None, description="과목명 또는 코드 검색")):
+def get_all_courses(
+    q: Optional[str] = Query(None, description="과목명 또는 코드 검색"),
+    semester: Optional[str] = Query(None, description="개설 학기 필터 (예: 2024-2학기)")
+):
     courses_db = load_courses()
     data = []
+    
+    target_year = None
+    target_sem = None
+    if semester and "-" in semester:
+        parts = semester.split("-", 1)
+        target_year = parts[0]
+        target_sem = parts[1]
     
     for code, info in courses_db.items():
         if q:
             if q.lower() not in info["name"].lower() and q.lower() not in code.lower():
                 continue
                 
+        # semester 필터링: 해당 과목의 offerings 중 target_year와 target_sem에 매칭되는 것이 있는지 확인
+        if target_year and target_sem:
+            offerings = info.get("offerings", [])
+            # 개설 정보(분반)가 등록되어 있는 과목의 경우에만 학기 필터를 엄격하게 적용
+            if len(offerings) > 0:
+                has_matching_offering = False
+                for o in offerings:
+                    if str(o.get("academic_year")) == target_year and o.get("semester") == target_sem:
+                        has_matching_offering = True
+                        break
+                if not has_matching_offering:
+                    continue
+
         # API 응답 포맷 맞춤
         schedules = []
         for o in info.get("offerings", []):
+            if target_year and target_sem:
+                # 개설 정보가 존재하는 경우, 해당 학기의 일정만 필터링하여 응답
+                if str(o.get("academic_year")) != target_year or o.get("semester") != target_sem:
+                    continue
             sec_val = o.get("section") or "01"
-            prof_val = o.get("professor") or info.get("professor") or "미지정"
+            prof_val = o.get("professor") or info.get("professor") or "미정"
             for d, start, end in o.get("time_slots", []):
                 schedules.append({
                     "day": d,
@@ -122,11 +149,12 @@ def get_all_courses(q: Optional[str] = Query(None, description="과목명 또는
         
     return {
         "status": "success",
-        "data": data  # 전체 반환
+        "data": data  # 필터링된 결과 반환
     }
 
 class ScheduleBlocksUpdateRequest(BaseModel):
     studentId: str
+    semester: Optional[str] = None
     scheduleBlocks: List[Any]
 
 @router.post("/schedule", summary="사용자 커스텀 시간표 블록 저장 API")
@@ -134,16 +162,43 @@ def save_user_schedule(req: ScheduleBlocksUpdateRequest):
     student = get_student(req.studentId)
     if not student:
         raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
-    student["custom_schedule_blocks"] = req.scheduleBlocks
+    
+    target_sem = req.semester or "2026-1학기"
+    blocks_store = student.get("custom_schedule_blocks", {})
+    if isinstance(blocks_store, list):
+        blocks_store = {"2026-1학기": blocks_store}
+        
+    blocks_store[target_sem] = req.scheduleBlocks
+    student["custom_schedule_blocks"] = blocks_store
+    
     save_student(req.studentId, student)
     return {"success": True, "count": len(req.scheduleBlocks)}
 
 @router.get("/schedule", summary="사용자 커스텀 시간표 블록 조회 API")
-def get_user_schedule(studentId: str):
+def get_user_schedule(studentId: str, semester: Optional[str] = Query(None)):
     student = get_student(studentId)
     if not student:
         raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
+        
+    target_sem = semester or "2026-1학기"
+    blocks_store = student.get("custom_schedule_blocks", {})
+    if isinstance(blocks_store, list):
+        if target_sem == "2026-1학기":
+            blocks = blocks_store
+        else:
+            blocks = []
+    else:
+        blocks = blocks_store.get(target_sem, [])
+        
     return {
         "success": True,
-        "scheduleBlocks": student.get("custom_schedule_blocks", [])
+        "scheduleBlocks": blocks
+    }
+
+@router.get("/semesters", summary="전체 개설된 고유 학기 목록 조회 API")
+def get_semesters():
+    from backend.core.data.courses import get_all_semesters
+    return {
+        "status": "success",
+        "semesters": get_all_semesters()
     }

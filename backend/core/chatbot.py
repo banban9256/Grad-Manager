@@ -52,11 +52,14 @@ SYSTEM_PROMPT = """당신은 '졸업을 부탁해' 서비스의 AI 졸업 도우
 - 졸업 요건 체크"""
 
 
-def build_student_context(student_id: str) -> str:
+def build_student_context(student_id: str, target_semester: str = None) -> str:
     """학생 정보를 콘텍스트 문자열로 변환"""
     student = get_student(student_id)
     if not student:
         return "등록된 학생 정보가 없습니다."
+
+    if target_semester:
+        student["target_semester"] = target_semester
 
     remaining_required = get_required_remaining(student)
     available = get_available_courses(student)
@@ -72,6 +75,9 @@ def build_student_context(student_id: str) -> str:
             available_summary.append(f"- {c['code']} {c['name']} ({c['credits']}학점)")
 
     context = f"""
+## 추천 대상 학기
+- 추천 학기: {target_semester or '미정'} (반드시 이 학기에 개설된 과목만 고려하세요)
+
 ## 현재 학생 정보
 - 이름: {student['name']}
 - 학번: {student['student_id']}
@@ -103,12 +109,14 @@ def build_student_context(student_id: str) -> str:
     return context
 
 
-def chat(user_message: str, student_id: str = None, history: list = None) -> str:
+def chat(user_message: str, student_id: str = None, history: list = None, target_semester: str = None) -> str:
     """챗봇 대화 (Groq API 호출)"""
     # 선호도 자동 추출 및 학생 정보 업데이트
     if student_id:
         student = get_student(student_id)
         if student:
+            if target_semester:
+                student["target_semester"] = target_semester
             updated = False
             msg = user_message.lower()
             
@@ -159,7 +167,7 @@ def chat(user_message: str, student_id: str = None, history: list = None) -> str
 
     # 학생 컨텍스트 주입
     if student_id:
-        student_context = build_student_context(student_id)
+        student_context = build_student_context(student_id, target_semester)
         messages.append({"role": "system", "content": student_context})
 
     # 특수 명령어 처리
@@ -168,11 +176,13 @@ def chat(user_message: str, student_id: str = None, history: list = None) -> str
     if "시간표" in lower_msg and student_id:
         student = get_student(student_id)
         if student:
+            if target_semester:
+                student["target_semester"] = target_semester
             schedules = generate_timetable(student, max_schedules=3)
             schedule_text = _format_schedules(schedules)
             messages.append({
                 "role": "system",
-                "content": f"## 시간표 추천 결과\n{schedule_text}\n\n위 시간표를 바탕으로 사용자에게 추천해주세요.",
+                "content": f"## 시간표 추천 결과\n{schedule_text}\n\n위 시간표를 바탕으로 사용자에게 추천해주세요. 반드시 {target_semester or '지정 학기'}에 개설된 과목들이 맞는지 다시 확인하세요.",
             })
 
     if "공지" in lower_msg or "알림" in lower_msg:
@@ -211,7 +221,7 @@ def chat(user_message: str, student_id: str = None, history: list = None) -> str
         
         reply = "🎓 **그레듀 조교 답변 (데모 모드)**\n\n현재 `GROQ_API_KEY` 환경 변수가 설정되지 않아 인공지능 실시간 대화는 불가능하지만, 시스템 프롬프트 및 데이터를 기반으로 가상 상담을 제공합니다.\n\n"
         if "시간표" in user_message or "추천" in user_message:
-            reply += "학번 및 선호 요일 분석을 마쳤습니다. 현재 시간표 탭에서 추천 1(18학점) 배치가 완료되었습니다. 홈 대시보드의 'AI 수강설계'에서도 6개의 맞춤 과목을 추천받으실 수 있습니다!"
+            reply += f"학번 및 선호 요일 분석을 마쳤습니다. 선택하신 학기({target_semester or '2026-1학기'})의 시간표 탭에서 추천 1(18학점) 배치가 완료되었습니다. 홈 대시보드의 'AI 수강설계'에서도 6개의 맞춤 과목을 추천받으실 수 있습니다!"
         elif "공지" in user_message or "일정" in user_message:
             reply += "현재 관련 장학금 및 SW인턴십 공지가 예정되어 있습니다. 알림 탭에서 매칭 리스트를 확인하실 수 있습니다."
         else:

@@ -36,9 +36,29 @@ import {
   updateStudentCourseHistory, 
   deleteStudentCourseHistory,
   getStudentGraduationSummary,
+  searchCourseOfferings,
 } from "@/lib/api"
 import { DEPARTMENTS, CONVERGENCE_MAJORS, SPECIALIZED_TRACKS } from "@/lib/constants"
 import { AcademicProfileSettings } from "./AcademicProfileSettings"
+
+// 학기 선택 드롭다운용 23-1 ~ 26-2 전체 학기 목록 (계절학기 포함)
+const SEMESTER_OPTIONS = [
+  "2026-2학기",
+  "2026-여름계절",
+  "2026-1학기",
+  "2025-겨울계절",
+  "2025-2학기",
+  "2025-여름계절",
+  "2025-1학기",
+  "2024-겨울계절",
+  "2024-2학기",
+  "2024-여름계절",
+  "2024-1학기",
+  "2023-겨울계절",
+  "2023-2학기",
+  "2023-여름계절",
+  "2023-1학기",
+]
 
 // 성적별 평점 환산 테이블
 const GRADE_POINTS: Record<string, number> = {
@@ -74,7 +94,7 @@ const calculateSemesterGPA = (items: any[]) => {
 }
 
 export function ProfileTab() {
-  const { user, notice, logout, allCourses, refreshData, addInterestKeyword, removeInterestKeyword, updateCompletedCourses } = useGradData()
+  const { user, notice, logout, allCourses, refreshData, addInterestKeyword, removeInterestKeyword, updateCompletedCourses, semesters = [] } = useGradData()
   const { showToast } = useToast()
   const { userInfo } = user
 
@@ -95,6 +115,12 @@ export function ProfileTab() {
   const [courseSearchQuery, setCourseSearchQuery] = useState("")
   const [filterCourseType, setFilterCourseType] = useState<string>("전체")
 
+  // 모달 내 개설 과목 목록 관리 상태
+  const [modalCourses, setModalCourses] = useState<any[]>([])
+  const [isModalCoursesLoading, setIsModalCoursesLoading] = useState(false)
+
+
+
   // 직접 입력(Custom Input) 상태들
   const [addFormTab, setAddFormTab] = useState<"search" | "custom">("search")
   const [customCourseName, setCustomCourseName] = useState("")
@@ -105,6 +131,32 @@ export function ProfileTab() {
   const [isCustomSubmitting, setIsCustomSubmitting] = useState(false)
   const [bulkTargetSemester, setBulkTargetSemester] = useState("2026-1학기")
   const [customIsRetake, setCustomIsRetake] = useState(false)
+
+  // 모달 오픈 시 혹은 대상 학기(bulkTargetSemester) 변경 시 개설 과목 비동기 로딩
+  useEffect(() => {
+    if (!showAddForm) return
+
+    let isMounted = true
+    async function fetchModalCourses() {
+      setIsModalCoursesLoading(true)
+      try {
+        const courses = await searchCourseOfferings("", bulkTargetSemester)
+        if (isMounted) {
+          setModalCourses(courses)
+        }
+      } catch (err) {
+        console.error("모달 내 개설 과목 목록 로드 실패:", err)
+      } finally {
+        if (isMounted) {
+          setIsModalCoursesLoading(false)
+        }
+      }
+    }
+    fetchModalCourses()
+    return () => {
+      isMounted = false
+    }
+  }, [showAddForm, bulkTargetSemester])
 
   // 인라인 편집 상태 (개별 학기/성적 튜닝용)
   const [editingHistoryId, setEditingHistoryId] = useState<number | null>(null)
@@ -269,7 +321,8 @@ export function ProfileTab() {
 
   // 학수코드/과목 리스트 가공 (중복 코드 배제)
   const processedCourses = useMemo(() => {
-    const defaultList = (!allCourses || allCourses.length === 0) ? [] : allCourses.map((c: any) => ({
+    const sourceCourses = showAddForm ? modalCourses : (allCourses || [])
+    const defaultList = sourceCourses.map((c: any) => ({
       id: String(c.course_id || c.code || c.id || ""),
       code: String(c.course_code || c.code || c.course_id || ""),
       name: c.title || c.name || "과목명 미정",
@@ -285,7 +338,7 @@ export function ProfileTab() {
       }
     }
     return uniqueList
-  }, [allCourses])
+  }, [allCourses, modalCourses, showAddForm])
 
   // 검색 쿼리 및 이수 구분에 필터링된 과목 리스트
   const filteredSearchCourses = useMemo(() => {
@@ -396,11 +449,14 @@ export function ProfileTab() {
     }))
   }, [historyList])
 
+
+
   // 학기 및 연도별 수강 이력 그룹핑 계산
   const groupedHistory = useMemo(() => {
     const groups: Record<string, any[]> = {}
+    
     computedHistoryList.forEach(item => {
-      const sem = item.semester_taken || "미지정 학기"
+      const sem = item.semester_taken || "미정 학기"
       if (!groups[sem]) {
         groups[sem] = []
       }
@@ -876,7 +932,7 @@ export function ProfileTab() {
                           onChange={(e) => setBulkTargetSemester(e.target.value)}
                           className="rounded-lg bg-card border border-border px-1.5 py-0.5 text-[10px] text-foreground focus:outline-none cursor-pointer"
                         >
-                          {["2026-1학기", "2025-2학기", "2025-1학기", "2024-2학기", "2024-1학기", "2023-2학기", "2023-1학기"].map((s) => (
+                          {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
@@ -914,7 +970,12 @@ export function ProfileTab() {
 
                   {/* 스크롤블 체크박스 그리드 */}
                   <div className="max-h-[300px] overflow-y-auto pr-1.5 grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
-                    {filteredSearchCourses.length === 0 ? (
+                    {isModalCoursesLoading ? (
+                      <div className="col-span-full text-center py-12 space-y-2">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto text-[#3182f6]" />
+                        <span className="text-xs text-muted-foreground block">선택 학기 개설 과목 불러오는 중...</span>
+                      </div>
+                    ) : filteredSearchCourses.length === 0 ? (
                       <div className="col-span-full text-center py-8 text-xs text-muted-foreground">
                         검색 결과와 일치하는 개설 과목이 없습니다.
                       </div>
@@ -1035,7 +1096,7 @@ export function ProfileTab() {
                         onChange={(e) => setCustomSemester(e.target.value)}
                         className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer"
                       >
-                        {["2026-1학기", "2025-2학기", "2025-1학기", "2024-2학기", "2024-1학기", "2023-2학기", "2023-1학기"].map((s) => (
+                        {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
                           <option key={s} value={s}>{s}</option>
                         ))}
                       </select>
@@ -1092,6 +1153,7 @@ export function ProfileTab() {
             </motion.div>
           )}
         </AnimatePresence>
+
 
         {/* 학기별 그룹화된 리스트 뷰 */}
         {isHistoryLoading ? (
@@ -1175,7 +1237,7 @@ export function ProfileTab() {
                                   onChange={(e) => setEditSemester(e.target.value)}
                                   className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none cursor-pointer"
                                 >
-                                  {["2026-1학기", "2025-2학기", "2025-1학기", "2024-2학기", "2024-1학기", "2023-2학기", "2023-1학기"].map((s) => (
+                                  {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
                                     <option key={s} value={s}>{s}</option>
                                   ))}
                                 </select>

@@ -2,7 +2,7 @@ import csv
 from pathlib import Path
 from functools import lru_cache
 
-_OUTPUT_DIR = Path(__file__).resolve().parent.parent.parent.parent / "output"
+_OUTPUT_DIR = Path(__file__).resolve().parent.parent.parent.parent / "data" / "output"
 
 
 def _read_csv(filename: str) -> list[dict]:
