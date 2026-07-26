@@ -580,3 +580,62 @@ def delete_student_course_history(
         "status": "success",
         "message": "Course history deleted successfully."
     }
+
+    # =====================================================================
+# [학생 디지털 트윈 전체 동기화 API]
+# 프론트엔드에서 학생 정보 + 수강 내역 목록 배열을 한 번에 넘겨줄 때 처리하는 API
+# =====================================================================
+@app.post("/api/v1/student/sync")
+def sync_student_full_data(
+    payload: schemas.StudentSyncRequest,
+    db: Session = Depends(get_db)
+):
+    try:
+        # 1. 학생 정보 (Student) DB 확인 및 저장/갱신
+        student = db.query(models.Student).filter(models.Student.student_number == payload.student_number).first()
+        
+        if not student:
+            student = models.Student(
+                user_id=payload.user_id,
+                student_number=payload.student_number,
+                admission_year=payload.admission_year,
+                current_grade=payload.current_grade
+            )
+            db.add(student)
+            db.flush()  # student_id 획득
+        else:
+            student.admission_year = payload.admission_year
+            student.current_grade = payload.current_grade
+
+        # 2. 기존 학생의 수강 내역 지우기 (초기화 후 재등록)
+        db.query(models.StudentCourseHistory).filter(
+            models.StudentCourseHistory.student_id == student.student_id
+        ).delete()
+
+        # 3. 프론트에서 받은 수강 내역 일괄 등록
+        for item in payload.course_history:
+            new_history = models.StudentCourseHistory(
+                student_id=student.student_id,
+                course_id=item.course_id,
+                semester_taken=item.semester_taken,
+                grade=item.grade,
+                earned_credit=item.earned_credit,
+                completion_status=item.completion_status,
+                is_retake=item.is_retake,
+                course_type=item.course_type
+            )
+            db.add(new_history)
+
+        db.commit()
+
+        # 4. 캐시 강제 동기화 (기존 main.py 내 헬퍼 함수 호출)
+        sync_student_cache(student.student_id, db)
+
+        return {
+            "status": "success",
+            "message": "학생 정보 및 수강 내역 전체 동기화 완료",
+            "student_id": student.student_id
+        }
+    except Exception as e:
+        db.rollback()
+        raise HTTPException(status_code=400, detail=f"Sync Error: {str(e)}")

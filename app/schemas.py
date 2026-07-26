@@ -51,3 +51,25 @@ class CourseHistoryUpdate(BaseModel):
     earned_credit: Optional[float] = None
     is_retake: Optional[bool] = None
     course_type: Optional[str] = None
+
+    # app/schemas.py
+from pydantic import BaseModel
+from typing import List, Optional
+
+# 프론트엔드에서 수강 내역 배열 항목으로 들어올 개별 과목 데이터
+class CourseHistoryInput(BaseModel):
+    course_id: int
+    semester_taken: Optional[str] = "2025-1"
+    grade: Optional[str] = "A+"
+    earned_credit: float = 3.0
+    completion_status: str = "이수"
+    is_retake: bool = False
+    course_type: Optional[str] = "일반선택"  # 예: 전공필수, 전공선택, 교양 등
+
+# 프론트엔드에서 보낼 학생 기본 정보 + 수강 내역 전체 요청 데이터
+class StudentSyncRequest(BaseModel):
+    user_id: int
+    student_number: str       # 학번 (예: "20231234")
+    admission_year: int       # 입학연도 (예: 2023)
+    current_grade: int        # 학년 (예: 3)
+    course_history: List[CourseHistoryInput]  # 수강 과목 목록
