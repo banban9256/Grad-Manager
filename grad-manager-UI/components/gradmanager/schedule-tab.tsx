@@ -12,12 +12,13 @@ import {
   Trash2,
   Check,
   Search,
+  Loader2,
   type LucideIcon 
 } from "lucide-react"
 import { useGradData } from "./grad-data-provider"
 import { useToast } from "./toast"
 import { motion, AnimatePresence } from "framer-motion"
-import { saveUserSchedule, getUserSchedule } from "@/lib/api"
+import { saveUserSchedule, getUserSchedule, searchCourseOfferings } from "@/lib/api"
 
 const reasonIconMap: Record<string, LucideIcon> = {
   CalendarOff,
@@ -26,6 +27,25 @@ const reasonIconMap: Record<string, LucideIcon> = {
   Clock,
   Sparkles,
 }
+
+// 학기 선택용 상수 정의 (23-1 ~ 26-2 및 계절학기)
+const SEMESTER_OPTIONS = [
+  "2026-2학기",
+  "2026-여름계절",
+  "2026-1학기",
+  "2025-겨울계절",
+  "2025-2학기",
+  "2025-여름계절",
+  "2025-1학기",
+  "2024-겨울계절",
+  "2024-2학기",
+  "2024-여름계절",
+  "2024-1학기",
+  "2023-겨울계절",
+  "2023-2학기",
+  "2023-여름계절",
+  "2023-1학기",
+]
 
 const ROW_H = 52 // px per hour row
 
@@ -262,7 +282,17 @@ const splitPollutedCourseToSections = (course: any): any[] => {
 
 
 export function ScheduleTab() {
-  const { schedule, refreshData, simulatedSchedule, resetSimulation, allCourses, user } = useGradData()
+  const { 
+    schedule, 
+    refreshData, 
+    simulatedSchedule, 
+    resetSimulation, 
+    allCourses, 
+    user,
+    selectedSemester = "2026-1학기",
+    setSelectedSemester,
+    semesters = []
+  } = useGradData()
   const { showToast } = useToast()
 
   const studentId = user?.userInfo?.studentId || "20210001"
@@ -297,11 +327,22 @@ export function ScheduleTab() {
   // 호버된 분반(groupId) 상태 관리
   const [hoveredGroupId, setHoveredGroupId] = useState<string | null>(null)
 
+  // 학기 변경 시 localStorage 갱신 및 전역 상태 갱신 처리
+  const handleSemesterChange = (newSem: string) => {
+    if (setSelectedSemester) {
+      setSelectedSemester(newSem)
+    }
+    if (typeof window !== "undefined") {
+      localStorage.setItem(`grad_last_viewed_semester_${studentId}`, newSem)
+    }
+  }
+
   // 수동 커스텀 시간표 상태
   const [customBlocks, setCustomBlocks] = useState<any[]>(() => {
     if (typeof window !== "undefined") {
-      const scheduleClearedKey = `grad_schedule_cleared_${studentId}`
-      const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}`
+      const activeSem = localStorage.getItem(`grad_last_viewed_semester_${studentId}`) || "2026-1학기"
+      const scheduleClearedKey = `grad_schedule_cleared_${studentId}_${activeSem}`
+      const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}_${activeSem}`
       const isCleared = localStorage.getItem(scheduleClearedKey) === "true" ||
                         sessionStorage.getItem(scheduleClearedKey) === "true"
       if (isCleared) return []
@@ -360,12 +401,41 @@ export function ScheduleTab() {
   const [pickerChecked, setPickerChecked] = useState<string[]>([]) 
   const [expandedCourse, setExpandedCourse] = useState<string | null>(null) 
   const [pickerCategory, setPickerCategory] = useState<string>("all") 
-  // 추천 시간표가 바뀌거나 로드되는 시점에 상태 동기화 (초기 1회 적용)
+
+  // 모달 내 실시간 개설 과목 관리 상태
+  const [pickerCourses, setPickerCourses] = useState<any[]>([])
+  const [isPickerLoading, setIsPickerLoading] = useState(false)
+
+  // 과목 선택기 모달 오픈 시 혹은 선택된 학기 변경 시 개설 과목 비동기 로딩
+  useEffect(() => {
+    if (!isOpenPicker) return
+
+    let isMounted = true
+    async function loadPickerCourses() {
+      setIsPickerLoading(true)
+      try {
+        const courses = await searchCourseOfferings("", selectedSemester)
+        if (isMounted) {
+          setPickerCourses(courses)
+        }
+      } catch (err) {
+        console.error("시간표 추가 모달 내 개설 과목 로드 실패:", err)
+      } finally {
+        if (isMounted) {
+          setIsPickerLoading(false)
+        }
+      }
+    }
+    loadPickerCourses()
+    return () => {
+      isMounted = false
+    }
+  }, [isOpenPicker, selectedSemester])
 
   // ── [보완] 시간표 로컬 캐시 유실 대응 및 백엔드 DB 연동 로직 ──
   useEffect(() => {
-    const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}`
-    const scheduleClearedKey = `grad_schedule_cleared_${studentId}`
+    const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}_${selectedSemester}`
+    const scheduleClearedKey = `grad_schedule_cleared_${studentId}_${selectedSemester}`
     // 1. 로컬 캐시 조회
     const storedLocal = localStorage.getItem(scheduleBlocksKey)
     const storedSession = sessionStorage.getItem(scheduleBlocksKey)
@@ -404,7 +474,7 @@ export function ScheduleTab() {
       return
     }
 
-    // 만약 사용자가 명시적으로 시간표를 싹 비운 상태("cleared")라면 백엔드 조회를 스킵하고 빈 채로 둠
+    // 만약 사용자가 명시적으로 시간표를 싹 비운 상태("cleared")라면 백엔드 조킵하고 빈 채로 둠
     if (cleared === "true") {
       setCustomBlocks([])
       return
@@ -412,44 +482,29 @@ export function ScheduleTab() {
 
     // 2. 캐시가 비어있는 경우 백엔드 DB에서 시간표 조회하여 복원
     const activeStudentId = studentId || "20210001"
-    getUserSchedule(activeStudentId).then((dbBlocks) => {
+    getUserSchedule(activeStudentId, selectedSemester).then((dbBlocks) => {
       if (dbBlocks && dbBlocks.length > 0 && validateBlocks(dbBlocks)) {
         setCustomBlocks(dbBlocks)
         localStorage.setItem(scheduleBlocksKey, JSON.stringify(dbBlocks))
         sessionStorage.setItem(scheduleBlocksKey, JSON.stringify(dbBlocks))
       } else {
-        // 백엔드에도 없는 경우 기본 시간표 로드
-        let defaultBlocks: any[] = []
-        if (schedule?.scheduleBlocks && schedule.scheduleBlocks.length > 0 && validateBlocks(schedule.scheduleBlocks)) {
-          defaultBlocks = schedule.scheduleBlocks
-        } else {
-          defaultBlocks = FALLBACK_SCHEDULE_BLOCKS
-        }
-        
-        const seen = new Set()
-        const cleanBlocks = defaultBlocks.filter((b: any) => {
-          const key = String(b.id || "").trim()
-          if (seen.has(key)) return false
-          seen.add(key)
-          return true
-        })
-        setCustomBlocks(cleanBlocks)
-        localStorage.setItem(scheduleBlocksKey, JSON.stringify(cleanBlocks))
-        sessionStorage.setItem(scheduleBlocksKey, JSON.stringify(cleanBlocks))
+        // 백엔드에도 없는 경우 신규 빈 시간표로 초기 설정 (더미 주입 차단)
+        setCustomBlocks([])
+        localStorage.setItem(scheduleBlocksKey, JSON.stringify([]))
+        sessionStorage.setItem(scheduleBlocksKey, JSON.stringify([]))
       }
     }).catch((err) => {
       console.error("[BACKEND LOAD ERROR] getUserSchedule failed:", err)
-      // 에러 시 기존 기본 시간표 폴백
-      let defaultBlocks = schedule?.scheduleBlocks && schedule.scheduleBlocks.length > 0 ? schedule.scheduleBlocks : FALLBACK_SCHEDULE_BLOCKS
-      setCustomBlocks(defaultBlocks)
+      // 에러 시에도 빈 시간표 초기화
+      setCustomBlocks([])
     })
-  }, [schedule, studentId])
+  }, [schedule, studentId, selectedSemester])
 
   // 로컬/세션 스토리지 보존 동기화 헬퍼 (React 로컬 상태 갱신에 의한 즉각 리렌더링 트리거)
   const saveBlocks = (nextBlocks: any[]) => {
     setCustomBlocks(nextBlocks)
-    const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}`
-    const scheduleClearedKey = `grad_schedule_cleared_${studentId}`
+    const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}_${selectedSemester}`
+    const scheduleClearedKey = `grad_schedule_cleared_${studentId}_${selectedSemester}`
     if (typeof window !== "undefined") {
       if (nextBlocks.length === 0) {
         localStorage.removeItem(scheduleBlocksKey)
@@ -465,7 +520,7 @@ export function ScheduleTab() {
     }
     // 백엔드 DB 저장 연동
     const activeStudentId = studentId || "20210001"
-    saveUserSchedule(activeStudentId, nextBlocks).catch((err) => {
+    saveUserSchedule(activeStudentId, nextBlocks, selectedSemester).catch((err) => {
       console.error("[BACKEND SAVE ERROR] saveUserSchedule failed:", err)
     })
   }
@@ -480,7 +535,7 @@ export function ScheduleTab() {
         resetSimulation()
       }
       if (typeof window !== "undefined") {
-        const aiTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}`
+        const aiTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}_${selectedSemester}`
         localStorage.removeItem(aiTimetableKey)
         sessionStorage.removeItem(aiTimetableKey)
       }
@@ -493,7 +548,7 @@ export function ScheduleTab() {
       resetSimulation()
     }
     if (typeof window !== "undefined") {
-      const aiTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}`
+      const aiTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}_${selectedSemester}`
       localStorage.removeItem(aiTimetableKey)
       sessionStorage.removeItem(aiTimetableKey)
     }
@@ -504,20 +559,16 @@ export function ScheduleTab() {
   const handleClearAll = () => {
     const isConfirmed = window.confirm("정말 시간표를 전부 비우시겠습니까?")
     if (isConfirmed) {
+      // 로컬 갱신, 로컬스토리지 정리, 백엔드 API 연동을 saveBlocks([])를 통해 일괄 처리
+      saveBlocks([])
+      
+      // AI 프리뷰/추천 임시 저장 데이터도 별도 삭제 처리
       if (typeof window !== "undefined") {
-        const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}`
-        const aiTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}`
-        const scheduleClearedKey = `grad_schedule_cleared_${studentId}`
-
-        localStorage.removeItem(scheduleBlocksKey)
-        sessionStorage.removeItem(scheduleBlocksKey)
+        const aiTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}_${selectedSemester}`
         localStorage.removeItem(aiTimetableKey)
         sessionStorage.removeItem(aiTimetableKey)
-        
-        localStorage.setItem(scheduleClearedKey, "true")
-        sessionStorage.setItem(scheduleClearedKey, "true")
       }
-      setCustomBlocks([])
+      
       showToast("시간표가 초기화되었습니다.")
     }
   }
@@ -674,17 +725,17 @@ export function ScheduleTab() {
 
   // [신규] 검색된 과목들을 과목명 기준으로 그룹화 (동일 교과목의 여러 개설 분반들을 묶어서 노출)
   const groupedCourses = useMemo(() => {
-    if (!allCourses) return []
+    if (!pickerCourses) return []
     
     // 1. 카테고리 필터링 (전체 선택 시 전공필수, 전공선택, 교양필수, 교양선택, 계열공통, 일반선택을 기본 포함)
-    let filteredList = allCourses
+    let filteredList = pickerCourses
     if (pickerCategory === "major") {
-      filteredList = allCourses.filter(c => c.category === "전공필수" || c.category === "전공선택" || c.category === "계열공통")
+      filteredList = pickerCourses.filter(c => c.category === "전공필수" || c.category === "전공선택" || c.category === "계열공통")
     } else if (pickerCategory === "liberal") {
-      filteredList = allCourses.filter(c => (c.category && c.category.includes("교양")) || c.category === "일반선택")
+      filteredList = pickerCourses.filter(c => (c.category && c.category.includes("교양")) || c.category === "일반선택")
     } else {
       // pickerCategory === "all" 일 때 모든 카테고리(전공필수, 전공선택, 교양필수, 교양선택, 계열공통, 일반선택 등)를 유실 없이 포함
-      filteredList = allCourses.filter(c => c)
+      filteredList = pickerCourses.filter(c => c)
     }
 
     // 2. 검색어 필터링
@@ -725,7 +776,7 @@ export function ScheduleTab() {
         sections: sections
       }
     })
-  }, [allCourses, pickerSearch, pickerCategory])
+  }, [pickerCourses, pickerSearch, pickerCategory])
 
   return (
     <div className="space-y-4 px-2 pb-4 pt-3.5 md:space-y-6 md:px-6 md:pb-6 md:pt-5 md:max-w-6xl md:mx-auto relative">
@@ -767,9 +818,24 @@ export function ScheduleTab() {
 
       {/* 헤더 및 추가/선택 버튼들 */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h1 className="text-xl md:text-2xl font-bold text-foreground">추천 시간표</h1>
-          <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{freeDayText} · 총 {courseCount}개 과목 추천</p>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-left">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">추천 시간표</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">{freeDayText} · 총 {courseCount}개 과목 추천</p>
+          </div>
+          {/* 학기 선택기 드롭다운 추가 */}
+          <div className="flex items-center gap-1.5 shrink-0 bg-secondary/40 px-3 py-1.8 rounded-xl border border-border/50">
+            <span className="text-[10px] font-black text-muted-foreground shrink-0">학기 선택:</span>
+            <select
+              value={selectedSemester}
+              onChange={(e) => handleSemesterChange(e.target.value)}
+              className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer font-bold"
+            >
+              {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
+                <option key={s} value={s}>{s}</option>
+              ))}
+            </select>
+          </div>
         </div>
         
         {/* 보기 옵션 및 제어 버튼 그룹 */}
@@ -1222,7 +1288,12 @@ export function ScheduleTab() {
 
               {/* 과목 리스트 아코디언 전개 스크롤 영역 */}
               <div className="flex-1 overflow-y-auto pr-1 space-y-2 select-none min-h-[260px] max-h-[60vh] pb-2">
-                {groupedCourses.length === 0 ? (
+                {isPickerLoading ? (
+                  <div className="py-12 flex flex-col justify-center items-center gap-3 text-xs text-muted-foreground border border-dashed border-border rounded-2xl bg-secondary/10">
+                    <Loader2 className="h-6 w-6 animate-spin text-[#3182f6]" />
+                    <span>개설 과목 정보를 불러오는 중입니다...</span>
+                  </div>
+                ) : groupedCourses.length === 0 ? (
                   <div className="py-12 text-center text-xs text-muted-foreground border-2 border-dashed border-border rounded-2xl">
                     검색 조건에 맞는 개설 과목이 없습니다.
                   </div>

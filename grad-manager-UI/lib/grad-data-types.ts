@@ -59,6 +59,9 @@ export type GradManagerData = {
   allCourses?: any[]
   notifyEnabled?: boolean
   setNotifyEnabled?: React.Dispatch<React.SetStateAction<boolean>>
+  selectedSemester?: string
+  setSelectedSemester?: React.Dispatch<React.SetStateAction<string>>
+  semesters?: string[]
   user: {
     userInfo: UserInfo
     creditCategories: CreditCategory[]
