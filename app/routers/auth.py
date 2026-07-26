@@ -41,6 +41,73 @@ def map_user_info(student: dict) -> dict:
     except Exception:
         pass
 
+    # SQLite DB 수강 이력 기반으로 실제 취득 학점을 재계산
+    actual_completed = completed
+    try:
+        from app.database import SessionLocal
+        from app import models as db_models
+        from backend.core.data.csv_loader import _normalize_completion_type
+        db = SessionLocal()
+        sid_int = int(student["student_id"])
+        histories = db.query(db_models.StudentCourseHistory).filter(
+            db_models.StudentCourseHistory.student_id == sid_int
+        ).all()
+        courses_db = load_courses()
+        
+        # 재수강 포기 규칙 적용을 위한 그룹핑
+        from collections import defaultdict
+        import re
+        hist_details = []
+        for h in histories:
+            c_rec = db.query(db_models.Course).filter(db_models.Course.course_id == h.course_id).first()
+            code = c_rec.course_code if c_rec else f"UNKNOWN-{h.course_id}"
+            hist_details.append({
+                "history_id": h.history_id,
+                "course_code": code,
+                "grade": h.grade or "",
+                "earned_credit": float(h.earned_credit) if h.earned_credit else 0,
+                "is_retake": h.is_retake or False,
+                "semester_taken": h.semester_taken or "",
+                "course_type": getattr(h, 'course_type', None) or "",
+            })
+        db.close()
+
+        n = len(hist_details)
+        parent = list(range(n))
+        def find(i):
+            if parent[i] == i: return i
+            parent[i] = find(parent[i]); return parent[i]
+        def union(i, j):
+            ri, rj = find(i), find(j)
+            if ri != rj: parent[ri] = rj
+        for i in range(n):
+            for j in range(i+1, n):
+                ci, cj = hist_details[i]["course_code"], hist_details[j]["course_code"]
+                if ci and cj and ci == cj:
+                    union(i, j)
+        groups = defaultdict(list)
+        for i in range(n):
+            groups[find(i)].append(hist_details[i])
+        forfeited_ids = set()
+        for root, instances in groups.items():
+            has_retake = any(inst["is_retake"] for inst in instances)
+            if has_retake and len(instances) > 1:
+                def sem_score(s):
+                    m = re.match(r'(\d+)-(\d)', s)
+                    return int(m.group(1))*10 + int(m.group(2)) if m else 0
+                sorted_inst = sorted(instances, key=lambda x: sem_score(x["semester_taken"]))
+                for inst in sorted_inst[:-1]:
+                    forfeited_ids.add(inst["history_id"])
+
+        total = 0.0
+        for hd in hist_details:
+            if hd["history_id"] in forfeited_ids: continue
+            if hd["grade"].upper() == "F": continue
+            total += hd["earned_credit"]
+        actual_completed = total
+    except Exception:
+        pass
+
     return {
         "name": student.get("name", ""),
         "university": "한신대학교",
@@ -49,10 +116,10 @@ def map_user_info(student: dict) -> dict:
         "studentId": student.get("student_id", ""),
         "semester": f"{student.get('current_semester', 1)}학기",
         "mileage": student.get("mileage", 0),
-        "overallProgress": int((completed / required) * 100) if required > 0 else 0,
-        "remainingCredits": max(0, required - completed),
+        "overallProgress": int((actual_completed / required) * 100) if required > 0 else 0,
+        "remainingCredits": max(0, required - actual_completed),
         "totalRequired": required,
-        "earnedCredits": completed,
+        "earnedCredits": actual_completed,
         "completedCourses": student.get("completed_courses", []),
         "completedCoursesDetail": completed_details
     }
@@ -176,6 +243,20 @@ def update_profile(req: schemas.ProfileUpdateRequest):
         student["current_semester"] = req.current_semester
     if req.major_tracks is not None:
         student["major_tracks"] = req.major_tracks
+        # 융합전공/특화트랙을 major_tracks에서 파싱하여 별도 필드에 저장
+        convergence_majors = {
+            "인공지능소프트웨어융합전공", "디지털문화콘텐츠융합전공",
+            "스마트경영융합전공", "공공서비스융합전공",
+        }
+        specialized_tracks = {
+            "인지 감성 특화 트랙", "앰비언트 컴퓨팅 특화 트랙",
+            "인지 감성 특화", "앰비언트 컴퓨팅",
+        }
+        for track in req.major_tracks:
+            if track in convergence_majors:
+                student["convergence_major"] = track
+            elif track in specialized_tracks:
+                student["specialized_track"] = track
     STUDENTS[req.studentId] = student
     return {"success": True}
 

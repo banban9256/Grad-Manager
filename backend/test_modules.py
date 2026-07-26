@@ -89,6 +89,52 @@ def test_courses():
     print(f"\n  전체 과목: {len(courses_dict)}개, 전체 학점: {total_credits}")
 
 
+def test_same_name_completed_course_is_not_recommended():
+    import core.data.courses as course_module
+
+    original_courses = course_module.COURSES
+    try:
+        course_module.COURSES = {
+            "CS101": {"code": "CS101", "name": "알고리즘", "credits": 3, "type": "전공선택", "offerings": []},
+            "CS999": {"code": "CS999", "name": "알고리즘", "credits": 3, "type": "전공선택", "offerings": []},
+            "CS200": {"code": "CS200", "name": "데이터베이스", "credits": 3, "type": "전공선택", "offerings": []},
+        }
+
+        student = {"completed_courses": ["CS101"], "in_progress_courses": []}
+        available = get_available_courses(student)
+        codes = [course["code"] for course in available]
+
+        assert "CS999" not in codes
+        assert "CS200" in codes
+    finally:
+        course_module.COURSES = original_courses
+
+
+def test_special_track_credit_only_counts_special_electives():
+    import sys
+    from pathlib import Path
+    sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+    from app.routers.graduation import _calculate_track_credits
+
+    history_details = [
+        {"history_id": 1, "course_code": "SP1", "grade": "A", "earned_credit": 3, "course_type": "특화전공 전선"},
+        {"history_id": 2, "course_code": "SP2", "grade": "A", "earned_credit": 3, "course_type": "전공선택"},
+        {"history_id": 3, "course_code": "CV1", "grade": "A", "earned_credit": 3, "course_type": "융합전공 전선"},
+        {"history_id": 4, "course_code": "SP3", "grade": "F", "earned_credit": 3, "course_type": "특화전공 전선"},
+    ]
+
+    spec_earned, conv_earned = _calculate_track_credits(
+        history_details,
+        forfeited_ids=set(),
+        spec_track_name="인지감성컴퓨팅 특화전공",
+        conv_major_name="융합전공",
+        courses_db={},
+    )
+
+    assert spec_earned == 3
+    assert conv_earned == 3
+
+
 def test_timetable():
     print("\n" + "=" * 60)
     print("TEST: 시간표 시뮬레이션 (CSV 기반)")

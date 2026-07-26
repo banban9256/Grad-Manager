@@ -6,7 +6,7 @@ from typing import Optional
 
 from app.database import get_db
 from app import models, schemas
-from app.routers import auth, graduation, timetable, notices, chatbot
+from app.routers import auth, graduation, timetable, notices, chatbot, transcript
 
 app = FastAPI(title="GradManager API")
 
@@ -24,6 +24,7 @@ app.include_router(graduation.router, prefix="/api/v1/graduation", tags=["gradua
 app.include_router(timetable.router, prefix="/api/v1/timetable", tags=["timetable"])
 app.include_router(notices.router, prefix="/api/v1/notices", tags=["notices"])
 app.include_router(chatbot.router, prefix="/api/v1/chatbot", tags=["chatbot"])
+app.include_router(transcript.router, prefix="/api/v1/transcript", tags=["transcript"])
 
 # 자동 DDL 마이그레이션 실행
 def run_db_migrations():

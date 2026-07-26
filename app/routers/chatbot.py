@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Header, HTTPException, Body
+from fastapi import APIRouter, Header, HTTPException, Body, UploadFile, File
 from pydantic import BaseModel
 from typing import Optional, List
 
 from backend.core.data.students import get_student
 from backend.core.chatbot import chat
 from backend.core.scheduler import generate_timetable
+from backend.core.data.csv_loader import hanja_to_hangul
 
 router = APIRouter()
 
@@ -130,11 +131,18 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
             "desc": "연강으로 식사를 거르지 않도록 점심 시간대(12:00~13:30) 배치를 피했습니다."
         })
         
-    reasons.append({
-        "icon": "GraduationCap",
-        "title": "미이수 졸업 필수과목 자동 배치",
-        "desc": "현재 주전공 이수를 위해 남은 미이수 전공 필수 요건들을 누락 없이 담았습니다."
-    })
+    if student.get("department") in ("AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부"):
+        reasons.append({
+            "icon": "GraduationCap",
+            "title": "졸업 요구 학점 맞춤 배치",
+            "desc": "전공 필수 과목이 없는 AISW 학과 요건에 맞추어 주전공 및 계열공통 과목을 담았습니다."
+        })
+    else:
+        reasons.append({
+            "icon": "GraduationCap",
+            "title": "미이수 졸업 필수과목 자동 배치",
+            "desc": "현재 주전공 이수를 위해 남은 미이수 전공 필수 요건들을 누락 없이 담았습니다."
+        })
     reasons.append({
         "icon": "BrainCircuit",
         "title": "강의동 간 동선 최소화 최적화",
@@ -155,3 +163,171 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
         "message": ai_response,
         "simulated_timetable": simulated_timetable
     }
+
+
+@router.post("/upload-transcript", summary="성적확인서 PDF 업로드 → AI 파싱 → 자동 저장")
+async def chatbot_upload_transcript(
+    file: UploadFile = File(...),
+    authorization: Optional[str] = Header(None)
+):
+    """
+    챗봇을 통해 성적확인서 PDF를 업로드합니다.
+    AI가 PDF를 자동으로 파싱하여 기수강 과목을 추출하고,
+    추출된 과목을 바로 DB에 저장합니다.
+    """
+    if not file.filename.lower().endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="PDF 파일만 업로드 가능합니다.")
+
+    student = get_student_from_token(authorization)
+    student_id = student["student_id"]
+
+    try:
+        from backend.core.pdf_parser import extract_text_from_pdf, parse_transcript_with_ai, match_courses_to_db
+        from backend.core.data.csv_loader import load_courses
+        from app import models
+        from app.database import SessionLocal
+
+        pdf_bytes = await file.read()
+        if len(pdf_bytes) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="파일 크기는 10MB 이하여야 합니다.")
+
+        pdf_text = extract_text_from_pdf(pdf_bytes)
+        if not pdf_text or len(pdf_text.strip()) < 10:
+            raise HTTPException(status_code=400, detail="PDF에서 텍스트를 추출할 수 없습니다. 스캔된 이미지 PDF는 지원하지 않습니다.")
+
+        parsed_data = parse_transcript_with_ai(pdf_text)
+        courses_db = load_courses()
+        matched_results = match_courses_to_db(parsed_data.get("courses", []), courses_db)
+
+        db = SessionLocal()
+        try:
+            student_id_int = int(student_id)
+            saved_count = 0
+            skipped_count = 0
+            completed_codes = list(student.get("completed_courses", []))
+
+            for m in matched_results:
+                parsed = m["parsed"]
+                course_name = hanja_to_hangul(parsed.get("course_name", ""))
+                course_code = m.get("matched_code") or parsed.get("course_code") or ""
+                course_type = parsed.get("course_type", "일반선택")
+                credits = float(parsed.get("credits", 3.0))
+                grade = parsed.get("grade", "A+")
+                semester = parsed.get("semester", "")
+
+                if not course_name:
+                    skipped_count += 1
+                    continue
+
+                c_record = None
+                if course_code:
+                    c_record = db.query(models.Course).filter(
+                        models.Course.course_code == course_code
+                    ).first()
+
+                if not c_record:
+                    c_record = db.query(models.Course).filter(
+                        models.Course.course_name == course_name
+                    ).first()
+
+                if not c_record:
+                    new_code = course_code if course_code else f"TRANS-{student_id}-{saved_count}"
+                    c_record = models.Course(
+                        course_code=new_code,
+                        course_name=course_name,
+                        credit=credits,
+                        source_url="chatbot_transcript_upload",
+                        theory_hours=0.0,
+                        practice_hours=0.0,
+                        course_description=f"성적확인서에서 자동 추출 ({course_type})"
+                    )
+                    db.add(c_record)
+                    db.commit()
+                    db.refresh(c_record)
+
+                existing_history = db.query(models.StudentCourseHistory).filter(
+                    models.StudentCourseHistory.student_id == student_id_int,
+                    models.StudentCourseHistory.course_id == c_record.course_id
+                ).first()
+
+                if existing_history:
+                    skipped_count += 1
+                else:
+                    new_history = models.StudentCourseHistory(
+                        student_id=student_id_int,
+                        course_id=c_record.course_id,
+                        semester_taken=semester,
+                        grade=grade,
+                        earned_credit=credits,
+                        completion_status="이수",
+                        is_retake=False,
+                        course_type=course_type,
+                    )
+                    db.add(new_history)
+                    saved_count += 1
+
+                    if grade and grade.upper() not in ("F", "NP"):
+                        actual_code = c_record.course_code
+                        if actual_code and actual_code not in completed_codes:
+                            completed_codes.append(actual_code)
+
+            db.commit()
+
+            student["completed_courses"] = completed_codes
+            student["completed_credits"] = sum(
+                courses_db.get(code, {}).get("credits", 3.0)
+                for code in completed_codes
+                if courses_db.get(code)
+            )
+            from backend.core.data.students import STUDENTS
+            STUDENTS[student_id] = student
+
+            course_list_text = ""
+            for m in matched_results[:15]:
+                p = m["parsed"]
+                status = "✓ DB 매칭" if m.get("matched_course") else "△ 신규 등록"
+                course_list_text += f"- {p.get('course_name', '')} ({p.get('course_type', '')}, {p.get('credits', 0)}학점, {p.get('grade', '')}) [{status}]\n"
+
+            if len(matched_results) > 15:
+                course_list_text += f"- ... 외 {len(matched_results) - 15}개 과목\n"
+
+            ai_response = (
+                f"🎓 **성적확인서 분석 완료!**\n\n"
+                f"PDF에서 총 **{len(matched_results)}개** 과목이 추출되었습니다.\n"
+                f"- DB에 이미 있는 과목: **{sum(1 for m in matched_results if m.get('matched_course'))}개**\n"
+                f"- 새로 등록된 과목: **{saved_count}개**\n"
+                f"- 스킵된 과목: **{skipped_count}개**\n\n"
+                f"**추출된 과목 목록:**\n{course_list_text}\n"
+                f"총 이수 학점: **{student['completed_credits']}학점**\n"
+                f"총 이수 과목: **{len(completed_codes)}개**\n\n"
+                f"이제 졸업요건 진단 페이지에서 정확한 이수 현황을 확인하실 수 있습니다! 📊"
+            )
+
+            return {
+                "message": ai_response,
+                "extractedCourses": [
+                    {
+                        "courseName": m["parsed"].get("course_name", ""),
+                        "courseCode": m.get("matched_code") or "",
+                        "courseType": m["parsed"].get("course_type", ""),
+                        "credits": m["parsed"].get("credits", 0),
+                        "grade": m["parsed"].get("grade", ""),
+                        "semester": m["parsed"].get("semester", ""),
+                        "dbMatched": m.get("matched_course") is not None,
+                    }
+                    for m in matched_results
+                ],
+                "savedCount": saved_count,
+                "skippedCount": skipped_count,
+                "totalCredits": student["completed_credits"],
+            }
+
+        finally:
+            db.close()
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"PDF 처리 중 오류가 발생했습니다: {str(e)}")

@@ -7,12 +7,37 @@ from app import models
 import math
 
 from backend.core.data.students import get_student, STUDENTS
-from backend.core.data.csv_loader import load_courses
+from backend.core.data.csv_loader import load_courses, hanja_to_hangul
 from backend.core.data.courses import get_required_remaining
 from backend.core.scheduler import generate_timetable
 from backend.core.notifications import get_upcoming_alerts, search_notices
 
 router = APIRouter()
+
+
+def _calculate_track_credits(history_details: List[dict], forfeited_ids: set, spec_track_name: str, conv_major_name: str, courses_db: dict) -> tuple[float, float]:
+    spec_earned = 0.0
+    conv_earned = 0.0
+
+    for hd in history_details:
+        if hd.get("history_id") in forfeited_ids:
+            continue
+        if hd.get("grade") == "F":
+            continue
+
+        c_type = hd.get("course_type")
+        if not c_type or c_type.strip() == "":
+            c_type = get_course_category(hd["course_code"], courses_db)
+
+        credit_val = float(hd.get("earned_credit", 0) or 0)
+
+        if spec_track_name and c_type == "특화전공 전선":
+            spec_earned += credit_val
+        if conv_major_name and c_type == "융합전공 전선":
+            conv_earned += credit_val
+
+    return spec_earned, conv_earned
+
 
 class UpdateCoursesRequest(BaseModel):
     studentId: str
@@ -54,6 +79,69 @@ def map_user_info(student: dict) -> dict:
     except Exception:
         pass
 
+    # SQLite DB 수강 이력 기반으로 실제 취득 학점을 재계산
+    actual_completed = completed
+    try:
+        from app.database import SessionLocal
+        from app import models as db_models
+        db_s = SessionLocal()
+        sid_int = int(student["student_id"])
+        histories = db_s.query(db_models.StudentCourseHistory).filter(
+            db_models.StudentCourseHistory.student_id == sid_int
+        ).all()
+        
+        hist_details = []
+        for h in histories:
+            c_rec = db_s.query(db_models.Course).filter(db_models.Course.course_id == h.course_id).first()
+            code = c_rec.course_code if c_rec else f"UNKNOWN-{h.course_id}"
+            hist_details.append({
+                "history_id": h.history_id,
+                "course_code": code,
+                "grade": h.grade or "",
+                "earned_credit": float(h.earned_credit) if h.earned_credit else 0,
+                "is_retake": h.is_retake or False,
+                "semester_taken": h.semester_taken or "",
+            })
+        db_s.close()
+
+        from collections import defaultdict
+        import re
+        n = len(hist_details)
+        parent = list(range(n))
+        def find(i):
+            if parent[i] == i: return i
+            parent[i] = find(parent[i]); return parent[i]
+        def union(i, j):
+            ri, rj = find(i), find(j)
+            if ri != rj: parent[ri] = rj
+        for i in range(n):
+            for j in range(i+1, n):
+                ci, cj = hist_details[i]["course_code"], hist_details[j]["course_code"]
+                if ci and cj and ci == cj:
+                    union(i, j)
+        groups = defaultdict(list)
+        for i in range(n):
+            groups[find(i)].append(hist_details[i])
+        forfeited_ids = set()
+        for root, instances in groups.items():
+            has_retake = any(inst["is_retake"] for inst in instances)
+            if has_retake and len(instances) > 1:
+                def sem_score(s):
+                    m = re.match(r'(\d+)-(\d)', s)
+                    return int(m.group(1))*10 + int(m.group(2)) if m else 0
+                sorted_inst = sorted(instances, key=lambda x: sem_score(x["semester_taken"]))
+                for inst in sorted_inst[:-1]:
+                    forfeited_ids.add(inst["history_id"])
+
+        total = 0.0
+        for hd in hist_details:
+            if hd["history_id"] in forfeited_ids: continue
+            if hd["grade"].upper() == "F": continue
+            total += hd["earned_credit"]
+        actual_completed = total
+    except Exception:
+        pass
+
     return {
         "name": student.get("name", ""),
         "university": "한신대학교",
@@ -62,10 +150,10 @@ def map_user_info(student: dict) -> dict:
         "studentId": student.get("student_id", ""),
         "semester": f"{student.get('current_semester', 1)}학기",
         "mileage": student.get("mileage", 0),
-        "overallProgress": int((completed / required) * 100) if required > 0 else 0,
-        "remainingCredits": max(0, required - completed),
+        "overallProgress": int((actual_completed / required) * 100) if required > 0 else 0,
+        "remainingCredits": max(0, required - actual_completed),
         "totalRequired": required,
-        "earnedCredits": completed,
+        "earnedCredits": actual_completed,
         "completedCourses": student.get("completed_courses", []),
         "completedCoursesDetail": completed_details
     }
@@ -102,7 +190,7 @@ def get_graduation_summary(
     for h in histories:
         c_record = db.query(models.Course).filter(models.Course.course_id == h.course_id).first()
         course_code = c_record.course_code if c_record else f"UNKNOWN-{h.course_id}"
-        course_name = c_record.course_name if c_record else "과목명 미정"
+        course_name = hanja_to_hangul(c_record.course_name) if c_record else "과목명 미정"
         history_details.append({
             "history_id": h.history_id,
             "course_code": course_code,
@@ -167,14 +255,24 @@ def get_graduation_summary(
                     forfeited_ids.add(inst["history_id"])
 
     # creditCategories 계산
-    # 카테고리별 기본 목표치 설정
-    category_goals = {
-        "전공필수": 18,
-        "전공선택": 45,
-        "교양필수": 14,
-        "교양선택": 20,
-        "계열공통": 12,
-    }
+    # 카테고리별 기본 목표치 설정 (AISW 학과 동적 분기)
+    is_aisw = student.get("department") in ("AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부")
+    if is_aisw:
+        category_goals = {
+            "전공필수": 0,
+            "전공선택": 24, # AISW 주전공 요건 (전필+전선) 24학점
+            "교양필수": 14,
+            "교양선택": 21, # 교양 최소 35 - 교필 14 = 21학점
+            "계열공통": 36, # AISW 계열공통 요건 36학점
+        }
+    else:
+        category_goals = {
+            "전공필수": 18,
+            "전공선택": 45,
+            "교양필수": 14,
+            "교양선택": 20,
+            "계열공통": 12,
+        }
     
     category_earned = {cat: 0.0 for cat in category_goals.keys()}
     category_earned["일반선택"] = 0.0
@@ -196,6 +294,11 @@ def get_graduation_summary(
         cat = hd.get("course_type")
         if not cat or cat.strip() == "":
             cat = get_course_category(code, courses_db)
+            
+        # AISW 학과 학생은 전공필수 과목도 전공선택으로 인정
+        if is_aisw and cat == "전공필수":
+            cat = "전공선택"
+            
         credits = float(hd["earned_credit"])
         
         if cat in category_earned:
@@ -245,6 +348,45 @@ def get_graduation_summary(
         "tone": "chart-3"
     })
 
+    # 특화전공/융합전공 이수 학점 계산
+    spec_track_name = student.get("specialized_track", "")
+    conv_major_name = student.get("convergence_major", "")
+    spec_earned = 0.0
+    conv_earned = 0.0
+    SPEC_REQUIRED = 21
+    CONV_REQUIRED = 21
+
+    if spec_track_name or conv_major_name:
+        spec_earned, conv_earned = _calculate_track_credits(
+            history_details,
+            forfeited_ids,
+            spec_track_name,
+            conv_major_name,
+            courses_db,
+        )
+
+    # 특화전공 credit_category 추가
+    if spec_track_name:
+        credit_categories.append({
+            "key": "specialized",
+            "label": f"특화전공",
+            "current": spec_earned,
+            "required": SPEC_REQUIRED,
+            "tone": "chart-1",
+            "trackName": spec_track_name
+        })
+
+    # 융합전공 credit_category 추가
+    if conv_major_name:
+        credit_categories.append({
+            "key": "convergence",
+            "label": f"융합전공",
+            "current": conv_earned,
+            "required": CONV_REQUIRED,
+            "tone": "chart-2",
+            "trackName": conv_major_name
+        })
+
     # 2. 시간표 추천 데이터 (첫 번째 시간표를 scheduleBlocks 형태로 파싱)
     schedules = generate_timetable(student, max_schedules=1)
     schedule_blocks = []
@@ -288,7 +430,7 @@ def get_graduation_summary(
                         pass
         
         schedule_reasons = [
-            {"icon": "GraduationCap", "text": "졸업 필수 과목 배치 완료"},
+            {"icon": "GraduationCap", "text": "졸업 요구 학점 맞춤 배치" if is_aisw else "졸업 필수 과목 배치 완료"},
             {"icon": "CalendarOff", "text": "선호하시는 요일 최적 배정"},
             {"icon": "BrainCircuit", "text": "여유로운 점심 시간대 보장"}
         ]
@@ -307,10 +449,7 @@ def get_graduation_summary(
             "isNew": True
         })
     if not academic_cal:
-        academic_cal = [
-            {"id": 1, "title": "2026학년도 2학기 수강신청 안내", "date": "2026-08-10", "category": "학사", "isNew": True},
-            {"id": 2, "title": "졸업앨범 촬영 일정 안내", "date": "2026-09-15", "category": "학사", "isNew": False}
-        ]
+        academic_cal = []
 
     # 디지털 트윈용 전공/교양 과목 개수 계산 (DB course_type 및 forfeited_ids 반영)
     major_courses_count = 0
@@ -417,7 +556,21 @@ def get_graduation_summary(
         "majorCourses": major_courses_count,
         "liberalCourses": liberal_courses_count,
         "scenarioCount": scenario_count,
-        "scenarioStatus": scenario_status
+        "scenarioStatus": scenario_status,
+        "categoryProgress": {
+            cat: {
+                "earned": float(category_earned[cat]),
+                "required": category_goals.get(cat, 0),
+                "remaining": max(0, category_goals.get(cat, 0) - float(category_earned[cat]))
+            }
+            for cat in category_goals
+        },
+        "specializedTrack": spec_track_name,
+        "specializedEarned": spec_earned,
+        "specializedRequired": SPEC_REQUIRED if spec_track_name else 0,
+        "convergenceMajor": conv_major_name,
+        "convergenceEarned": conv_earned,
+        "convergenceRequired": CONV_REQUIRED if conv_major_name else 0,
     }
 
     def get_course_schedules(course_info: dict) -> list:
@@ -468,13 +621,9 @@ def get_graduation_summary(
     }
     SPECIALIZED_TRACKS_SET = {
         "인지 감성 특화 트랙",
-        "데이터 사이언스 트랙",
-        "지능형 IoT 소프트웨어 트랙",
-        "풀스택 웹/모바일 소프트웨어 트랙",
+        "앰비언트 컴퓨팅 특화 트랙",
         "인지 감성 특화",
-        "데이터 사이언스",
-        "지능형 IoT 소프트웨어",
-        "풀스택 웹/모바일 소프트웨어",
+        "앰비언트 컴퓨팅",
     }
     
     matched_program_ids = set()
@@ -542,7 +691,7 @@ def get_graduation_summary(
 
     # 5.4. 추천 점수 산정 및 필터링
     student_dept = student.get("department", "AISW")
-    aisw_depts = {"AISW", "인공지능소프트웨어학과", "컴퓨터공학과", "소프트웨어융합학과", "ICT융합학부", "데이터사이언스학과"}
+    aisw_depts = {"AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부", "컴퓨터공학과", "소프트웨어융합학과", "ICT융합학부", "데이터사이언스학과"}
     
     recommend_candidates = []
     for code, info in courses_db.items():
@@ -555,7 +704,7 @@ def get_graduation_summary(
         score = 0
         is_match = False
         
-        # 학과(Department) 매칭 검사
+        # 학과(Department) 매칭 검사 - AISW 학생은 AISW 과목만 추천
         if course_dept == "계열공통":
             score += 40
             is_match = True
@@ -585,6 +734,10 @@ def get_graduation_summary(
         if category in ("교양필수", "교양선택"):
             is_match = True
             score += 10
+            
+        # 타학과 전공필수 과목은 추천에서 제외 (AISW 학생 기준)
+        if is_match and category == "전공필수" and course_dept not in aisw_depts:
+            is_match = False
             
         # 매칭되는 과목(주전공, 계열공통, 융합/특화, 교양)만 추천 풀에 포함 (타학과 무관 전공 완전 배제)
         if is_match:

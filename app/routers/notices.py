@@ -3,7 +3,9 @@ from pydantic import BaseModel
 from typing import Optional, List
 
 from backend.core.data.students import get_student, STUDENTS
-from backend.core.notifications import get_upcoming_alerts, register_keyword_alert, search_notices
+from backend.core.notifications import (
+    get_upcoming_alerts, register_keyword_alert, search_notices,
+)
 
 router = APIRouter()
 
@@ -36,7 +38,7 @@ def get_notice_alerts(authorization: Optional[str] = Header(None)):
     keywords = student.get("keyword_preferences", [])
     alerts = []
     
-    # 키워드별 검색
+    # 키워드별 검색 (기간 필터링 적용됨)
     for kw in keywords[:3]:
         results = search_notices(kw)
         for r in results[:2]:
@@ -49,6 +51,23 @@ def get_notice_alerts(authorization: Optional[str] = Header(None)):
                 "content": r.get("content", ""),
                 "category": r.get("category", "")
             })
+    
+    # 키워드 알림 트리거 (1주전, 1일전, 당일)
+    keyword_alerts =search_notices(keywords)
+    notification_triggers = []
+    for alert in keyword_alerts[:5]:
+        notice = alert["notice"]
+        notification_triggers.append({
+            "id": f"trigger-{notice['id']}",
+            "title": alert["message"],
+            "date": notice.get("date", ""),
+            "alert_type": alert["alert_type"],
+            "matched_keywords": alert.get("matched_keywords", []),
+            "isNew": True,
+            "url": notice.get("url", ""),
+            "content": notice.get("content", ""),
+            "category": notice.get("category", "")
+        })
             
     # 매칭 결과가 없을 경우 백업
     if not alerts:
@@ -67,7 +86,8 @@ def get_notice_alerts(authorization: Optional[str] = Header(None)):
             "url": "https://www.hs.ac.kr",
             "desc": "2026학년도 전기(2027년 2월) 졸업예정자를 위한 졸업자격인증 설정 및 서류 제출 마감 기한이 임박하였으니 대상자는 속히 확인하시기 바랍니다."
         },
-        "academicCalendar": alerts
+        "academicCalendar": alerts,
+        "notificationTriggers": notification_triggers
     }
 
 @router.post("/keywords", summary="알림 키워드 등록 API")

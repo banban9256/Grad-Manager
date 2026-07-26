@@ -44,6 +44,13 @@ export type DigitalTwin = {
   liberalCourses: number
   scenarioCount: number
   scenarioStatus: string
+  categoryProgress?: Record<string, { earned: number; required: number; remaining: number }>
+  specializedTrack?: string
+  specializedEarned?: number
+  specializedRequired?: number
+  convergenceMajor?: string
+  convergenceEarned?: number
+  convergenceRequired?: number
 }
 
 export type GradManagerData = {

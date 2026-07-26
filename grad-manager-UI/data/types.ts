@@ -6,6 +6,7 @@ export type CreditCategory = {
   current: number
   required: number
   tone: string // tailwind chart token
+  trackName?: string // 융합전공/특화트랙 이름
 }
 
 export type QuickMenu = {

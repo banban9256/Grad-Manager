@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useMemo, useCallback } from "react"
+import { useEffect, useState, useMemo, useCallback, useRef } from "react"
 import {
   User,
   GraduationCap,
@@ -23,6 +23,9 @@ import {
   BookMarked,
   Sparkles,
   Minus,
+  FileUp,
+  FileCheck,
+  FileText,
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import { useGradData } from "./grad-data-provider"
@@ -37,6 +40,8 @@ import {
   deleteStudentCourseHistory,
   getStudentGraduationSummary,
   searchCourseOfferings,
+  uploadTranscriptPDF,
+  confirmTranscriptCourses,
 } from "@/lib/api"
 import { DEPARTMENTS, CONVERGENCE_MAJORS, SPECIALIZED_TRACKS } from "@/lib/constants"
 import { AcademicProfileSettings } from "./AcademicProfileSettings"
@@ -176,6 +181,15 @@ export function ProfileTab() {
     }))
   }, [])
 
+  // PDF 업로드 상태
+  const [showPdfUpload, setShowPdfUpload] = useState(false)
+  const [pdfFile, setPdfFile] = useState<File | null>(null)
+  const [isPdfUploading, setIsPdfUploading] = useState(false)
+  const [isPdfSaving, setIsPdfSaving] = useState(false)
+  const [pdfParsedCourses, setPdfParsedCourses] = useState<any[]>([])
+  const [pdfUploadMessage, setPdfUploadMessage] = useState("")
+  const pdfInputRef = useRef<HTMLInputElement>(null)
+
   // 실시간 학점 요약 데이터 보관
   const [gradSummary, setGradSummary] = useState<any>(null)
 
@@ -212,6 +226,51 @@ export function ProfileTab() {
       fetchGradSummary(userInfo.studentId)
     }
   }, [userInfo])
+
+  // PDF 업로드 핸들러
+  const handlePdfUpload = async () => {
+    if (!pdfFile) return
+    setIsPdfUploading(true)
+    setPdfUploadMessage("")
+    try {
+      const result = await uploadTranscriptPDF(pdfFile)
+      setPdfParsedCourses(result.courses)
+      setPdfUploadMessage(result.message)
+    } catch (e: any) {
+      setPdfUploadMessage(e.message || "PDF 업로드에 실패했습니다.")
+    } finally {
+      setIsPdfUploading(false)
+    }
+  }
+
+  const handlePdfConfirmSave = async () => {
+    if (pdfParsedCourses.length === 0) return
+    setIsPdfSaving(true)
+    try {
+      const coursesToSave = pdfParsedCourses.map(c => ({
+        courseName: c.courseName,
+        courseCode: c.courseCode,
+        courseType: c.courseType,
+        credits: c.credits,
+        grade: c.grade,
+        semester: c.semester,
+      }))
+      const result = await confirmTranscriptCourses(coursesToSave)
+      showToast(result.message || "과목이 저장되었습니다.")
+      setShowPdfUpload(false)
+      setPdfFile(null)
+      setPdfParsedCourses([])
+      setPdfUploadMessage("")
+      loadCourseHistory()
+      if (userInfo?.studentId) {
+        fetchGradSummary(userInfo.studentId)
+      }
+    } catch (e: any) {
+      showToast(e.message || "저장에 실패했습니다.")
+    } finally {
+      setIsPdfSaving(false)
+    }
+  }
 
 
 
@@ -869,18 +928,233 @@ export function ProfileTab() {
             </h2>
             <p className="text-[11px] text-muted-foreground">이수한 과목들을 일괄 선택하여 졸업 학점에 즉시 반영합니다.</p>
           </div>
-          <button
-            onClick={() => {
-              // 락이나 강제 선택을 제거하고, 빈 배열로 시작하여 자유롭게 과목을 다중 선택하도록 함
-              setCheckedCourses([])
-              setShowAddForm(!showAddForm)
-            }}
-            className="flex items-center gap-1 bg-[#3182f6] text-white text-xs font-bold px-4 py-2.5 rounded-2xl hover:bg-[#1b64da] transition-all cursor-pointer shadow-sm shadow-[#3182f6]/10"
-          >
-            <Plus className="h-4 w-4" />
-            <span>수강기록 설정</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                setShowPdfUpload(!showPdfUpload)
+                setPdfFile(null)
+                setPdfParsedCourses([])
+                setPdfUploadMessage("")
+              }}
+              className="flex items-center gap-1 bg-emerald-500 text-white text-xs font-bold px-4 py-2.5 rounded-2xl hover:bg-emerald-600 transition-all cursor-pointer shadow-sm shadow-emerald-500/10"
+            >
+              <FileUp className="h-4 w-4" />
+              <span>성적 PDF 첨부</span>
+            </button>
+            <button
+              onClick={() => {
+                setCheckedCourses([])
+                setShowAddForm(!showAddForm)
+              }}
+              className="flex items-center gap-1 bg-[#3182f6] text-white text-xs font-bold px-4 py-2.5 rounded-2xl hover:bg-[#1b64da] transition-all cursor-pointer shadow-sm shadow-[#3182f6]/10"
+            >
+              <Plus className="h-4 w-4" />
+              <span>수강기록 설정</span>
+            </button>
+          </div>
         </div>
+
+        {/* PDF 업로드 섹션 */}
+        <AnimatePresence>
+          {showPdfUpload && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              className="overflow-hidden rounded-2xl bg-emerald-500/5 border border-emerald-500/15"
+            >
+              <div className="p-5 space-y-4">
+                {/* 파일 선택 영역 */}
+                {pdfParsedCourses.length === 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                      <FileText className="h-3.5 w-3.5 text-emerald-600" />
+                      성적확인서 PDF 업로드
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground">
+                      학교에서 발급받은 성적확인서 PDF 파일을 업로드하면, AI가 자동으로 과목 정보를 추출합니다.
+                    </p>
+                    <div
+                      onClick={() => pdfInputRef.current?.click()}
+                      onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+                      onDrop={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        const files = e.dataTransfer.files
+                        if (files?.[0]) {
+                          const f = files[0]
+                          if (f.type === "application/pdf" || f.name.endsWith(".pdf")) {
+                            setPdfFile(f)
+                          } else {
+                            showToast("PDF 파일만 업로드 가능합니다.")
+                          }
+                        }
+                      }}
+                      className={`flex flex-col items-center justify-center gap-2 p-8 rounded-xl border-2 border-dashed transition-all cursor-pointer ${
+                        pdfFile
+                          ? "border-emerald-500 bg-emerald-500/10"
+                          : "border-border hover:border-emerald-400 hover:bg-emerald-500/5"
+                      }`}
+                    >
+                      <input
+                        ref={pdfInputRef}
+                        type="file"
+                        accept=".pdf,application/pdf"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0]
+                          if (f) {
+                            if (f.type !== "application/pdf" && !f.name.endsWith(".pdf")) {
+                              showToast("PDF 파일만 업로드 가능합니다.")
+                              return
+                            }
+                            setPdfFile(f)
+                          }
+                        }}
+                      />
+                      {pdfFile ? (
+                        <>
+                          <FileCheck className="h-8 w-8 text-emerald-600" />
+                          <span className="text-xs font-bold text-emerald-700">{pdfFile.name}</span>
+                          <span className="text-[10px] text-muted-foreground">
+                            {(pdfFile.size / 1024).toFixed(1)}KB · 클릭하여 파일 변경
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <FileUp className="h-8 w-8 text-muted-foreground" />
+                          <span className="text-xs font-bold text-foreground">PDF 파일을 여기에 드래그하거나 클릭하여 선택</span>
+                          <span className="text-[10px] text-muted-foreground">성적확인서 · 학업성적증명서 (최대 10MB)</span>
+                        </>
+                      )}
+                    </div>
+                    {pdfFile && (
+                      <div className="flex justify-end gap-2">
+                        <button
+                          onClick={() => { setPdfFile(null); pdfInputRef.current && (pdfInputRef.current.value = "") }}
+                          className="px-4 py-2.5 rounded-xl text-xs font-bold bg-secondary text-foreground hover:bg-muted cursor-pointer"
+                        >
+                          취소
+                        </button>
+                        <button
+                          onClick={handlePdfUpload}
+                          disabled={isPdfUploading}
+                          className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 cursor-pointer shadow-sm shadow-emerald-500/10"
+                        >
+                          {isPdfUploading ? (
+                            <><Loader2 className="h-3.5 w-3.5 animate-spin" /> AI 분석 중...</>
+                          ) : (
+                            <><FileUp className="h-3.5 w-3.5" /> 업로드 및 분석</>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 업로드 메시지 */}
+                {pdfUploadMessage && pdfParsedCourses.length === 0 && (
+                  <div className="text-xs text-red-600 bg-red-500/10 rounded-xl p-3">
+                    {pdfUploadMessage}
+                  </div>
+                )}
+
+                {/* 추출된 과목 결과 테이블 */}
+                {pdfParsedCourses.length > 0 && (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                        <FileCheck className="h-3.5 w-3.5 text-emerald-600" />
+                        추출된 과목 목록 ({pdfParsedCourses.length}개)
+                      </h3>
+                      <span className="text-[10px] text-muted-foreground">
+                        DB 매칭: {pdfParsedCourses.filter(c => c.dbMatched).length}개
+                      </span>
+                    </div>
+
+                    <div className="max-h-[350px] overflow-y-auto rounded-xl border border-border">
+                      <table className="w-full text-xs">
+                        <thead className="sticky top-0 bg-card border-b border-border">
+                          <tr className="text-left">
+                            <th className="px-3 py-2 font-bold text-muted-foreground">과목명</th>
+                            <th className="px-3 py-2 font-bold text-muted-foreground">이수구분</th>
+                            <th className="px-3 py-2 font-bold text-muted-foreground text-center">학점</th>
+                            <th className="px-3 py-2 font-bold text-muted-foreground text-center">성적</th>
+                            <th className="px-3 py-2 font-bold text-muted-foreground">학기</th>
+                            <th className="px-3 py-2 font-bold text-muted-foreground text-center">매칭</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-border/50">
+                          {pdfParsedCourses.map((c, idx) => (
+                            <tr key={idx} className="hover:bg-secondary/30">
+                              <td className="px-3 py-2">
+                                <span className="font-bold text-foreground">{c.courseName}</span>
+                                {c.courseCode && (
+                                  <span className="ml-1.5 text-[9px] text-muted-foreground font-mono">{c.courseCode}</span>
+                                )}
+                              </td>
+                              <td className="px-3 py-2">
+                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold ${
+                                  c.courseType.includes("전공") ? "bg-blue-500/10 text-blue-600" :
+                                  c.courseType.includes("교양") ? "bg-purple-500/10 text-purple-600" :
+                                  "bg-gray-500/10 text-gray-600"
+                                }`}>
+                                  {c.courseType}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-center font-mono">{c.credits}</td>
+                              <td className="px-3 py-2 text-center">
+                                <span className={`font-bold ${
+                                  c.grade.startsWith("A") ? "text-emerald-600" :
+                                  c.grade.startsWith("B") ? "text-blue-600" :
+                                  c.grade === "F" ? "text-red-600" : "text-foreground"
+                                }`}>
+                                  {c.grade}
+                                </span>
+                              </td>
+                              <td className="px-3 py-2 text-[10px] text-muted-foreground">{c.semester}</td>
+                              <td className="px-3 py-2 text-center">
+                                {c.dbMatched ? (
+                                  <span className="text-[9px] font-bold text-emerald-600 bg-emerald-500/10 px-1.5 py-0.5 rounded">
+                                    DB 매칭
+                                  </span>
+                                ) : (
+                                  <span className="text-[9px] font-bold text-amber-600 bg-amber-500/10 px-1.5 py-0.5 rounded">
+                                    신규 등록
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    <div className="flex justify-end gap-2 pt-2 border-t border-border/40">
+                      <button
+                        onClick={() => { setPdfParsedCourses([]); setPdfFile(null); setPdfUploadMessage(""); pdfInputRef.current && (pdfInputRef.current.value = "") }}
+                        className="px-4 py-2.5 rounded-xl text-xs font-bold bg-secondary text-foreground hover:bg-muted cursor-pointer"
+                      >
+                        취소
+                      </button>
+                      <button
+                        onClick={handlePdfConfirmSave}
+                        disabled={isPdfSaving}
+                        className="flex items-center gap-1.5 px-5 py-2.5 rounded-xl text-xs font-bold bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50 cursor-pointer shadow-sm shadow-emerald-500/10"
+                      >
+                        {isPdfSaving ? (
+                          <><Loader2 className="h-3.5 w-3.5 animate-spin" /> 저장 중...</>
+                        ) : (
+                          <><Check className="h-3.5 w-3.5" /> 저장하기</>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* [복원] 체크박스 기반 이수과목 일괄 설정 보드 */}
         <AnimatePresence>
@@ -962,7 +1236,7 @@ export function ProfileTab() {
                       onChange={(e) => setFilterCourseType(e.target.value)}
                       className="rounded-xl bg-card border border-border px-3 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer"
                     >
-                      {["전체", "전공필수", "전공선택", "교양필수", "교양선택", "계열공통", "일반선택"].map((cat) => (
+                      {["전체", "전공필수", "전공선택", "교양필수", "교양선택", "계열공통", "특화전공 전선", "융합전공 전선", "일반선택"].map((cat) => (
                         <option key={cat} value={cat}>{cat}</option>
                       ))}
                     </select>
@@ -1084,7 +1358,7 @@ export function ProfileTab() {
                         onChange={(e) => setCustomCourseType(e.target.value)}
                         className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer"
                       >
-                        {["전공필수", "전공선택", "교양필수", "교양선택", "계열공통", "일반선택"].map((t) => (
+                        {["전공필수", "전공선택", "교양필수", "교양선택", "계열공통", "특화전공 전선", "융합전공 전선", "일반선택"].map((t) => (
                           <option key={t} value={t}>{t}</option>
                         ))}
                       </select>
@@ -1255,7 +1529,7 @@ export function ProfileTab() {
                                   onChange={(e) => setEditCourseType(e.target.value)}
                                   className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none cursor-pointer"
                                 >
-                                  {["전공필수", "전공선택", "교양필수", "교양선택", "계열공통", "일반선택"].map((ct) => (
+                                  {["전공필수", "전공선택", "교양필수", "교양선택", "계열공통", "특화전공 전선", "융합전공 전선", "일반선택"].map((ct) => (
                                     <option key={ct} value={ct}>{ct}</option>
                                   ))}
                                 </select>

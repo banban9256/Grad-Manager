@@ -422,3 +422,62 @@ export async function getSemesterList(): Promise<string[]> {
   const data = await res.json()
   return data.semesters || []
 }
+
+export async function uploadTranscriptPDF(file: File): Promise<{
+  success: boolean
+  studentInfo: any
+  courses: Array<{
+    courseName: string
+    courseCode: string
+    courseType: string
+    credits: number
+    grade: string
+    semester: string
+    matchConfidence: string
+    dbMatched: boolean
+    dbName: string
+  }>
+  totalExtracted: number
+  totalMatched: number
+  message: string
+}> {
+  const formData = new FormData()
+  formData.append("file", file)
+
+  const token = typeof window !== "undefined" ? sessionStorage.getItem("token") : null
+  const headers: Record<string, string> = {}
+  if (token) headers["Authorization"] = `Bearer ${token}`
+
+  const res = await fetch(`${API_BASE_URL}/api/v1/transcript/upload`, {
+    method: "POST",
+    headers,
+    body: formData,
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || "PDF 업로드에 실패했습니다.")
+  }
+  return await res.json()
+}
+
+export async function confirmTranscriptCourses(
+  courses: Array<{
+    courseName: string
+    courseCode: string
+    courseType: string
+    credits: number
+    grade: string
+    semester: string
+  }>
+): Promise<{ success: boolean; savedCount: number; skippedCount: number; totalCredits: number; message: string }> {
+  const res = await apiFetch("/api/v1/transcript/confirm", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ courses }),
+  })
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}))
+    throw new Error(err.detail || "과목 저장에 실패했습니다.")
+  }
+  return await res.json()
+}

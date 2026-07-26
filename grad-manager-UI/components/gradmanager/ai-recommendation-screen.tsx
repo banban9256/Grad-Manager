@@ -392,7 +392,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
         course.category === "전공필수" || 
         course.category === "전공선택" ||
         course.category === "계열공통" ||
-        course.tags.some(tag => tag.includes("전공") || tag.includes("필수") || tag.includes("계열") || tag.includes("공통"))
+        course.tags.some(tag => tag === "전공필수" || tag === "전공선택" || tag === "계열공통")
       )
     }
 
@@ -401,7 +401,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
       return (
         course.category.includes("교양") || 
         course.category === "일반선택" ||
-        course.tags.some(tag => tag.includes("교양") || tag.includes("일반") || tag.includes("선택"))
+        course.tags.some(tag => tag.includes("교양") || tag.includes("일반"))
       )
     }
 

@@ -16,7 +16,5 @@ export const CONVERGENCE_MAJORS = [
 
 export const SPECIALIZED_TRACKS = [
   "인지 감성 특화 트랙",
-  "데이터 사이언스 트랙",
-  "지능형 IoT 소프트웨어 트랙",
-  "풀스택 웹/모바일 소프트웨어 트랙",
+  "앰비언트 컴퓨팅 특화 트랙"
 ]

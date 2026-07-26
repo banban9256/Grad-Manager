@@ -89,13 +89,9 @@ class ProfileUpdateRequest(BaseModel):
             }
             specialized_tracks = {
                 "인지 감성 특화 트랙",
-                "데이터 사이언스 트랙",
-                "지능형 IoT 소프트웨어 트랙",
-                "풀스택 웹/모바일 소프트웨어 트랙",
+                "앰비언트 컴퓨팅 특화 트랙",
                 "인지 감성 특화",
-                "데이터 사이언스",
-                "지능형 IoT 소프트웨어",
-                "풀스택 웹/모바일 소프트웨어",
+                "앰비언트 컴퓨팅",
             }
             
             has_conv = any(track in convergence_majors for track in self.major_tracks)
