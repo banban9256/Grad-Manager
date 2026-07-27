@@ -60,7 +60,12 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
         history=req.history or [],
         target_semester=req.semester
     )
-    
+
+    # chat() 함수가 preferred_days 등을 갱신할 수 있으므로 최신 학생 정보 재조회
+    student = get_student(student_id)
+    if not student:
+        raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
+
     # 최신의 갱신된 학생 정보 기준 실제 시간표 생성
     schedules = generate_timetable(student, max_schedules=1)
     schedule_blocks = []
@@ -169,7 +174,13 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
         "scheduleReasons": reasons,
         "pastelPalette": pastel_palette[:3],
         "totalCredits": schedules[0]["total_credits"] if schedules else 0,
-        "courseCount": len(schedules[0]["courses"]) if schedules else 0
+        "courseCount": len(schedules[0]["courses"]) if schedules else 0,
+        "preferences": {
+            "freeDays": free_days,
+            "preferredDays": preferred_days,
+            "avoidMorning": "09:00-12:00" in avoid_times,
+            "preferAfternoon": any("13:00-18:00" in t for t in student.get("preferred_times", []))
+        }
     }
     
     return {

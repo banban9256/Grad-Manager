@@ -328,6 +328,13 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
   const handleAddToSchedule = (course: RecommendedCourse, e: React.MouseEvent) => {
     e.stopPropagation()
 
+    const matched = allCourses?.find(c => {
+      const targetId = String(course.code || "");
+      return String(c.course_id || "") === targetId ||
+             String(c.code || "") === targetId ||
+             String(c.id || "") === targetId;
+    })
+
     // 1. 중복 체크
     const courseName = course.name || matched?.title || matched?.name || course.code || "과목명 미정"
     const cleanCourseName = courseName.trim().toLowerCase()
@@ -341,13 +348,6 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
     let schedules = (course as any).schedules || []
 
     if (schedules.length === 0) {
-      // 텍스트("월 10:30~11:45" 등)로부터 간편 파싱 시도 또는 가상 폴백 생성
-      const matched = allCourses?.find(c => {
-        const targetId = String(course.code || "");
-        return String(c.course_id || "") === targetId ||
-               String(c.code || "") === targetId ||
-               String(c.id || "") === targetId;
-      })
       const rawSchedules = matched?.schedules || []
       
       // 단일 분반 시간대만 추출하여 타 분반 누적 충돌 방지
@@ -432,13 +432,18 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
   let displayReasons: any[] = []
 
   if (localSimData) {
-    const blocks = localSimData.scheduleBlocks || []
-    const days = localSimData.scheduleDays || ["월", "화", "수", "목", "금"]
-    const actDays = new Set(blocks.map((b: any) => dayStringToNum(b.day)))
-    const freeD = days.filter((_, idx) => !actDays.has(idx))
-    freeDayText = freeD.length > 0 ? `${freeD.join(", ")} 공강` : "공강 없음"
+    const prefs = localSimData.preferences
+    if (prefs && Array.isArray(prefs.freeDays)) {
+      freeDayText = prefs.freeDays.length > 0 ? `${prefs.freeDays.join(", ")} 공강` : "공강 없음"
+    } else {
+      const blocks = localSimData.scheduleBlocks || []
+      const days = localSimData.scheduleDays || ["월", "화", "수", "목", "금"]
+      const actDays = new Set(blocks.map((b: any) => dayStringToNum(b.day)))
+      const freeD = days.filter((_, idx) => !actDays.has(idx))
+      freeDayText = freeD.length > 0 ? `${freeD.join(", ")} 공강` : "공강 없음"
+    }
 
-    const uniqueC = Array.from(new Set(blocks.map((b: any) => b.name)))
+    const uniqueC = Array.from(new Set((localSimData.scheduleBlocks || []).map((b: any) => b.name)))
     courseCount = uniqueC.length
     totalCreditsText = localSimData.totalCredits !== undefined ? String(localSimData.totalCredits) : String(courseCount * 3)
     displayReasons = localSimData.scheduleReasons || []

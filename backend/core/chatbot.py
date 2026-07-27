@@ -855,4 +855,19 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
         response = chat.send_message(full_prompt)
         return hanja_to_hangul(response.text)
     except Exception as e:
-        return f"API 호출 중 오류가 발생했습니다: {str(e)}"
+        error_msg = str(e)
+        if "429" in error_msg or "quota" in error_msg.lower() or "limit" in error_msg.lower():
+            return (
+                "⚠️ **Gemini API 호출 제한(Quota Exceeded) 초과 안내**\n\n"
+                "현재 설정된 Gemini API 키의 무료 호출 한도를 초과하였거나, 한도가 0으로 제한되어 있습니다.\n\n"
+                "**해결 방법:**\n"
+                "1. **데모 모드 사용:** 프로젝트 루트의 `.env` 파일에서 `GEMINI_API_KEY` 값을 비우거나 삭제하면 로컬 시뮬레이션 기반의 데모 조교 모드로 정상 작동합니다.\n"
+                "2. **API 키 갱신:** [Google AI Studio](https://aistudio.google.com/)에서 새 API 키를 발급받아 `.env` 파일의 `GEMINI_API_KEY`에 등록해 주세요.\n"
+                "3. **모델 변경:** `.env` 파일의 `GEMINI_MODEL`을 `gemini-1.5-flash` 등으로 변경하여 다른 쿼터 한도가 적용되는지 시도할 수 있습니다."
+            )
+        elif "api_key" in error_msg.lower() or "invalid" in error_msg.lower():
+            return (
+                "⚠️ **Gemini API 키 오류 안내**\n\n"
+                "설정된 API 키가 유효하지 않거나 잘못되었습니다. 프로젝트 루트의 `.env` 파일에 유효한 `GEMINI_API_KEY`가 올바르게 입력되어 있는지 확인해 주세요."
+            )
+        return f"API 호출 중 오류가 발생했습니다: {error_msg}"

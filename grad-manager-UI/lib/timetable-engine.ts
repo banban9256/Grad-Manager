@@ -356,6 +356,12 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
       professor: c.professor,
       time: c.schedules.map((s: any) => `${s.day} ${s.start_time}`).join(" / "),
       schedules: c.schedules
-    }))
+    })),
+    preferences: {
+      freeDays: dayOffs,
+      preferredDays: days.filter(d => !dayOffs.includes(d)),
+      avoidMorning: false,
+      preferAfternoon: false
+    }
   }
 }

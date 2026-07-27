@@ -576,8 +576,11 @@ export function ScheduleTab() {
   const uniqueCourses = Array.from(new Set(customBlocks.map((b) => b.name)))
   const courseCount = uniqueCourses.length
 
+  const prefsFreeDays = activeSchedule?.preferences?.freeDays
   const activeDays = new Set(customBlocks.map((b) => dayStringToNum(b.day)))
-  const freeDays = scheduleDays.filter((_, idx) => !activeDays.has(idx))
+  const freeDays = Array.isArray(prefsFreeDays)
+    ? prefsFreeDays
+    : scheduleDays.filter((_, idx) => !activeDays.has(idx))
   const freeDayText = freeDays.length > 0 ? `${freeDays.join(", ")} 공강` : "공강 없음"
 
   const dynamicReasons = scheduleReasons || []

@@ -31,7 +31,7 @@ DEFAULT_STUDENTS = {
         "gpa": 3.8,
         "mileage": 45,
         "keyword_preferences": ["장학금", "AI", "인턴"],
-        "preferred_days": ["월", "화", "수"],
+        "preferred_days": ["월", "화", "수", "목", "금"],
         "preferred_times": ["09:00-12:00", "14:00-17:00"],
         "avoid_times": ["18:00-21:00"],
         "custom_schedule_blocks": []
@@ -56,7 +56,7 @@ DEFAULT_STUDENTS = {
         "gpa": 3.5,
         "mileage": 30,
         "keyword_preferences": ["공모전", "특화전공", "융합"],
-        "preferred_days": ["화", "목"],
+        "preferred_days": ["월", "화", "수", "목", "금"],
         "preferred_times": ["10:00-18:00"],
         "avoid_times": [],
         "custom_schedule_blocks": []
@@ -88,6 +88,22 @@ def init_db():
                 "INSERT INTO student_profiles (student_id, profile_json) VALUES (?, ?);",
                 (sid, json.dumps(sdata, ensure_ascii=False))
             )
+        conn.commit()
+    else:
+        # 기존 프로필 데이터가 존재할 경우 preferred_days 마이그레이션 (주 5일로 초기화)
+        cursor.execute("SELECT student_id, profile_json FROM student_profiles;")
+        rows = cursor.fetchall()
+        for sid, p_json in rows:
+            try:
+                profile = json.loads(p_json)
+                if len(profile.get("preferred_days", [])) < 5:
+                    profile["preferred_days"] = ["월", "화", "수", "목", "금"]
+                    cursor.execute(
+                        "UPDATE student_profiles SET profile_json = ? WHERE student_id = ?;",
+                        (json.dumps(profile, ensure_ascii=False), sid)
+                    )
+            except Exception as e:
+                print(f"[MIGRATION ERROR] failed to migrate {sid}: {e}")
         conn.commit()
     conn.close()
 

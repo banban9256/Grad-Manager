@@ -321,6 +321,7 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     try {
       await updateKeywordsOnServer(nextKeywords.map((k) => k.text))
       await refreshData()
+      await refreshNoticeData()
     } catch (err) {
       console.error("서버 키워드 싱크 실패 (로컬 스토리지 데이터 유지):", err)
     }
@@ -336,6 +337,7 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     try {
       await updateKeywordsOnServer(nextKeywords.map((k) => k.label || k.text))
       await refreshData()
+      await refreshNoticeData()
     } catch (err) {
       console.error("서버 키워드 싱크 실패 (로컬 스토리지 데이터 유지):", err)
     }
@@ -382,6 +384,22 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
       }
     } catch (err: any) {
       setError(err.message || "데이터 새로고침에 실패했습니다.")
+    }
+  }
+
+  const refreshNoticeData = async () => {
+    try {
+      const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+      const token = sessionStorage.getItem("token")
+      const res = await fetch(`${API_BASE_URL}/api/v1/notices/alerts`, {
+        headers: token ? { "Authorization": `Bearer ${token}` } : {},
+      })
+      if (res.ok) {
+        const d = await res.json()
+        setNoticeData(d)
+      }
+    } catch (err) {
+      console.error("공지 데이터 새로고침 실패:", err)
     }
   }
 
