@@ -8,10 +8,8 @@ export const DEPARTMENTS = [
 ]
 
 export const CONVERGENCE_MAJORS = [
-  "인공지능소프트웨어융합전공",
-  "디지털문화콘텐츠융합전공",
-  "스마트경영융합전공",
-  "공공서비스융합전공",
+  "AI융합장애인라이프케어 융합 전공",
+  "AI융합시니어라이프케어 융합 전공"
 ]
 
 export const SPECIALIZED_TRACKS = [

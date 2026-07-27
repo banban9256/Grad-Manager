@@ -163,10 +163,10 @@ def save_user_schedule(req: ScheduleBlocksUpdateRequest):
     if not student:
         raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
     
-    target_sem = req.semester or "2026-1학기"
+    target_sem = req.semester or "2026-2학기"
     blocks_store = student.get("custom_schedule_blocks", {})
     if isinstance(blocks_store, list):
-        blocks_store = {"2026-1학기": blocks_store}
+        blocks_store = {"2026-2학기": blocks_store}
         
     blocks_store[target_sem] = req.scheduleBlocks
     student["custom_schedule_blocks"] = blocks_store
@@ -180,10 +180,10 @@ def get_user_schedule(studentId: str, semester: Optional[str] = Query(None)):
     if not student:
         raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
         
-    target_sem = semester or "2026-1학기"
+    target_sem = semester or "2026-2학기"
     blocks_store = student.get("custom_schedule_blocks", {})
     if isinstance(blocks_store, list):
-        if target_sem == "2026-1학기":
+        if target_sem == "2026-2학기":
             blocks = blocks_store
         else:
             blocks = []

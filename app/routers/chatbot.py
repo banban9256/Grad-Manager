@@ -47,6 +47,8 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
         student["specialized_track"] = req.specializedTrack
     if req.semester:
         student["target_semester"] = req.semester
+    elif not student.get("target_semester"):
+        student["target_semester"] = "2026-2학기"
 
     from backend.core.data.students import STUDENTS
     STUDENTS[student_id] = student
@@ -105,7 +107,18 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
     days = ["월", "화", "수", "목", "금"]
     free_days = [d for d in days if d not in preferred_days]
     
-    if free_days:
+    # 스케줄러 fallback 플래그 확인
+    is_fallback = schedules and not schedules[0].get("preference_applied", True)
+    fallback_reason = schedules[0].get("fallback_reason") if schedules else None
+    
+    if is_fallback and fallback_reason:
+        # fallback 발생 시: 공강 조건을 맞추지 못했다는 사유 표시
+        reasons.append({
+            "icon": "AlertTriangle",
+            "title": "공강 조건 조정 안내",
+            "desc": fallback_reason
+        })
+    elif free_days:
         reasons.append({
             "icon": "CalendarOff",
             "title": f"{', '.join(free_days)}요일 공강 보장",

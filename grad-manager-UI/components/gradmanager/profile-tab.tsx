@@ -134,7 +134,7 @@ export function ProfileTab() {
   const [customSemester, setCustomSemester] = useState("2025-1학기")
   const [customGrade, setCustomGrade] = useState("A+")
   const [isCustomSubmitting, setIsCustomSubmitting] = useState(false)
-  const [bulkTargetSemester, setBulkTargetSemester] = useState("2026-1학기")
+  const [bulkTargetSemester, setBulkTargetSemester] = useState("2026-2학기")
   const [customIsRetake, setCustomIsRetake] = useState(false)
 
   // 모달 오픈 시 혹은 대상 학기(bulkTargetSemester) 변경 시 개설 과목 비동기 로딩
@@ -416,13 +416,13 @@ export function ProfileTab() {
     return result
   }, [processedCourses, courseSearchQuery, filterCourseType])
 
-  // 가장 최신 학기 계산 (최근 이력 우선, 없으면 2026-1학기 기본값)
+  // 가장 최신 학기 계산 (최근 이력 우선, 없으면 2026-2학기 기본값)
   const latestSemester = useMemo(() => {
     if (!historyList || historyList.length === 0) {
-      return "2026-1학기"
+      return "2026-2학기"
     }
     const semesters = historyList.map((h: any) => h.semester_taken).filter(Boolean)
-    if (semesters.length === 0) return "2026-1학기"
+    if (semesters.length === 0) return "2026-2학기"
     return [...semesters].sort().reverse()[0]
   }, [historyList])
 

@@ -78,6 +78,8 @@ export async function getNoticeData(): Promise<{
   interestKeywords: KeywordChip[]
   urgentNotice: NoticeItem
   academicCalendar: NoticeItem[]
+  keywordNotices: NoticeItem[]
+  notificationTriggers: any[]
 }> {
   const res = await apiFetch("/api/v1/notices/alerts")
   if (!res.ok) {

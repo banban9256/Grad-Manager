@@ -77,11 +77,28 @@ def _score_schedule(schedule: list[dict], student: dict) -> float:
     """시간표 점수 계산 (높을수록 좋음)"""
     score = 0.0
 
-    # 필수 과목 포함 시 보너스
-    required = {c["code"] for c in get_required_remaining(student)}
+    # 미이수 필수(교양필수, 계열공통, 전공필수) 과목 포함 시 파격 보너스
+    target_semester = student.get("target_semester")
+    required = set()
+    try:
+        from .data.courses import get_all_remaining_required_for_semester
+        sem_req = get_all_remaining_required_for_semester(student, target_semester)
+        for cat, info in sem_req.items():
+            for c in info.get("available_now", []):
+                required.add(c["code"])
+    except Exception:
+        pass
+        
+    for c in get_required_remaining(student):
+        required.add(c["code"])
+
     for course in schedule:
         if course["code"] in required:
-            score += 10.0
+            # 특히 계열공통 과목인 경우 추가 보너스 점수를 부여하여 우선 순위 랭킹업
+            if course.get("type") == "계열공통" or "계공" in course.get("type", ""):
+                score += 25.0
+            else:
+                score += 15.0
 
     # 수강 가능한 과목 보너스
     available = {c["code"] for c in get_available_courses(student)}
@@ -145,6 +162,10 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
     2. 선호 요일/시간대 기반 사전 필터링
     3. 탐색 풀 제한 (최대 60과목)
     4. 조기 종료
+
+    반환 형식:
+    - list[dict]: 시간표 조합 리스트
+    - 각 dict에 "preference_applied", "fallback_reason" 플래그 포함
     """
     required_remaining = get_required_remaining(student)
     available = get_available_courses(student)
@@ -152,6 +173,61 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
     preferred_days = student.get("preferred_days", ["월", "화", "수", "목", "금"])
     preferred_times = student.get("preferred_times", [])
     avoid_times = student.get("avoid_times", [])
+
+    # 1차 시도: 사용자 선호 요일 적용
+    results = _generate_timetable_with_preferences(
+        student, required_remaining, available,
+        preferred_days, preferred_times, avoid_times,
+        max_schedules, max_candidates
+    )
+
+    # 유효한 결과가 있으면 선호 적용된 결과 반환
+    if results:
+        for r in results:
+            r["preference_applied"] = True
+            r["fallback_reason"] = None
+        return results
+
+    # 2차 시도 (Fallback): 선호 요일 무시하고 전공 필수 우선 배치
+    all_days = ["월", "화", "수", "목", "금"]
+    fallback_results = _generate_timetable_with_preferences(
+        student, required_remaining, available,
+        all_days, preferred_times, avoid_times,
+        max_schedules, max_candidates
+    )
+
+    # fallback 결과도 없으면 빈 리스트 반환
+    if not fallback_results:
+        return []
+
+    # fallback 결과에 플래그 추가
+    removed_days = [d for d in all_days if d not in preferred_days]
+    if removed_days:
+        fallback_reason = (
+            f"{', '.join(removed_days)}요일 공강을 맞추면 필수 과목을 배치할 수 없어 "
+            f"부득이하게 모든 요일을 포함하여 추천했습니다."
+        )
+    else:
+        fallback_reason = None
+
+    for r in fallback_results:
+        r["preference_applied"] = False
+        r["fallback_reason"] = fallback_reason
+
+    return fallback_results
+
+
+def _generate_timetable_with_preferences(
+    student: dict,
+    required_remaining: list,
+    available: list,
+    preferred_days: list[str],
+    preferred_times: list[str],
+    avoid_times: list[str],
+    max_schedules: int,
+    max_candidates: int,
+) -> list[dict]:
+    """지정된 선호 요일/시간대로 시간표 조합을 생성합니다."""
 
     # 1단계: 시간표가 있는 과목만 필터링
     available_with_schedule = [c for c in available if c.get("time_slots")]
@@ -165,6 +241,20 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
     # 3단계: 탐색 풀 구성 (필수 + 선호 + 나머지)
     course_pool = []
     seen_codes = set()
+
+    # 필수 및 계열공통/교양필수 미이수 과목 수집 (최우선 순위)
+    target_semester = student.get("target_semester") or "2026-2학기"
+    try:
+        from .data.courses import get_all_remaining_required_for_semester
+        sem_req = get_all_remaining_required_for_semester(student, target_semester)
+        for cat, info in sem_req.items():
+            for c in info.get("available_now", []):
+                full_course = get_course(c["code"])
+                if full_course and full_course["code"] not in seen_codes and full_course.get("time_slots"):
+                    course_pool.append(full_course)
+                    seen_codes.add(full_course["code"])
+    except Exception as e:
+        print(f"Error loading semester required courses for scheduler: {e}")
 
     # 필수 과목 먼저 (항상 포함)
     for c in required_remaining:

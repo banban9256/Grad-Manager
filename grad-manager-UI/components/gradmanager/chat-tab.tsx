@@ -115,7 +115,7 @@ const dayStringToNum = (dayVal: any): number => {
 }
 
 export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
-  const { chat, refreshData, schedule, messages = [], setMessages, simulatedSchedule, allCourses, user, selectedSemester = "2026-1학기", setSelectedSemester, semesters = [] } = useGradData()
+  const { chat, refreshData, schedule, messages = [], setMessages, simulatedSchedule, setSimulatedSchedule, allCourses, user, selectedSemester = "2026-2학기", setSelectedSemester, semesters = [] } = useGradData()
   const { recommendedCourses } = chat
   const { showToast } = useToast()
 
@@ -564,6 +564,20 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
       }
       if (setMessages) {
         setMessages((prev) => [...prev, aiMsg])
+      }
+
+      // 백엔드가 제공한 정밀 추천 시간표가 존재할 경우 상태 및 캐시 업데이트
+      if (chatResult.simulated_timetable && setSimulatedSchedule) {
+        setSimulatedSchedule(chatResult.simulated_timetable)
+        if (typeof window !== "undefined") {
+          const simulatedTimetableKey = `grad_simulated_timetable_${activeStudentId}_${selectedSemester}`
+          const simulationAppliedKey = `chatbot_simulation_applied_${activeStudentId}_${selectedSemester}`
+          const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${activeStudentId}_${selectedSemester}`
+          
+          sessionStorage.setItem(simulatedTimetableKey, JSON.stringify(chatResult.simulated_timetable))
+          sessionStorage.setItem(simulationAppliedKey, "true")
+          localStorage.setItem(aiRecommendedTimetableKey, JSON.stringify(chatResult.simulated_timetable))
+        }
       }
     } catch (err) {
       const errMsg: Message = {

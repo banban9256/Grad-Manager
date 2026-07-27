@@ -62,6 +62,7 @@ export type GradManagerData = {
   messages?: any[]
   setMessages?: React.Dispatch<React.SetStateAction<any[]>>
   simulatedSchedule?: any
+  setSimulatedSchedule?: React.Dispatch<React.SetStateAction<any>>
   resetSimulation?: () => void
   allCourses?: any[]
   notifyEnabled?: boolean
@@ -85,6 +86,8 @@ export type GradManagerData = {
     interestKeywords: KeywordChip[]
     urgentNotice: NoticeItem
     academicCalendar: NoticeItem[]
+    keywordNotices?: NoticeItem[]
+    notificationTriggers?: any[]
   }
   chat: {
     recommendedCourses: RecommendedCourse[]

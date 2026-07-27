@@ -135,9 +135,41 @@ def get_student(student_id: str) -> dict | None:
         cursor = conn.cursor()
         cursor.execute("SELECT profile_json FROM student_profiles WHERE student_id = ?;", (str(student_id),))
         row = cursor.fetchone()
-        conn.close()
+        
         if row:
-            return json.loads(row[0])
+            student = json.loads(row[0])
+            
+            # 실시간으로 student_course_history 테이블을 조회하여 completed_courses와 completed_credits 동기화
+            try:
+                cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='student_course_history';")
+                if cursor.fetchone():
+                    # F학점(낙제)을 제외하고 통과한 과목들만 기수강 과목 코드로 수집
+                    cursor.execute("""
+                        SELECT c.course_code, h.earned_credit, h.grade
+                        FROM student_course_history h
+                        JOIN courses c ON h.course_id = c.course_id
+                        WHERE h.student_id = ?
+                    """, (int(student_id),))
+                    
+                    histories = cursor.fetchall()
+                    completed_codes = []
+                    total_credits = 0.0
+                    for code, credit, grade in histories:
+                        c_code = code.lstrip("*")
+                        if grade and grade.upper() != "F":
+                            if c_code not in completed_codes:
+                                completed_codes.append(c_code)
+                            total_credits += float(credit) if credit else 0.0
+                    
+                    student["completed_courses"] = completed_codes
+                    student["completed_credits"] = int(total_credits) if total_credits == int(total_credits) else total_credits
+            except Exception as inner_e:
+                print(f"[SQLITE ERROR] failed to sync completed courses: {inner_e}")
+                
+            conn.close()
+            return student
+            
+        conn.close()
     except Exception as e:
         print(f"[SQLITE ERROR] get_student failed: {e}")
     

@@ -42,6 +42,9 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
   // 전체 과목 풀 전역 상태
   const [allCourses, setAllCourses] = useState<any[]>([])
 
+  // 공지 데이터 (학사일정 + 키워드 매칭 공지 + 알림 트리거)
+  const [noticeData, setNoticeData] = useState<any>(null)
+
   // 챗봇 메시지 전역 상태 관리
   const [messages, setMessages] = useState<any[]>([
     {
@@ -68,7 +71,7 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
       const lastSem = localStorage.getItem(`grad_last_viewed_semester_${id}`)
       if (lastSem) return lastSem
     }
-    return "2026-1학기"
+    return "2026-2학기"
   }
 
   const [selectedSemester, setSelectedSemester] = useState<string>(() => getSavedSemester(studentId || "20210001"))
@@ -78,6 +81,8 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     let isMounted = true
     getSemesterList().then((list) => {
       if (isMounted && list && list.length > 0) {
+        if (!list.includes("2026-2학기")) list.unshift("2026-2학기")
+        if (!list.includes("2026-1학기")) list.unshift("2026-1학기")
         setSemesters(list)
         const saved = getSavedSemester(studentId || "20210001")
         if (saved && list.includes(saved)) {
@@ -155,6 +160,27 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     }
   }, [isLoggedIn, selectedSemester])
 
+  // 공지 데이터 로딩 (학사일정 + 키워드 매칭 공지 + 알림 트리거)
+  useEffect(() => {
+    if (!isLoggedIn) return
+    async function loadNoticeData() {
+      try {
+        const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"
+        const token = sessionStorage.getItem("token")
+        const res = await fetch(`${API_BASE_URL}/api/v1/notices/alerts`, {
+          headers: token ? { "Authorization": `Bearer ${token}` } : {},
+        })
+        if (res.ok) {
+          const d = await res.json()
+          setNoticeData(d)
+        }
+      } catch (err) {
+        console.error("공지 데이터 로딩 실패:", err)
+      }
+    }
+    loadNoticeData()
+  }, [isLoggedIn])
+
   // 메시지 혹은 과목 풀 업데이트 시 시뮬레이션 엔진 실행
   useEffect(() => {
     if (!studentId) return
@@ -167,6 +193,20 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       sessionStorage.setItem(messagesKey, JSON.stringify(messages))
     }
+
+    // 만약 세션 스토리지에 캐시된 AI 추천 시간표(백엔드 생성)가 이미 존재한다면
+    // 프론트엔드의 간이 룰 엔진으로 덮어쓰지 않고 캐시를 유지하여 리렌더링
+    if (typeof window !== "undefined") {
+      const cached = sessionStorage.getItem(simulatedTimetableKey)
+      if (cached) {
+        try {
+          const parsed = JSON.parse(cached)
+          setSimulatedSchedule(parsed)
+          return
+        } catch (e) {}
+      }
+    }
+
     if (messages.length > 0 && allCourses.length > 0) {
       const result = generateTimetableFromChat(messages, allCourses)
       setSimulatedSchedule(result)
@@ -552,6 +592,7 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     messages,
     setMessages,
     simulatedSchedule,
+    setSimulatedSchedule,
     resetSimulation,
     allCourses,
     notifyEnabled,
@@ -560,7 +601,10 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     setSelectedSemester,
     semesters,
     user: data?.user || { userInfo: {} as any, creditCategories: [], quickMenus: [] },
-    notice: data?.notice ? {
+    notice: noticeData ? {
+      ...noticeData,
+      interestKeywords: interestKeywords.length > 0 ? interestKeywords : (noticeData.interestKeywords || []),
+    } : data?.notice ? {
       ...data.notice,
       interestKeywords,
     } : { interestKeywords: [], urgentNotice: {} as any, academicCalendar: [] },

@@ -111,7 +111,7 @@ def load_courses() -> dict[str, dict]:
     course_code를 키로 하는 과목 dict를 반환
 
     각 과목은 여러 분반(offering)과 시간표(schedule)를 포함
-    time_slots는 2026-1학기 분반 기준으로 구성
+    time_slots는 2026-2학기 분반 기준으로 구성
     """
     courses_raw = _read_csv("courses.csv")
     offerings_raw = _read_csv("course_offerings.csv")
@@ -143,10 +143,10 @@ def load_courses() -> dict[str, dict]:
         # 해당 과목의 분반들
         offs = offering_map.get(cid, [])
 
-        # 2026-1학기 분반 우선, 없으면 첫 번째 분반 사용
+        # 2026-2학기 분반 우선, 없으면 첫 번째 분반 사용
         primary_offering = None
         for o in offs:
-            if o["semester"] == "1학기" and o["academic_year"] == "2026":
+            if o["semester"] == "2학기" and o["academic_year"] == "2026":
                 primary_offering = o
                 break
         if not primary_offering and offs:
@@ -459,6 +459,7 @@ def load_academic_schedule() -> list[dict]:
             "category": category,
             "alert_days_before": alert_days,
             "prerequisite": prerequisite,
+            "is_mandatory": e.get("is_mandatory", "False").strip().lower() == "true",
             "description": hanja_to_hangul(e.get("description", "")),
         })
     return schedule

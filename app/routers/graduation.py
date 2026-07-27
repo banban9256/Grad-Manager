@@ -437,19 +437,37 @@ def get_graduation_summary(
     else:
         schedule_reasons = [{"icon": "AlertTriangle", "text": "조건에 맞는 추천 시간표가 없습니다."}]
 
-    # 3. 공지 알림 데이터
-    notice_alerts = get_upcoming_alerts(30)
+    # 3. 공지 알림 데이터 (전체 학사일정 사용)
+    from backend.core.data.academic_schedule import get_all_schedules
+    all_events = get_all_schedules()
+    today_date = datetime.now().date() if "datetime" in dir() else None
+    if today_date is None:
+        from datetime import datetime as _dt
+        today_date = _dt.now().date()
     academic_cal = []
-    for a in notice_alerts:
+    for evt in all_events:
+        start = evt.get("start_date", "")
+        end = evt.get("end_date", "")
+        is_upcoming = False
+        is_mandatory = evt.get("is_mandatory", False)
+        try:
+            if start:
+                start_d = __import__("datetime").datetime.strptime(start, "%Y-%m-%d").date()
+                is_upcoming = start_d >= today_date
+        except Exception:
+            pass
         academic_cal.append({
-            "id": a.get("id", 1),
-            "title": a.get("alert_message", ""),
-            "date": a.get("start_date", "2026-08-01"),
-            "category": "일반",
-            "isNew": True
+            "id": f"event-{evt['id']}",
+            "title": evt["title"],
+            "date": start,
+            "endDate": end,
+            "isNew": True,
+            "isUpcoming": is_upcoming,
+            "category": evt.get("category", ""),
+            "isMandatory": is_mandatory,
+            "content": evt.get("description", evt.get("alert_message", "")),
+            "desc": evt.get("description", evt.get("alert_message", "")),
         })
-    if not academic_cal:
-        academic_cal = []
 
     # 디지털 트윈용 전공/교양 과목 개수 계산 (DB course_type 및 forfeited_ids 반영)
     major_courses_count = 0
@@ -577,10 +595,10 @@ def get_graduation_summary(
         schedules = []
         offs = course_info.get("offerings", [])
         if offs:
-            # 2026-1학기 분반 우선
+            # 2026-2학기 분반 우선
             primary = None
             for o in offs:
-                if o.get("semester") == "1학기" and o.get("academic_year") == "2026":
+                if o.get("semester") == "2학기" and o.get("academic_year") == "2026":
                     primary = o
                     break
             if not primary:
@@ -937,7 +955,7 @@ def update_completed_courses(
             })
             
         # 기존 히스토리 중 가장 최근 학기 구하기 (기본값용)
-        latest_sem = "2026-1학기"
+        latest_sem = "2026-2학기"
         if existing_histories:
             sems = [h.semester_taken for h in existing_histories if h.semester_taken]
             if sems:

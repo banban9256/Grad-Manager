@@ -289,7 +289,7 @@ export function ScheduleTab() {
     resetSimulation, 
     allCourses, 
     user,
-    selectedSemester = "2026-1학기",
+    selectedSemester = "2026-2학기",
     setSelectedSemester,
     semesters = []
   } = useGradData()
@@ -321,8 +321,8 @@ export function ScheduleTab() {
     }
   }, [])
 
-  const showBanner = simulatedSchedule !== null
-  const activeSchedule = showBanner ? (simulatedSchedule || schedule) : schedule
+  const hasSimulatedSchedule = simulatedSchedule !== null
+  const activeSchedule = schedule
 
   // 호버된 분반(groupId) 상태 관리
   const [hoveredGroupId, setHoveredGroupId] = useState<string | null>(null)
@@ -340,7 +340,7 @@ export function ScheduleTab() {
   // 수동 커스텀 시간표 상태
   const [customBlocks, setCustomBlocks] = useState<any[]>(() => {
     if (typeof window !== "undefined") {
-      const activeSem = localStorage.getItem(`grad_last_viewed_semester_${studentId}`) || "2026-1학기"
+      const activeSem = localStorage.getItem(`grad_last_viewed_semester_${studentId}`) || "2026-2학기"
       const scheduleClearedKey = `grad_schedule_cleared_${studentId}_${activeSem}`
       const scheduleBlocksKey = `grad_custom_schedule_blocks_${studentId}_${activeSem}`
       const isCleared = localStorage.getItem(scheduleClearedKey) === "true" ||
@@ -373,13 +373,8 @@ export function ScheduleTab() {
     return []
   })
 
-  // 프리뷰로 화면에 그릴 블록 선택 (AI 프리뷰 상태는 active 시간표에 자동 편입 방지 격리)
-  const blocksToRender = useMemo(() => {
-    if (showBanner && simulatedSchedule?.scheduleBlocks) {
-      return simulatedSchedule.scheduleBlocks
-    }
-    return customBlocks
-  }, [showBanner, simulatedSchedule, customBlocks])
+  // 프리뷰로 화면에 그릴 블록 선택 (기본적으로 항상 진짜 내 시간표 출력)
+  const blocksToRender = customBlocks
 
   // 추가 및 수정 모달 상태
   const [isOpenModal, setIsOpenModal] = useState(false)
@@ -780,42 +775,6 @@ export function ScheduleTab() {
 
   return (
     <div className="space-y-4 px-2 pb-4 pt-3.5 md:space-y-6 md:px-6 md:pb-6 md:pt-5 md:max-w-6xl md:mx-auto relative">
-      {showBanner && (
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-3.5 rounded-3xl bg-[#e8f3ff] dark:bg-[#182945] px-6 py-4 border border-[#3182f6]/20 shadow-md shadow-primary/5 transition-all duration-300">
-          <div className="flex items-center gap-3">
-            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#3182f6]/10 text-[#3182f6]">
-              <Sparkles className="h-5 w-5 animate-pulse" />
-            </span>
-            <div>
-              <p className="text-sm font-black text-[#1b64da] dark:text-[#5592f2] text-left">
-                AI 추천 시간표 미리보기
-              </p>
-              <p className="text-xs text-[#1b64da]/80 dark:text-[#5592f2]/80 mt-0.5 leading-relaxed text-left">
-                최근 챗봇 대화(선호 요일/기피 시간 등)를 반영한 추천 결과입니다. 적용하시겠습니까?
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 self-end md:self-auto shrink-0">
-            {/* 적용/저장 버튼 */}
-            <button
-              onClick={handleApplyAiTimetable}
-              className="flex items-center gap-1.5 bg-[#3182f6] hover:bg-[#1b64da] text-white text-xs font-black px-4 py-2.5 rounded-2xl active:scale-95 transition-all cursor-pointer shadow-sm shadow-[#3182f6]/20"
-            >
-              <Check className="h-4 w-4" />
-              <span>저장</span>
-            </button>
-            {/* 취소/닫기 버튼 */}
-            <button
-              onClick={handleCloseBanner}
-              className="flex items-center gap-1.5 bg-black/5 hover:bg-black/10 dark:bg-white/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground text-xs font-bold px-3 py-2.5 rounded-2xl active:scale-95 transition-all cursor-pointer"
-            >
-              <X className="h-4 w-4" />
-              <span>취소</span>
-            </button>
-          </div>
-        </div>
-      )}
-
       {/* 헤더 및 추가/선택 버튼들 */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 text-left">
@@ -869,7 +828,20 @@ export function ScheduleTab() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-1.5 w-full sm:flex sm:w-auto sm:gap-2">
+          <div className="grid grid-cols-2 gap-1.5 w-full sm:flex sm:w-auto sm:gap-2">
+            {/* 대화 바탕으로 불러오기 버튼 */}
+            <button
+              onClick={handleApplyAiTimetable}
+              disabled={!hasSimulatedSchedule}
+              className={`flex items-center justify-center gap-1 text-[10px] md:text-xs font-bold px-2.5 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl transition-all cursor-pointer shadow-sm ${
+                hasSimulatedSchedule
+                  ? "bg-[#3182f6] hover:bg-[#1b64da] text-white active:scale-98 animate-pulse shadow-md shadow-[#3182f6]/20 font-black"
+                  : "bg-secondary text-muted-foreground opacity-50 cursor-not-allowed font-medium"
+              }`}
+            >
+              <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4" />
+              <span>대화 바탕으로 불러오기</span>
+            </button>
             <button
               onClick={handleClearAll}
               className="flex items-center justify-center gap-1 bg-destructive/10 text-destructive text-[10px] md:text-xs font-bold px-2 py-2 md:px-4 md:py-2.5 rounded-xl md:rounded-2xl hover:bg-destructive/20 active:scale-98 transition-all cursor-pointer shadow-sm"

@@ -71,9 +71,6 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
   }
 
   const dayOffs = parseDayOffs(messages)
-  if (dayOffs.length === 0) {
-    return null
-  }
 
   // 0. 활성 추천 필터 로드 및 공강 요일 자동 편입
   const studentId = typeof window !== "undefined" ? sessionStorage.getItem("active_student_id") : null

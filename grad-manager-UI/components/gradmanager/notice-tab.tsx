@@ -1,14 +1,122 @@
 "use client"
 
 import { useState } from "react"
-import { AlertTriangle, Bell, BellOff, CalendarDays, Info, Plus, X, Loader2 } from "lucide-react"
+import { AlertTriangle, Bell, BellOff, CalendarDays, Info, Plus, X, Loader2, CheckCircle2, Clock, BellRing } from "lucide-react"
 import { useGradData } from "./grad-data-provider"
 import { useToast } from "./toast"
 
 export function NoticeTab() {
   const { notice, addInterestKeyword, removeInterestKeyword, notifyEnabled = true, setNotifyEnabled = () => {} } = useGradData()
   const { showToast } = useToast()
-  const { academicCalendar, interestKeywords, urgentNotice } = notice
+  const { academicCalendar = [], interestKeywords, urgentNotice, keywordNotices = [], notificationTriggers = [] } = notice || {}
+
+  // 날짜 한글 포맷팅 헬퍼 함수
+  const formatEventDate = (dateStr: string) => {
+    if (!dateStr) return ""
+    const match = dateStr.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+    if (match) {
+      const month = parseInt(match[2], 10)
+      const day = parseInt(match[3], 10)
+      return `${month}월 ${day}일`
+    }
+    return dateStr
+  }
+
+  // 4대 고정 일정 정의 (키워드 상관없이 무조건 렌더링될 대상)
+  const fixedMandatoryEvents = [
+    {
+      id: "fixed-pre-reg",
+      title: "2026-2학기 예비 수강신청",
+      date: "2026-07-28",
+      endDate: "2026-07-31",
+      isMandatory: true,
+      isUpcoming: true,
+      category: "수강신청",
+      content: "예비 수강신청 기간입니다. 원하는 과목을 미리 희망과목에 담아두세요.",
+      desc: "예비 수강신청 기간입니다. 원하는 과목을 미리 희망과목에 담아두세요."
+    },
+    {
+      id: "fixed-reg",
+      title: "2026-2학기 본 수강신청",
+      date: "2026-08-04",
+      endDate: "2026-08-08",
+      isMandatory: true,
+      isUpcoming: true,
+      category: "수강신청",
+      content: "2026학년도 2학기 본 수강신청 기간입니다. 개설 강좌 시간표를 다시 확인하세요.",
+      desc: "2026학년도 2학기 본 수강신청 기간입니다. 개설 강좌 시간표를 다시 확인하세요."
+    },
+    {
+      id: "fixed-tuition",
+      title: "2026-2학기 등록금 납부",
+      date: "2026-08-11",
+      endDate: "2026-08-13",
+      isMandatory: true,
+      isUpcoming: true,
+      category: "등록",
+      content: "2026학년도 2학기 등록금 정규 납부 기간입니다. 지정 은행 및 계좌를 통해 납부해 주세요.",
+      desc: "2026학년도 2학기 등록금 정규 납부 기간입니다. 지정 은행 및 계좌를 통해 납부해 주세요."
+    },
+    {
+      id: "fixed-change",
+      title: "2026-2학기 수강신청 변경기간",
+      date: "2026-08-25",
+      endDate: "2026-08-27",
+      isMandatory: true,
+      isUpcoming: true,
+      category: "수강신청",
+      content: "수강신청 변경 및 정정 기간입니다. 공석이 있는 강좌에 한해 정정이 가능합니다.",
+      desc: "수강신청 변경 및 정정 기간입니다. 공석이 있는 강좌에 한해 정정이 가능합니다."
+    }
+  ]
+
+  const mergedCalendar = [...(academicCalendar || [])]
+
+  fixedMandatoryEvents.forEach((fixedEvt) => {
+    const isAlreadyPresent = mergedCalendar.some(
+      (item) =>
+        (item.title && item.title.includes("예비 수강신청") && fixedEvt.title.includes("예비 수강신청")) ||
+        (item.title && item.title.includes("본 수강신청") && fixedEvt.title.includes("본 수강신청")) ||
+        (item.title && item.title.includes("등록금 납부") && fixedEvt.title.includes("등록금 납부")) ||
+        (item.title && item.title.includes("수강신청 변경") && fixedEvt.title.includes("수강신청 변경")) ||
+        item.id === fixedEvt.id
+    )
+
+    if (!isAlreadyPresent) {
+      mergedCalendar.push(fixedEvt)
+    } else {
+      const idx = mergedCalendar.findIndex(
+        (item) =>
+          (item.title && item.title.includes("예비 수강신청") && fixedEvt.title.includes("예비 수강신청")) ||
+          (item.title && item.title.includes("본 수강신청") && fixedEvt.title.includes("본 수강신청")) ||
+          (item.title && item.title.includes("등록금 납부") && fixedEvt.title.includes("등록금 납부")) ||
+          (item.title && item.title.includes("수강신청 변경") && fixedEvt.title.includes("수강신청 변경")) ||
+          item.id === fixedEvt.id
+      )
+      if (idx !== -1) {
+        mergedCalendar[idx] = {
+          ...mergedCalendar[idx],
+          isMandatory: true,
+          isUpcoming: mergedCalendar[idx].isUpcoming ?? true,
+          date: mergedCalendar[idx].date || fixedEvt.date,
+          endDate: mergedCalendar[idx].endDate || fixedEvt.endDate
+        }
+      }
+    }
+  })
+
+  // 날짜 기준으로 오름차순 정렬하되, Upcoming 일정이 먼저 뜨게 정렬
+  mergedCalendar.sort((a, b) => {
+    const aDate = a.date || ""
+    const bDate = b.date || ""
+    const aUpcoming = a.isUpcoming ?? true
+    const bUpcoming = b.isUpcoming ?? true
+
+    if (aUpcoming !== bUpcoming) {
+      return aUpcoming ? -1 : 1
+    }
+    return aDate.localeCompare(bDate)
+  })
 
   const [isAdding, setIsAdding] = useState(false)
   const [newKeyword, setNewKeyword] = useState("")
@@ -47,7 +155,7 @@ export function NoticeTab() {
     try {
       if (removeInterestKeyword) {
         await removeInterestKeyword(keyword)
-        showToast("알림 키워드가 삭제되었습니다.")
+        showToast("키워드 삭제가 완료되었습니다.")
       }
     } catch {
       showToast("키워드 삭제에 실패했습니다.")
@@ -55,6 +163,26 @@ export function NoticeTab() {
       setIsUpdating(false)
     }
   }
+
+  const renderHighlightedTitle = (title: string, keywords: any[]) => {
+    const kws = keywords.map(k => k.label || k.text).filter(Boolean)
+    if (kws.length === 0) return title
+
+    const regex = new RegExp(`(${kws.join("|")})`, "gi")
+    const parts = title.split(regex)
+
+    return parts.map((part, i) =>
+      regex.test(part) ? (
+        <span key={i} className="bg-[#3182f6]/10 text-[#3182f6] px-1 py-0.5 rounded font-bold">
+          {part}
+        </span>
+      ) : (
+        part
+      )
+    )
+  }
+
+  const kws = (interestKeywords || []).map(k => k.label || k.text).filter(Boolean)
 
   return (
     <div className="space-y-6 px-4 pb-6 pt-5 md:max-w-4xl md:mx-auto md:px-6">
@@ -158,127 +286,247 @@ export function NoticeTab() {
         </div>
       </section>
 
-      {/* 키워드 하이라이팅 헬퍼 */}
-      {(() => {
-        const renderHighlightedTitle = (title: string, keywords: any[]) => {
-          const kws = keywords.map(k => k.label || k.text).filter(Boolean)
-          if (kws.length === 0) return title
+      {/* 긴급 공지 (urgentNotice) */}
+      {urgentNotice && urgentNotice.title && (
+        <section
+          className="rounded-2xl bg-[#fff3f5] dark:bg-[#381e25] p-5 shadow-sm border border-transparent"
+          role="alert"
+        >
+          <div className="mb-2 flex items-center gap-2">
+            <span className="flex items-center gap-1 rounded-full bg-[#e42939] px-2.5 py-0.5 text-[10px] font-bold text-white">
+              <AlertTriangle className="h-3 w-3" />
+              긴급 · {urgentNotice.date}
+            </span>
+            <span className="rounded-full bg-[#e42939]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#e42939] dark:text-[#ff6b8b]">
+              #{urgentNotice.keyword || "공통"}
+            </span>
+          </div>
+          <h3 className="text-[15px] font-bold text-foreground">{urgentNotice.title}</h3>
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{urgentNotice.desc || urgentNotice.content || ""}</p>
+          {urgentNotice.url && (
+            <div className="mt-3 pt-2.5 border-t border-[#e42939]/10 flex justify-end">
+              <a
+                href={urgentNotice.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#e42939] hover:underline"
+              >
+                <span>원문 보기</span>
+                <span className="text-[8px]">↗</span>
+              </a>
+            </div>
+          )}
+        </section>
+      )}
 
-          const regex = new RegExp(`(${kws.join("|")})`, "gi")
-          const parts = title.split(regex)
-
-          return parts.map((part, i) =>
-            regex.test(part) ? (
-              <span key={i} className="bg-[#3182f6]/10 text-[#3182f6] px-1 py-0.5 rounded font-bold">
-                {part}
-              </span>
-            ) : (
-              part
-            )
-          )
-        }
-
-        return (
-          <>
-            {/* Urgent notice matched with 특화 */}
-            <section
-              className="rounded-2xl bg-[#fff3f5] dark:bg-[#381e25] p-5 shadow-sm border border-transparent"
-              role="alert"
-            >
-              <div className="mb-2 flex items-center gap-2">
-                <span className="flex items-center gap-1 rounded-full bg-[#e42939] px-2.5 py-0.5 text-[10px] font-bold text-white">
-                  <AlertTriangle className="h-3 w-3" />
-                  긴급 · {urgentNotice.date}
-                </span>
-                <span className="rounded-full bg-[#e42939]/10 px-2.5 py-0.5 text-[10px] font-bold text-[#e42939] dark:text-[#ff6b8b]">
-                  #{urgentNotice.keyword || "공통"}
-                </span>
-              </div>
-              <h3 className="text-[15px] font-bold text-foreground">{urgentNotice.title}</h3>
-              <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{urgentNotice.desc}</p>
-              {urgentNotice.url && (
-                <div className="mt-3 pt-2.5 border-t border-[#e42939]/10 flex justify-end">
-                  <a
-                    href={urgentNotice.url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#e42939] hover:underline"
-                  >
-                    <span>원문 보기</span>
-                    <span className="text-[8px]">↗</span>
-                  </a>
-                </div>
-              )}
-            </section>
-
-            {/* Academic calendar timeline */}
-            <section>
-              <h2 className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
-                <CalendarDays className="h-4.5 w-4.5 text-primary" />
-                학사 및 맞춤 공지
-              </h2>
-              <ol className="relative ml-2.5 border-l border-border">
-                {academicCalendar.map((item, idx) => {
-                  const isWarning = item.type === "warning"
-                  const kws = (interestKeywords || []).map(k => k.label || k.text).filter(Boolean)
-                  const isMatched = kws.some(kw => item.title.includes(kw) || (item.content || "").includes(kw))
-
-                  return (
-                    <li key={`${item.id || idx}-${idx}`} className="relative mb-5 pl-5.5 last:mb-0">
-                      <span
-                        className={`absolute -left-[6.5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-background ${
-                          isMatched ? "bg-[#3182f6]" : isWarning ? "bg-[#ff9f1a]" : "bg-primary"
-                        }`}
-                      />
-                      <div
-                        className={`rounded-2xl p-4.5 shadow-sm border transition-all ${
-                          isMatched
-                            ? "border-[#3182f6]/40 bg-[#3182f6]/5 dark:bg-[#3182f6]/10"
-                            : isWarning 
-                              ? "border-transparent bg-[#fff9e6] dark:bg-[#3d321d]" 
-                              : "border-border bg-card"
-                        }`}
-                      >
-                        <div className="mb-1.5 flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <span className={`text-xs font-bold ${isMatched ? "text-[#3182f6]" : isWarning ? "text-[#b27600] dark:text-[#ffca57]" : "text-primary"}`}>{item.date}</span>
-                            {isMatched ? (
-                              <span className="text-[9px] font-bold text-[#3182f6] bg-[#3182f6]/15 px-2 py-0.5 rounded-full select-none">
-                                # 키워드 일치
-                              </span>
-                            ) : isWarning ? (
-                              <AlertTriangle className="h-4 w-4 text-[#ff9f1a]" />
-                            ) : (
-                              <Info className="h-4 w-4 text-muted-foreground" />
-                            )}
-                          </div>
+      {/* 알림 트리거 (키워드 마감 임박 알림) */}
+      {notificationTriggers.length > 0 && (
+        <section>
+          <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+            <BellRing className="h-4.5 w-4.5 text-[#ff9f1a]" />
+            키워드 알림 트리거
+          </h2>
+          <div className="space-y-2.5">
+            {notificationTriggers.map((trigger: any, idx: number) => {
+              const isUrgent = trigger.alert_type === "긴급"
+              const isWarning = trigger.alert_type === "주의"
+              return (
+                <div
+                  key={`trigger-${trigger.id || idx}`}
+                  className={`rounded-2xl p-4 shadow-sm border transition-all ${
+                    isUrgent
+                      ? "border-[#e42939]/30 bg-[#fff3f5] dark:bg-[#381e25]"
+                      : isWarning
+                        ? "border-[#ff9f1a]/30 bg-[#fff9e6] dark:bg-[#3d321d]"
+                        : "border-border bg-card"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                          isUrgent
+                            ? "bg-[#e42939] text-white"
+                            : isWarning
+                              ? "bg-[#ff9f1a] text-white"
+                              : "bg-primary/10 text-primary"
+                        }`}>
+                          {trigger.alert_type}
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-semibold">{trigger.date}</span>
+                      </div>
+                      <p className="text-sm font-semibold text-foreground leading-relaxed">{trigger.title}</p>
+                      {trigger.matched_keywords && trigger.matched_keywords.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {trigger.matched_keywords.map((kw: string, ki: number) => (
+                            <span key={ki} className="text-[9px] font-bold text-[#3182f6] bg-[#3182f6]/10 px-1.5 py-0.5 rounded">
+                              #{kw}
+                            </span>
+                          ))}
                         </div>
-                        <h3 className="text-[15px] font-bold text-foreground">
-                          {renderHighlightedTitle(item.title, interestKeywords || [])}
-                        </h3>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{item.content || item.desc || "상세 공지 내용이 존재하지 않습니다."}</p>
-                        {item.url && (
-                          <div className="mt-3 pt-2.5 border-t border-border/40 flex justify-end">
-                            <a
-                              href={item.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#3182f6] hover:underline"
-                            >
-                              <span>원문 보기</span>
-                              <span className="text-[8px]">↗</span>
-                            </a>
-                          </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* 키워드 매칭 공지 */}
+      {keywordNotices.length > 0 && (
+        <section>
+          <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+            <CheckCircle2 className="h-4.5 w-4.5 text-[#008f80]" />
+            키워드 매칭 공지
+          </h2>
+          <div className="space-y-2.5">
+            {keywordNotices.map((notice: any, idx: number) => {
+              const isMatched = kws.some(kw => notice.title.includes(kw) || (notice.content || "").includes(kw))
+              return (
+                <div
+                  key={`kw-notice-${notice.id || idx}`}
+                  className={`rounded-2xl p-4 shadow-sm border transition-all ${
+                    isMatched
+                      ? "border-[#3182f6]/30 bg-[#3182f6]/5 dark:bg-[#3182f6]/10"
+                      : "border-border bg-card"
+                  }`}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold text-[#3182f6] bg-[#3182f6]/10 px-2 py-0.5 rounded-full">
+                          키워드 매칭
+                        </span>
+                        <span className="text-[10px] text-muted-foreground font-semibold">{notice.date}</span>
+                        {notice.category && (
+                          <span className="text-[9px] text-muted-foreground bg-secondary px-1.5 py-0.5 rounded font-semibold">
+                            {notice.category}
+                          </span>
                         )}
                       </div>
-                    </li>
-                  )
-                })}
-              </ol>
-            </section>
-          </>
-        )
-      })()}
+                      <h3 className="text-sm font-bold text-foreground">
+                        {renderHighlightedTitle(notice.title, interestKeywords || [])}
+                      </h3>
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground line-clamp-2">
+                        {notice.content || "상세 내용이 없습니다."}
+                      </p>
+                      {notice.matched_keywords && notice.matched_keywords.length > 0 && (
+                        <div className="mt-1.5 flex flex-wrap gap-1">
+                          {notice.matched_keywords.map((kw: string, ki: number) => (
+                            <span key={ki} className="text-[9px] font-bold text-[#008f80] bg-[#daf2ee] px-1.5 py-0.5 rounded">
+                              #{kw}
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {notice.url && (
+                    <div className="mt-3 pt-2.5 border-t border-border/40 flex justify-end">
+                      <a
+                        href={notice.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#3182f6] hover:underline"
+                      >
+                        <span>원문 보기</span>
+                        <span className="text-[8px]">↗</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* 학사일정 타임라인 (고정 일정) */}
+      <section>
+        <h2 className="mb-4 flex items-center gap-1.5 text-sm font-semibold text-muted-foreground">
+          <CalendarDays className="h-4.5 w-4.5 text-primary" />
+          학사일정 (고정 일정)
+        </h2>
+        <ol className="relative ml-2.5 border-l border-border">
+          {mergedCalendar.map((item: any, idx: number) => {
+            const isUpcoming = item.isUpcoming ?? false
+            const isMandatory = item.isMandatory ?? false
+            const isPast = !isUpcoming
+            const kwsList = (interestKeywords || []).map((k: any) => k.label || k.text).filter(Boolean)
+            const isMatched = kwsList.some((kw: string) => item.title.includes(kw) || (item.content || "").includes(kw))
+
+            return (
+              <li key={`${item.id || idx}-${idx}`} className="relative mb-5 pl-5.5 last:mb-0">
+                <span
+                  className={`absolute -left-[6.5px] top-1.5 h-3 w-3 rounded-full ring-4 ring-background ${
+                    isMatched ? "bg-[#3182f6]" : isMandatory && isUpcoming ? "bg-[#e42939]" : isPast ? "bg-muted-foreground/30" : "bg-primary"
+                  }`}
+                />
+                <div
+                  className={`rounded-2xl p-4.5 shadow-sm border transition-all ${
+                    isMatched
+                      ? "border-[#3182f6]/40 bg-[#3182f6]/5 dark:bg-[#3182f6]/10"
+                      : isPast
+                        ? "border-border/50 bg-secondary/30 opacity-70"
+                        : isMandatory
+                          ? "border-[#e42939]/20 bg-[#fff3f5] dark:bg-[#381e25]"
+                          : "border-border bg-card"
+                  }`}
+                >
+                  <div className="mb-1.5 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-bold ${
+                        isMatched ? "text-[#3182f6]" : isPast ? "text-muted-foreground" : isMandatory ? "text-[#e42939]" : "text-primary"
+                      }`}>
+                        {formatEventDate(item.date)}
+                        {item.endDate && item.endDate !== item.date && (
+                          <span className="text-muted-foreground"> ~ {formatEventDate(item.endDate)}</span>
+                        )}
+                      </span>
+                      {isMatched ? (
+                        <span className="text-[9px] font-bold text-[#3182f6] bg-[#3182f6]/15 px-2 py-0.5 rounded-full select-none">
+                          # 키워드 일치
+                        </span>
+                      ) : isMandatory && isUpcoming ? (
+                        <span className="text-[9px] font-bold text-[#e42939] bg-[#e42939]/10 px-2 py-0.5 rounded-full select-none">
+                          필수 일정
+                        </span>
+                      ) : isPast ? (
+                        <span className="text-[9px] font-bold text-muted-foreground bg-secondary px-2 py-0.5 rounded-full select-none">
+                          지난 일정
+                        </span>
+                      ) : (
+                        <Info className="h-4 w-4 text-muted-foreground" />
+                      )}
+                    </div>
+                  </div>
+                  <h3 className="text-[15px] font-bold text-foreground">
+                    {renderHighlightedTitle(item.title, interestKeywords || [])}
+                  </h3>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {item.content || item.desc || "상세 공지 내용이 존재하지 않습니다."}
+                  </p>
+                  {item.url && (
+                    <div className="mt-3 pt-2.5 border-t border-border/40 flex justify-end">
+                      <a
+                        href={item.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#3182f6] hover:underline"
+                      >
+                        <span>원문 보기</span>
+                        <span className="text-[8px]">↗</span>
+                      </a>
+                    </div>
+                  )}
+                </div>
+              </li>
+            )
+          })}
+        </ol>
+      </section>
     </div>
   )
 }

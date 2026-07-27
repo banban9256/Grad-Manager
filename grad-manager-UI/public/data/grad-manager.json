@@ -72,6 +72,42 @@
     },
     "academicCalendar": [
       {
+        "id": "n5",
+        "date": "7월 28일",
+        "endDate": "7월 31일",
+        "title": "2026-2학기 예비 수강신청",
+        "desc": "예비 수강신청 기간입니다. 원하는 과목을 미리 담아두세요.",
+        "type": "info",
+        "isMandatory": true
+      },
+      {
+        "id": "n6",
+        "date": "8월 4일",
+        "endDate": "8월 8일",
+        "title": "2026-2학기 본 수강신청",
+        "desc": "2026학년도 2학기 본 수강신청 기간입니다. 시간표를 확인하고 신청하세요.",
+        "type": "warning",
+        "isMandatory": true
+      },
+      {
+        "id": "n7",
+        "date": "8월 11일",
+        "endDate": "8월 13일",
+        "title": "2026-2학기 등록금 납부",
+        "desc": "2026학년도 2학기 등록금 납부 기간입니다. 기한 내에 납부해 주세요.",
+        "type": "warning",
+        "isMandatory": true
+      },
+      {
+        "id": "n8",
+        "date": "8월 25일",
+        "endDate": "8월 27일",
+        "title": "2026-2학기 수강신청 변경기간",
+        "desc": "수강신청 정정 및 변경 기간입니다.",
+        "type": "info",
+        "isMandatory": true
+      },
+      {
         "id": "n1",
         "date": "12월 20일",
         "title": "기말 강의 평가 시작",

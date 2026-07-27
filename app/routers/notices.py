@@ -1,10 +1,16 @@
+from datetime import datetime, timedelta
+
 from fastapi import APIRouter, Header, HTTPException, Body
 from pydantic import BaseModel
 from typing import Optional, List
 
 from backend.core.data.students import get_student, STUDENTS
+from backend.core.data.academic_schedule import get_all_schedules
 from backend.core.notifications import (
-    get_upcoming_alerts, register_keyword_alert, search_notices,
+    get_upcoming_alerts,
+    register_keyword_alert,
+    filter_notices_by_keywords,
+    get_keyword_notification_alerts,
 )
 
 router = APIRouter()
@@ -33,61 +39,133 @@ def get_student_from_token(authorization: Optional[str]) -> dict:
 def get_notice_alerts(authorization: Optional[str] = Header(None)):
     student = get_student_from_token(authorization)
     student_id = student["student_id"]
-    
-    # 해당 학생의 키워드 취향에 알맞는 공지사항 검색
-    keywords = student.get("keyword_preferences", [])
-    alerts = []
-    
-    # 키워드별 검색 (기간 필터링 적용됨)
-    for kw in keywords[:3]:
-        results = search_notices(kw)
-        for r in results[:2]:
-            alerts.append({
-                "id": f"notice-{kw}-{r['id']}",
-                "title": f"[{kw} 매칭] {r['title']}",
-                "date": r["date"],
-                "isNew": True,
-                "url": r.get("url", ""),
-                "content": r.get("content", ""),
-                "category": r.get("category", "")
-            })
-    
-    # 키워드 알림 트리거 (1주전, 1일전, 당일)
-    keyword_alerts =search_notices(keywords)
+    today = datetime.now().date()
+
+    # ── 1) 학사일정 (academic_events.csv 전부,重要的 고정 일정 포함) ──
+    all_events = get_all_schedules()
+    academic_calendar = []
+    for evt in all_events:
+        start = evt.get("start_date", "")
+        end = evt.get("end_date", "")
+        is_new = False
+        is_upcoming = False
+        try:
+            if start:
+                start_date = datetime.strptime(start, "%Y-%m-%d").date()
+                is_new = (today - start_date).days <= 7
+                is_upcoming = start_date >= today
+        except Exception:
+            pass
+        is_mandatory = evt.get("is_mandatory", False)
+        academic_calendar.append({
+            "id": f"event-{evt['id']}",
+            "title": evt["title"],
+            "date": start,
+            "endDate": end,
+            "isNew": is_new,
+            "isUpcoming": is_upcoming,
+            "category": evt.get("category", ""),
+            "isMandatory": is_mandatory,
+            "content": evt.get("description", evt.get("alert_message", "")),
+            "desc": evt.get("description", evt.get("alert_message", "")),
+        })
+    # upcoming 우선, mandatory 우선 정렬
+    academic_calendar.sort(key=lambda x: (
+        0 if x.get("isUpcoming") else 1,
+        0 if x.get("isMandatory") else 1,
+        x["date"] or "",
+    ))
+
+    # ── 2) 키워드 매칭 공지 (filter_notices_by_keywords 사용) ──
+    keyword_prefs = student.get("keyword_preferences", [])
+    keyword_alerts_list = student.get("keyword_alerts", [])
+    all_keywords = list(dict.fromkeys(keyword_prefs + keyword_alerts_list))
+
+    keyword_matched_notices = filter_notices_by_keywords(all_keywords) if all_keywords else []
+    keyword_notices = []
+    for n in keyword_matched_notices[:10]:
+        keyword_notices.append({
+            "id": f"notice-{n['id']}",
+            "title": f"[{', '.join(n.get('matched_keywords', [])[:2])} 매칭] {n['title']}" if n.get("matched_keywords") else n["title"],
+            "date": n.get("date", ""),
+            "isNew": True,
+            "url": n.get("url", ""),
+            "content": n.get("content", ""),
+            "category": n.get("category", ""),
+        })
+
+    # ── 3) 알림 트리거 (get_keyword_notification_alerts 사용) ──
+    triggers_raw = get_keyword_notification_alerts(student_id, all_keywords)
     notification_triggers = []
-    for alert in keyword_alerts[:5]:
-        notice = alert["notice"]
+    for t in triggers_raw[:5]:
+        notice = t.get("notice", {})
         notification_triggers.append({
-            "id": f"trigger-{notice['id']}",
-            "title": alert["message"],
+            "id": f"trigger-{notice.get('id', 'unknown')}",
+            "title": t.get("message", ""),
             "date": notice.get("date", ""),
-            "alert_type": alert["alert_type"],
-            "matched_keywords": alert.get("matched_keywords", []),
+            "alert_type": t.get("alert_type", ""),
+            "matched_keywords": t.get("matched_keywords", []),
             "isNew": True,
             "url": notice.get("url", ""),
             "content": notice.get("content", ""),
-            "category": notice.get("category", "")
+            "category": notice.get("category", ""),
         })
-            
-    # 매칭 결과가 없을 경우 백업
-    if not alerts:
-        alerts = [
-            {"id": 101, "title": "[인턴 매칭] 2026 동계 SW인턴십 모집 안내", "date": "2026-07-22", "isNew": True, "url": "https://www.hs.ac.kr", "content": "2026 동계 소프트웨어(SW) 인턴십 참여 학생을 모집합니다. 많은 참여 바랍니다."},
-            {"id": 102, "title": "[장학 매칭] AI특화 학업 우수 장학금 신청 연장", "date": "2026-07-21", "isNew": False, "url": "https://www.hs.ac.kr", "content": "AI융합대학 AI특화 우수 학생을 위한 학업 지원 장학금 신청 기간이 연장되었습니다."}
-        ]
-        
+
+    # ── 4) 긴급 공지 (urgentNotice) ──
+    urgent_notice = None
+    if academic_calendar:
+        for evt in academic_calendar:
+            if evt.get("isMandatory") and evt.get("isUpcoming"):
+                urgent_notice = {
+                    "id": evt["id"],
+                    "title": evt["title"],
+                    "date": evt["date"],
+                    "isNew": evt["isNew"],
+                    "url": "",
+                    "desc": evt.get("desc", evt.get("content", "")),
+                    "content": evt.get("content", ""),
+                }
+                break
+        if not urgent_notice:
+            for evt in academic_calendar:
+                if evt.get("isMandatory"):
+                    urgent_notice = {
+                        "id": evt["id"],
+                        "title": evt["title"],
+                        "date": evt["date"],
+                        "isNew": evt["isNew"],
+                        "url": "",
+                        "desc": evt.get("desc", evt.get("content", "")),
+                        "content": evt.get("content", ""),
+                    }
+                    break
+        if not urgent_notice and academic_calendar:
+            first = academic_calendar[0]
+            urgent_notice = {
+                "id": first["id"],
+                "title": first["title"],
+                "date": first["date"],
+                "isNew": first["isNew"],
+                "url": "",
+                "desc": first.get("desc", first.get("content", "")),
+                "content": first.get("content", ""),
+            }
+    if not urgent_notice:
+        urgent_notice = {
+            "id": 0,
+            "title": "등록된 긴급 공지가 없습니다.",
+            "date": today.strftime("%Y-%m-%d"),
+            "isNew": False,
+            "url": "",
+            "desc": "",
+        }
+
     return {
-        "interestKeywords": [{"id": idx, "text": kw, "active": True} for idx, kw in enumerate(keywords)],
-        "urgentNotice": {
-            "id": 200,
-            "title": "[긴급] 졸업자격설정 제출 마감 임박 안내 (~07/31)",
-            "date": "2026-07-22",
-            "isNew": True,
-            "url": "https://www.hs.ac.kr",
-            "desc": "2026학년도 전기(2027년 2월) 졸업예정자를 위한 졸업자격인증 설정 및 서류 제출 마감 기한이 임박하였으니 대상자는 속히 확인하시기 바랍니다."
-        },
-        "academicCalendar": alerts,
-        "notificationTriggers": notification_triggers
+        "interestKeywords": [{"id": idx, "text": kw, "active": True} for idx, kw in enumerate(all_keywords)],
+        "urgentNotice": urgent_notice,
+        "academicCalendar": academic_calendar,
+        "keywordNotices": keyword_notices,
+        "notificationTriggers": notification_triggers,
     }
 
 @router.post("/keywords", summary="알림 키워드 등록 API")

@@ -1,4 +1,4 @@
-"""과목 데이터 모듈 - CSV 기반 실제 데이터 로딩 + 트랙/이수구분 검증"""
+"""과목 데이터 모듈 - CSV 기반 실제 데이터 로딩 + 트랙/이수구분 검증 + 학과 필터링"""
 
 from .csv_loader import (
     load_courses,
@@ -12,6 +12,25 @@ from .csv_loader import (
 )
 
 COURSES = None
+
+# ==============================
+# 학과/트랙 필터링 상수
+# ==============================
+
+# AISW 학과 관련 과목 코드 접두사 (전공 과목)
+_AISW_MAJOR_PREFIXES = {"SH", "DS", "AI"}
+
+# 교양 과목 코드 접두사
+_LIBERAL_PREFIXES = {"KY", "KYC", "KYA", "KYD"}
+
+# 계열공통 과목 코드 접두사
+_COMMON_PREFIXES = {"FLOW"}
+
+# 채플 과목 코드
+_CHAPEL_CODES = {"KY100", "KY101", "KY201", "KY304", "KY509"}
+
+# 특화/융합 전공 키워드 (타전공 추천 차단 대상)
+_SPECIALIZATION_KEYWORDS = ["특화", "융합", "특화전공", "융합전공"]
 
 
 def _ensure_loaded():
@@ -27,6 +46,18 @@ def get_course(course_code: str) -> dict | None:
 
 def _normalize_course_name(name: str) -> str:
     return " ".join((name or "").strip().lower().split())
+
+
+def _get_course_prefix(code: str) -> str:
+    """과목 코드에서 접두사 추출 (문자 부분만)"""
+    return "".join(ch for ch in code if ch.isalpha())
+
+
+def _is_chapel_course(course: dict) -> bool:
+    """과목이 채플 과목인지 확인"""
+    code = (course.get("code") or "").lstrip("*")
+    name = course.get("name", "")
+    return code in _CHAPEL_CODES or "채플" in name
 
 
 def _get_taken_course_filter(student: dict) -> tuple[set[str], set[str]]:
@@ -59,6 +90,65 @@ def _is_course_already_taken(course: dict, taken_codes: set[str], taken_names: s
     return bool(normalized_name and normalized_name in taken_names)
 
 
+def _is_course_allowed_for_department(course: dict, student: dict) -> bool:
+    """
+    과목이 해당 학생의 학과/트랙에서 수강할 수 있는 과목인지 확인합니다.
+
+    규칙:
+    1. 교양 과목(KY, KYC, KYA, KYD) → 항상 허용
+    2. 계열공통(FLOW) → 항상 허용
+    3. AISW 전공 과목(SH, DS, AI) → AISW 학생에게 허용
+    4. 타전공 과목 → 전선/계공/교필/교양 학점이 모두 충족된 경우에만 허용
+       단, 특화/융합 전공 사용자에게는 타전공 추천 차단
+    """
+    code = (course.get("code") or "").lstrip("*")
+    prefix = _get_course_prefix(code)
+    course_type = _normalize_completion_type(course.get("type", ""))
+
+    # 1. 교양 과목은 항상 허용
+    if prefix in _LIBERAL_PREFIXES:
+        return True
+
+    # 2. 계열공통은 항상 허용
+    if prefix in _COMMON_PREFIXES:
+        return True
+
+    # 3. AISW 전공 과목은 AISW 학생에게 허용
+    if prefix in _AISW_MAJOR_PREFIXES:
+        return True
+
+    # 4. 타전공 과목 필터링
+    # 특화/융합 전공 사용자에게는 타전공 추천 차단
+    specialized_track = student.get("specialized_track", "")
+    convergence_major = student.get("convergence_major", "")
+    has_specialization = any(kw in specialized_track for kw in _SPECIALIZATION_KEYWORDS)
+    has_convergence = any(kw in convergence_major for kw in _SPECIALIZATION_KEYWORDS)
+
+    if has_specialization or has_convergence:
+        return False
+
+    # 전선/계공/교필/교양 학점이 모두 충족된 경우에만 타전공 허용
+    if _are_core_categories_satisfied(student):
+        return True
+
+    # 그 외 타전공 과목은 추천 후보에서 제외
+    return False
+
+
+def _are_core_categories_satisfied(student: dict) -> bool:
+    """
+    핵심 카테고리(전공선택, 계열공통, 교양필수, 교양선택)의 학점이 모두 충족되었는지 확인합니다.
+    """
+    grad_summary = get_graduation_credit_summary(student)
+    core_categories = ["전공선택", "계열공통", "교양필수", "교양선택"]
+
+    for cat in core_categories:
+        info = grad_summary.get(cat, {"remaining": 0})
+        if info.get("remaining", 0) > 0:
+            return False
+    return True
+
+
 def get_available_courses(student: dict, semester: str = None) -> list[dict]:
     _ensure_loaded()
     taken, taken_names = _get_taken_course_filter(student)
@@ -71,10 +161,32 @@ def get_available_courses(student: dict, semester: str = None) -> list[dict]:
         target_year = parts[0]
         target_sem = parts[1]
 
+    # 채플 8회 이수 완료 체크
+    completed_codes = student.get("completed_courses", [])
+    chapel_completed_count = 0
+    for code in completed_codes:
+        code_clean = code.lstrip("*")
+        course_obj = COURSES.get(code_clean)
+        if _is_chapel_course({"code": code_clean, "name": course_obj.get("name", "") if course_obj else ""}):
+            chapel_completed_count += 1
+
+    is_chapel_satisfied = chapel_completed_count >= 8
+
     filtered_courses = []
     for code, course in COURSES.items():
+        # 1. 기이수/수강중 과목 완전 차단
         if _is_course_already_taken(course, taken, taken_names):
             continue
+
+        # 2. 채플 이수 요건 충족 시 채플 과목 완전 제외
+        if is_chapel_satisfied and _is_chapel_course(course):
+            continue
+
+        # 3. 학과/트랙 필터링 (타전공 우선순위 기반)
+        if not _is_course_allowed_for_department(course, student):
+            continue
+
+        # 4. 학기 필터링
         if target_year and target_sem:
             offerings = course.get("offerings", [])
             if len(offerings) > 0:
@@ -84,6 +196,7 @@ def get_available_courses(student: dict, semester: str = None) -> list[dict]:
                 )
                 if not has_matching:
                     continue
+
         filtered_courses.append(course)
     return filtered_courses
 
@@ -124,7 +237,7 @@ def get_required_remaining(student: dict, semester: str = None) -> list[dict]:
 
 
 def get_all_remaining_required_for_semester(student: dict, semester: str = None) -> dict:
-    """미이수 필수 과목(전공필수 + 교양필수) 중 해당 학기에 개설된 과목을 반환합니다."""
+    """미이수 필수 과목(전공필수 + 교양필수 + 계열공통) 중 해당 학기에 개설된 과목을 반환합니다."""
     _ensure_loaded()
     taken, taken_names = _get_taken_course_filter(student)
 
@@ -136,9 +249,9 @@ def get_all_remaining_required_for_semester(student: dict, semester: str = None)
         target_year = parts[0]
         target_sem = parts[1]
 
-    # AISW 학과는 전공필수 과목이 없으므로 필수 과목 타입 목록에서 제외
+    # AISW 학과는 전공필수 과목이 없으므로 필수 과목 타입 목록에서 제외하되 계열공통 추가
     is_aisw = student.get("department") in ("AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부")
-    required_types = {"교양필수", "general_required"} if is_aisw else {"전공필수", "교양필수", "required", "general_required"}
+    required_types = {"교양필수", "general_required", "계열공통"} if is_aisw else {"전공필수", "교양필수", "required", "general_required", "계열공통"}
 
     by_category = {}
     for code, course in COURSES.items():
@@ -170,6 +283,9 @@ def get_all_remaining_required_for_semester(student: dict, semester: str = None)
             "name": course.get("name", ""),
             "credits": course.get("credits", 0),
             "type": ctype,
+            "time_slots": course.get("time_slots", []),
+            "professor": course.get("professor", "미정"),
+            "room": course.get("room", "미정"),
         }
 
         if is_available_this_sem:
@@ -216,6 +332,10 @@ def get_all_semesters() -> list[str]:
             "2026-2학기", "2026-1학기", "2025-2학기", "2025-1학기",
             "2024-2학기", "2024-1학기", "2023-2학기", "2023-1학기",
         }
+
+    # 항상 최신 학기 포함 (CSV에 없어도)
+    semesters.add("2026-2학기")
+    semesters.add("2026-1학기")
 
     def semester_sort_key(s):
         try:
@@ -687,9 +807,28 @@ def get_interest_matching_courses(student: dict, interest_keywords: list[str]) -
     if not target_categories:
         target_categories = {"전공필수", "전공선택", "교양선택", "계열공통"}
 
+    # 채플 8회 이수 완료 체크
+    completed_codes = student.get("completed_courses", [])
+    chapel_completed_count = 0
+    for code in completed_codes:
+        code_clean = code.lstrip("*")
+        course_obj = COURSES.get(code_clean)
+        if _is_chapel_course({"code": code_clean, "name": course_obj.get("name", "") if course_obj else ""}):
+            chapel_completed_count += 1
+    is_chapel_satisfied = chapel_completed_count >= 8
+
     results = []
     for code, course in COURSES.items():
+        # 기이수/수강중 과목 차단
         if _is_course_already_taken(course, taken, taken_names):
+            continue
+
+        # 채플 과목 차단
+        if is_chapel_satisfied and _is_chapel_course(course):
+            continue
+
+        # 학과/트랙 필터링 (타전공 우선순위 기반)
+        if not _is_course_allowed_for_department(course, student):
             continue
 
         category = _normalize_completion_type(course.get("type", ""))
