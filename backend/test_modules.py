@@ -404,6 +404,38 @@ def test_christianity_course_satisfied():
     print("  [✓] 기독교 중복 이수 배제 검증 완료!")
 
 
+def test_chatbot_preferences():
+    print("=" * 60)
+    print("TEST: 챗봇 선호도 및 요일 분석 검증")
+    print("=" * 60)
+
+    from core.chatbot import _extract_preference_from_message
+
+    tests = [
+        ("월, 수 공강 만들어줘", {"remove_days": ["월", "수"]}),
+        ("화, 목, 금만 학교 갈래", {"set_days": ["화", "목", "금"]}),
+        ("월요일만 빼고 화목금 수업 들을래", {"remove_days": ["월"], "set_days": ["화", "목", "금"]}),
+        ("오전 수업 선호해", {"prefer_morning": True}),
+        ("오전 수업은 피하고 싶어", {"avoid_morning": True}),
+        ("오후 위주로 짜줘", {"prefer_afternoon": True}),
+        ("오후는 안돼", {"avoid_afternoon": True}),
+        ("월요일 공강하고 오전 선호해", {"remove_days": ["월"], "prefer_morning": True}),
+    ]
+
+    for msg, expected in tests:
+        res = _extract_preference_from_message(msg)
+        for k, v in expected.items():
+            assert k in res, f"키 {k}가 결과에 없음. 메시지: {msg}, 결과: {res}"
+            assert res[k] == v, f"키 {k}의 값이 불일치. 예상: {v}, 결과: {res[k]}. 메시지: {msg}"
+        
+        # 원치 않는 키가 추가로 존재하지 않는지 검증
+        for k in res:
+            if k not in expected and k in ["remove_days", "set_days", "avoid_morning", "prefer_morning", "prefer_afternoon", "avoid_afternoon"]:
+                raise AssertionError(f"원치 않는 키 {k}가 결과에 포함됨. 메시지: {msg}, 결과: {res}")
+
+    print("  [✓] 챗봇 선호도 분석 검증 완료!")
+
+
 if __name__ == "__main__":
     print("🎓 졸업을 부탁해 - CSV 기반 모듈 테스트\n")
 
@@ -414,6 +446,7 @@ if __name__ == "__main__":
     test_chapel_satisfied_rule()
     test_chatbot_chapel_and_taken_courses()
     test_christianity_course_satisfied()
+    test_chatbot_preferences()
     test_timetable()
     test_time_conflict()
     test_preferences()

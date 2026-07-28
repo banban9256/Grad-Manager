@@ -699,33 +699,106 @@ def detect_interest_keywords(user_message: str) -> tuple:
 def _extract_preference_from_message(user_message: str) -> dict:
     """사용자 메시지에서 선호 시간대 정보를 추출합니다."""
     msg = user_message.lower()
+    msg_no_space = msg.replace(" ", "")
     preferences = {}
 
     days = ["월", "화", "수", "목", "금"]
+    
+    # 요일 오탐을 방지하기 위한 마스킹 단어 목록
+    mask_words = [
+        "수업", "수강", "수학", "필수", "이수", "교수", "소수", "복수", "연수", "일수", "횟수", "기수강",
+        "목적", "과목", "항목", "주목", "목록", "골목",
+        "장학금", "금지", "납부금", "세금", "지금", "예금", "요금", "입금",
+        "화학", "문화", "특화", "변화", "소화", "대화", "시각화",
+        "개월", "월말", "월별", "세월", "금요일", "목요일", "수요일", "화요일", "월요일"
+    ]
+    
+    # 단, 'X요일' 패턴은 미리 요일로 인식하고 마스킹해야 함
+    detected_days_from_yoil = set()
     for d in days:
-        d_target = d + "요일"
-        if (d_target in msg or d in msg) and (
-            "공강" in msg or "빼" in msg or "제외" in msg
-            or "없이" in msg or "없게" in msg or "안돼" in msg
-        ):
-            preferences.setdefault("remove_days", []).append(d)
+        if d + "요일" in msg:
+            detected_days_from_yoil.add(d)
+            
+    masked_msg = msg
+    for word in mask_words:
+        masked_msg = masked_msg.replace(word, "X" * len(word))
+        
+    # 최종 감지된 요일 목록
+    detected_days = set(detected_days_from_yoil)
+    for d in days:
+        if d in masked_msg:
+            detected_days.add(d)
 
-    if "월수금" in msg:
-        preferences["set_days"] = ["월", "수", "금"]
-    elif "화목" in msg:
-        preferences["set_days"] = ["화", "목"]
+    # 1. 요일별 개별 처리 (remove_days 및 set_days)
+    remove_keywords = ["공강", "빼", "제외", "없이", "없게", "안돼", "싫", "피해", "피하", "x", "안들", "안듣", "않"]
+    set_keywords = ["만", "위주", "선호", "들", "듣", "갈래", "가고", "짜줘", "듣기", "신청", "수업", "수강"]
+    
+    remove_days = []
+    set_days = []
+    
+    # 각 요일별로 remove인지 set인지 컨텍스트 판단
+    # masked_msg 기준으로 판단하여 오탐 방지
+    for d in days:
+        if d not in detected_days:
+            continue
+            
+        is_remove = False
+        is_set = False
+        
+        has_yoil = d + "요일" in msg
+        search_target = d + "요일" if has_yoil else d
+        idx = msg.find(search_target)
+        
+        while idx != -1:
+            # 요일 뒤 15글자를 가져와서 공백을 제거한 뒤 검사
+            context = msg[idx:idx+15].replace(" ", "")
+            
+            if any(rk in context for rk in remove_keywords):
+                is_remove = True
+            elif any(sk in context for sk in set_keywords):
+                is_set = True
+                
+            idx = msg.find(search_target, idx + 1)
+            
+        if not is_remove and not is_set:
+            if any(rk in msg_no_space for rk in remove_keywords):
+                is_remove = True
+            elif any(sk in msg_no_space for sk in set_keywords):
+                is_set = True
+            else:
+                is_set = True
+                
+        if is_remove:
+            remove_days.append(d)
+        elif is_set:
+            set_days.append(d)
 
-    if ("오전" in msg or "아침" in msg or "1교시" in msg) and (
-        "빼" in msg or "기피" in msg or "제외" in msg
-        or "안돼" in msg or "싫" in msg or "피해" in msg
-    ):
-        preferences["avoid_morning"] = True
+    if remove_days:
+        preferences["remove_days"] = remove_days
+    if set_days:
+        preferences["set_days"] = set_days
 
-    if "오후" in msg and (
-        "선호" in msg or "위주" in msg or "좋" in msg
-        or "맞춰" in msg or "짜줘" in msg
-    ):
-        preferences["prefer_afternoon"] = True
+    # 2. 오전/오후 선호 및 기피 분석
+    has_morning = "오전" in msg or "아침" in msg or "1교시" in msg
+    has_afternoon = "오후" in msg
+
+    prefer_keywords = ["선호", "위주", "좋", "맞춰", "짜줘", "원해", "원함", "하고싶", "듣고싶"]
+    avoid_keywords = ["빼", "기피", "제외", "안돼", "싫", "피해", "피하", "없이", "없게", "안들", "안듣", "하지않", "않고싶"]
+
+    has_prefer = any(pk in msg_no_space for pk in prefer_keywords)
+    has_avoid = any(ak in msg_no_space for ak in avoid_keywords)
+
+    if has_morning:
+        if has_avoid:
+            preferences["avoid_morning"] = True
+        elif has_prefer:
+            preferences["prefer_morning"] = True
+
+    if has_afternoon:
+        if has_avoid:
+            preferences["avoid_afternoon"] = True
+        elif has_prefer:
+            preferences["prefer_afternoon"] = True
 
     return preferences
 
@@ -767,7 +840,7 @@ def _validate_recommendation_against_data(ai_response: str, context_courses: lis
     if not context_courses:
         return ai_response
 
-    # 컨텍스트에 있는 실제 과목 코드集合
+    # 컨텍스트에 있는 실제 과목 코드
     valid_codes = {c.get("code", "") for c in context_courses if c.get("code")}
 
     # 응답에서 과목 코드 추출
@@ -920,17 +993,53 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
                 student["preferred_days"] = prefs["set_days"]
                 updated = True
 
+            # 오전 기피
             if prefs.get("avoid_morning"):
                 avoid = student.get("avoid_times", [])
                 if "09:00-12:00" not in avoid:
                     student["avoid_times"] = list(set(avoid + ["09:00-12:00"]))
-                    updated = True
+                # 선호 시간대에서 오전("09:00-12:00") 제거
+                pref_times = student.get("preferred_times", [])
+                if "09:00-12:00" in pref_times:
+                    pref_times.remove("09:00-12:00")
+                    student["preferred_times"] = pref_times
+                updated = True
 
+            # 오전 선호
+            if prefs.get("prefer_morning"):
+                pref_times = student.get("preferred_times", [])
+                if "09:00-12:00" not in pref_times:
+                    student["preferred_times"] = list(set(pref_times + ["09:00-12:00"]))
+                # 피하는 시간대에서 오전("09:00-12:00") 제거
+                avoid = student.get("avoid_times", [])
+                if "09:00-12:00" in avoid:
+                    avoid.remove("09:00-12:00")
+                    student["avoid_times"] = avoid
+                updated = True
+
+            # 오후 선호
             if prefs.get("prefer_afternoon"):
                 pref_times = student.get("preferred_times", [])
                 if "13:00-18:00" not in pref_times:
                     student["preferred_times"] = list(set(pref_times + ["13:00-18:00"]))
-                    updated = True
+                # 피하는 시간대에서 오후("13:00-18:00") 제거
+                avoid = student.get("avoid_times", [])
+                if "13:00-18:00" in avoid:
+                    avoid.remove("13:00-18:00")
+                    student["avoid_times"] = avoid
+                updated = True
+
+            # 오후 기피
+            if prefs.get("avoid_afternoon"):
+                avoid = student.get("avoid_times", [])
+                if "13:00-18:00" not in avoid:
+                    student["avoid_times"] = list(set(avoid + ["13:00-18:00"]))
+                # 선호 시간대에서 오후("13:00-18:00") 제거
+                pref_times = student.get("preferred_times", [])
+                if "13:00-18:00" in pref_times:
+                    pref_times.remove("13:00-18:00")
+                    student["preferred_times"] = pref_times
+                updated = True
 
             # 관심사 저장 (누적)
             if interest_kws:
