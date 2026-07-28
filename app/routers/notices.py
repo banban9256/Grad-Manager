@@ -21,10 +21,7 @@ class KeywordRegisterRequest(BaseModel):
 
 def get_student_from_token(authorization: Optional[str]) -> dict:
     if not authorization:
-        student = get_student("20210001")
-        if not student:
-            raise HTTPException(status_code=404, detail="기본 데모 학생을 찾을 수 없습니다.")
-        return student
+        raise HTTPException(status_code=401, detail="인증 토큰이 없습니다. 로그인 후 이용해주세요.")
     try:
         token = authorization.split(" ")[1]
         student_id = token.replace("mock-jwt-token-", "")

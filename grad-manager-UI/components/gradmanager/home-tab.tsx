@@ -46,7 +46,7 @@ const toneVar: Record<string, string> = {
 export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations, onChangeTab }: HomeTabProps) {
   const { user } = useGradData()
   const { showToast } = useToast()
-  const { userInfo, creditCategories, quickMenus } = user
+  const { userInfo, creditCategories, liberalRequirements = [], quickMenus } = user
 
   return (
     <motion.div 
@@ -122,7 +122,7 @@ export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations, onChangeTab 
             <h2 className="text-sm font-semibold text-muted-foreground">이수 구분별 진행률</h2>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3 md:grid-cols-1 lg:grid-cols-1">
               {creditCategories.map((c) => {
-                const pct = Math.min(100, Math.round((c.current / c.required) * 100))
+                const pct = c.required > 0 ? Math.min(100, Math.round((c.current / c.required) * 100)) : 100
                 return (
                   <div key={c.key} className="rounded-2xl bg-card border border-border p-4 shadow-sm">
                     <div className="mb-2.5 flex items-baseline justify-between">
@@ -145,6 +145,88 @@ export function HomeTab({ onOpenDigitalTwin, onOpenRecommendations, onChangeTab 
               })}
             </div>
           </section>
+
+          {/* Liberal arts required checkbox status cards */}
+          {liberalRequirements.length > 0 && (
+            <section className="space-y-3">
+              <h2 className="text-sm font-semibold text-muted-foreground">교양 필수 과목 이수 현황</h2>
+              <div className="rounded-2xl bg-card border border-border p-4.5 shadow-sm space-y-4">
+                
+                {/* Chapel counts */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-foreground">채플 (4회)</span>
+                    <span className="text-[10px] text-muted-foreground font-semibold">
+                      {liberalRequirements.filter((r: any) => r.category === "채플" && r.checked).length} / 4 이수
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    {liberalRequirements.filter((r: any) => r.category === "채플").map((r: any, idx: number) => (
+                      <div
+                        key={r.id}
+                        className={`flex-1 h-8 rounded-xl border flex items-center justify-center transition-all ${
+                          r.checked
+                            ? "bg-[#3182f6]/10 border-[#3182f6]/30 text-[#3182f6] font-bold"
+                            : "bg-secondary/40 border-border/60 text-muted-foreground/40 font-medium"
+                        }`}
+                        title={r.label}
+                      >
+                        <span className="text-[10px] font-black">{idx + 1}회</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Career counselings */}
+                <div className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-xs font-bold text-foreground">진로와상담 (4회)</span>
+                    <span className="text-[10px] text-muted-foreground font-semibold">
+                      {liberalRequirements.filter((r: any) => r.category === "진로와상담" && r.checked).length} / 4 이수
+                    </span>
+                  </div>
+                  <div className="flex gap-2">
+                    {liberalRequirements.filter((r: any) => r.category === "진로와상담").map((r: any, idx: number) => (
+                      <div
+                        key={r.id}
+                        className={`flex-1 h-8 rounded-xl border flex items-center justify-center transition-all ${
+                          r.checked
+                            ? "bg-[#3182f6]/10 border-[#3182f6]/30 text-[#3182f6] font-bold"
+                            : "bg-secondary/40 border-border/60 text-muted-foreground/40 font-medium"
+                        }`}
+                        title={r.label}
+                      >
+                        <span className="text-[10px] font-black">{idx + 1}회</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Other mandatory liberal courses */}
+                <div className="space-y-2">
+                  <span className="text-xs font-bold text-foreground block">기초 교양 필수 요건</span>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    {liberalRequirements.filter((r: any) => r.category !== "채플" && r.category !== "진로와상담").map((r: any) => (
+                      <div
+                        key={r.id}
+                        className={`p-2.5 rounded-xl border flex flex-col justify-between gap-1.5 transition-all text-left ${
+                          r.checked
+                            ? "bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400"
+                            : "bg-secondary/40 border-border/60 text-muted-foreground/60"
+                        }`}
+                      >
+                        <span className="text-[9px] font-black tracking-tight leading-tight line-clamp-1">{r.label}</span>
+                        <span className="text-[8px] font-black self-end">
+                          {r.checked ? "✓ 이수" : "미이수"}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+              </div>
+            </section>
+          )}
 
           {/* Quick menu grid */}
           <section className="space-y-3">

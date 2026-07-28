@@ -121,27 +121,23 @@ def test_chapel_satisfied_rule():
     original_courses = course_module.COURSES
     try:
         # 가상의 개설 과목 등록
-        # KY100: 이수 완료한 채플
-        # KY201: 미이수한 채플
+        # KY100: 이수 완료한 채플 (학점 0.5)
+        # KY201: 미이수한 채플 (학점 0.5)
         course_module.COURSES = {
-            "KY100": {"code": "KY100", "name": "채플", "credits": 1.0, "type": "교양필수", "offerings": []},
-            "KY201": {"code": "KY201", "name": "채플", "credits": 1.0, "type": "교양필수", "offerings": []},
+            "KY100": {"code": "KY100", "name": "채플", "credits": 0.5, "type": "교양필수", "offerings": []},
+            "KY201": {"code": "KY201", "name": "채플", "credits": 0.5, "type": "교양필수", "offerings": []},
             "SH200": {"code": "SH200", "name": "데이터베이스", "credits": 3, "type": "전공선택", "offerings": []},
         }
 
-        # 1. 0.5학점 또는 1.0학점 채플을 8번 이수한 학생 (과목명이 '채플')
+        # 1. 0.5학점 채플을 4번 이수한 학생 (과목명이 '채플')
         student_satisfied = {
-            "completed_courses": ["KY100", "KY102", "KY103", "KY104", "KY105", "KY106", "KY107", "KY108"],
-            "completed_course_names": ["채플", "채플", "채플", "채플", "채플", "채플", "채플", "채플"],
+            "completed_courses": ["KY100", "KY102", "KY103", "KY104"],
+            "completed_course_names": ["채플", "채플", "채플", "채플"],
             "completed_courses_detail": [
-                {"code": "KY100", "name": "채플", "credits": 1.0},
+                {"code": "KY100", "name": "채플", "credits": 0.5},
                 {"code": "KY102", "name": "채플", "credits": 0.5},
                 {"code": "KY103", "name": "채플", "credits": 0.5},
-                {"code": "KY104", "name": "채플", "credits": 1.0},
-                {"code": "KY105", "name": "채플", "credits": 0.5},
-                {"code": "KY106", "name": "채플", "credits": 0.5},
-                {"code": "KY107", "name": "채플", "credits": 1.0},
-                {"code": "KY108", "name": "채플", "credits": 0.5},
+                {"code": "KY104", "name": "채플", "credits": 0.5},
             ],
             "in_progress_courses": [],
             "department": "AISW"
@@ -153,18 +149,14 @@ def test_chapel_satisfied_rule():
         assert "KY201" not in satisfied_codes
         assert "SH200" in satisfied_codes
 
-        # 2. 채플을 7번 이수한 학생
+        # 2. 채플을 3번 이수한 학생
         student_unsatisfied = {
-            "completed_courses": ["KY100", "KY102", "KY103", "KY104", "KY105", "KY106", "KY107"],
-            "completed_course_names": ["채플", "채플", "채플", "채플", "채플", "채플", "채플"],
+            "completed_courses": ["KY100", "KY102", "KY103"],
+            "completed_course_names": ["채플", "채플", "채플"],
             "completed_courses_detail": [
-                {"code": "KY100", "name": "채플", "credits": 1.0},
+                {"code": "KY100", "name": "채플", "credits": 0.5},
                 {"code": "KY102", "name": "채플", "credits": 0.5},
                 {"code": "KY103", "name": "채플", "credits": 0.5},
-                {"code": "KY104", "name": "채플", "credits": 1.0},
-                {"code": "KY105", "name": "채플", "credits": 0.5},
-                {"code": "KY106", "name": "채플", "credits": 0.5},
-                {"code": "KY107", "name": "채플", "credits": 1.0},
             ],
             "in_progress_courses": [],
             "department": "AISW"
@@ -328,14 +320,27 @@ def test_chatbot_chapel_and_taken_courses():
     student_satisfied = {
         "student_id": "9999",
         "completed_courses": ["KY101", "KY201", "KY304", "KY509", "KY901", "KY902", "KY903", "KY904"],
-        "completed_course_names": ["채플", "채플", "채플", "채플", "채플", "채플", "채플", "채플"]
+        "completed_course_names": ["채플", "채플", "채플", "채플", "채플", "채플", "채플", "채플"],
+        "completed_courses_detail": [
+            {"code": "KY101", "name": "채플", "credits": 0.5},
+            {"code": "KY201", "name": "채플", "credits": 0.5},
+            {"code": "KY304", "name": "채플", "credits": 0.5},
+            {"code": "KY509", "name": "채플", "credits": 0.5},
+            {"code": "KY901", "name": "채플", "credits": 0.5},
+            {"code": "KY902", "name": "채플", "credits": 0.5},
+            {"code": "KY903", "name": "채플", "credits": 0.5},
+            {"code": "KY904", "name": "채플", "credits": 0.5},
+        ]
     }
 
     # 채플을 1번 이수한 가상 학생
     student_unsatisfied = {
         "student_id": "8888",
         "completed_courses": ["KY101"],
-        "completed_course_names": ["채플"]
+        "completed_course_names": ["채플"],
+        "completed_courses_detail": [
+            {"code": "KY101", "name": "채플", "credits": 0.5}
+        ]
     }
 
     sat_info = _count_chapel_completed(student_satisfied)

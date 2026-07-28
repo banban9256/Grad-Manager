@@ -73,6 +73,7 @@ export type GradManagerData = {
   user: {
     userInfo: UserInfo
     creditCategories: CreditCategory[]
+    liberalRequirements?: any[]
     quickMenus: QuickMenu[]
   }
   schedule: {

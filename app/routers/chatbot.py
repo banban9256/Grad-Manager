@@ -19,10 +19,7 @@ class ChatRequest(BaseModel):
 
 def get_student_from_token(authorization: Optional[str]) -> dict:
     if not authorization:
-        student = get_student("20210001")
-        if not student:
-            raise HTTPException(status_code=404, detail="기본 데모 학생을 찾을 수 없습니다.")
-        return student
+        raise HTTPException(status_code=401, detail="인증 토큰이 없습니다. 로그인 후 이용해주세요.")
     try:
         token = authorization.split(" ")[1]
         student_id = token.replace("mock-jwt-token-", "")
@@ -165,9 +162,9 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
             "desc": "현재 주전공 이수를 위해 남은 미이수 전공 필수 요건들을 누락 없이 담았습니다."
         })
     reasons.append({
-        "icon": "BrainCircuit",
-        "title": "강의동 간 동선 최소화 최적화",
-        "desc": "연강일 때 강의실 이동 거리를 감안하여 IT융합관/공학관 위주로 묶어 배정했습니다."
+        "icon": "Check",
+        "title": "강의실 간 거리 제외",
+        "desc": "사용자 요청에 따라 강의실 간 거리를 계산에서 배제하고 추천 과목들로만 배정했습니다."
     })
 
     # 각 과목별 상세 추천 사유 생성 (대화에서 생성된 AI 추천 이유를 시간표 페이지에 전달)

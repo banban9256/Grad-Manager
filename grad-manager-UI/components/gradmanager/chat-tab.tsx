@@ -815,6 +815,69 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                     <SummaryStat label="총 학점" value={`${totalCreditsText}학점`} />
                     <SummaryStat label="과목 수" value={`${courseCount}개`} />
                   </div>
+
+                  {/* 미니 시간표 그리드 시각화 */}
+                  {localSimData && localSimData.scheduleBlocks && localSimData.scheduleBlocks.length > 0 && (
+                    <div className="border border-border/80 rounded-2xl p-3 bg-secondary/20 space-y-2 select-none overflow-x-auto">
+                      <div className="grid grid-cols-[30px_repeat(5,1fr)] min-w-[280px] w-full [--mini-row-h:20px]">
+                        <div />
+                        {["월", "화", "수", "목", "금"].map((d) => (
+                          <div key={d} className="text-center text-[10px] font-bold text-muted-foreground pb-1">
+                            {d}
+                          </div>
+                        ))}
+                        {/* 시간 라벨 열 및 그리드 */}
+                        <div className="relative pr-1 pt-0.5 flex flex-col justify-between h-[180px] text-right text-[8px] text-muted-foreground/60 font-mono">
+                          {[9, 11, 13, 15, 17].map((h) => (
+                            <div key={h} className="leading-none" style={{ height: "calc(var(--mini-row-h) * 2)" }}>
+                              {h}:00
+                            </div>
+                          ))}
+                        </div>
+                        {/* 요일별 컬럼 */}
+                        {["월", "화", "수", "목", "금"].map((day, dayIdx) => (
+                          <div key={day} className="relative border-l border-border/40 h-[180px] bg-secondary/5">
+                            {/* gridlines */}
+                            {[9, 10, 11, 12, 13, 14, 15, 16, 17].map((h) => (
+                              <div key={h} className="border-b border-border/30 h-[var(--mini-row-h)]" />
+                            ))}
+                            {/* 과목 블록들 */}
+                            {localSimData.scheduleBlocks
+                              .filter((b: any) => {
+                                let bDay = b.day;
+                                if (typeof bDay === "string") {
+                                  const mapping: Record<string, number> = { "월": 0, "화": 1, "수": 2, "목": 3, "금": 4 }
+                                  bDay = mapping[bDay] !== undefined ? mapping[bDay] : -1
+                                }
+                                return bDay === dayIdx
+                              })
+                              .map((b: any) => {
+                                const startHour = Number(b.start)
+                                const offset = startHour >= 9 ? (startHour - 9) : 0
+                                const span = Number(b.span) || 1.5
+                                return (
+                                  <div
+                                    key={b.id}
+                                    className={`absolute inset-x-0.5 rounded-lg p-1 overflow-hidden text-[8px] leading-tight font-extrabold border border-white/25 dark:border-white/5 shadow-sm ${
+                                      b.color || "bg-blue-100"
+                                    } ${b.textColor || "text-blue-700"}`}
+                                    style={{
+                                      top: `calc(${offset} * var(--mini-row-h) + 1px)`,
+                                      height: `calc(${span} * var(--mini-row-h) - 2px)`
+                                    }}
+                                    title={`${b.name} (${b.professor})`}
+                                  >
+                                    <p className="truncate">{b.name}</p>
+                                    <p className="truncate opacity-75">{b.professor}</p>
+                                  </div>
+                                )
+                              })}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   <ul className="space-y-2.5 border-t border-border pt-4">
                     {displayReasons.filter(r => r && r.title).map((r, i) => {
                       const Icon = reasonIconMap[r.icon] ?? Sparkles

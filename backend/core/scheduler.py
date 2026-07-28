@@ -77,36 +77,71 @@ def _score_schedule(schedule: list[dict], student: dict) -> float:
     """시간표 점수 계산 (높을수록 좋음)"""
     score = 0.0
 
-    # 미이수 필수(교양필수, 계열공통, 전공필수) 과목 포함 시 파격 보너스
+    # 1. 미이수 계열공통, 교양필수, 전공선택, 전공필수 과목에 가중치 부여
+    from .data.courses import get_track_elective_remaining, get_all_remaining_required_for_semester
+    
+    # 이번 학기 미이수 계공, 교필
+    required_remain_codes = set()
     target_semester = student.get("target_semester")
-    required = set()
     try:
-        from .data.courses import get_all_remaining_required_for_semester
         sem_req = get_all_remaining_required_for_semester(student, target_semester)
         for cat, info in sem_req.items():
             for c in info.get("available_now", []):
-                required.add(c["code"])
+                required_remain_codes.add(c["code"])
     except Exception:
         pass
+
+    # 이번 학기 미이수 전선 (트랙 반영)
+    elective_remain_codes = set()
+    try:
+        electives = get_track_elective_remaining(student, target_semester)
+        for c in electives:
+            elective_remain_codes.add(c["code"])
+    except Exception:
+        pass
+
+    for course in schedule:
+        code = course["code"]
+        course_name = course.get("name", "")
+        ctype = course.get("type", "")
         
-    for c in get_required_remaining(student):
-        required.add(c["code"])
+        # 1-1. 이수 횟수가 모자란 과목 (채플, 진로와상담, 사회생활길잡이, 대학생활길잡이 등) -> 최우선 가중치 (+50.0)
+        is_exception_course = "채플" in course_name or "진로와상담" in course_name or "사회생활길잡이" in course_name or "대학생활길잡이" in course_name
+        if is_exception_course:
+            score += 50.0
+            
+        # 1-2. 미이수 계열공통 또는 교양필수 과목 (+40.0)
+        elif code in required_remain_codes:
+            score += 40.0
+        elif ctype == "계열공통" or ctype == "교양필수":
+            score += 40.0
+            
+        # 1-3. 미이수 전공선택 과목 (+30.0)
+        elif code in elective_remain_codes:
+            score += 30.0
+        elif ctype == "전공선택":
+            score += 30.0
+        
+        # 1-4. 일반 전공필수 등 기타 미이수 필수 과목 (+20.0)
+        elif ctype == "전공필수":
+            score += 20.0
 
-    for course in schedule:
-        if course["code"] in required:
-            # 특히 계열공통 과목인 경우 추가 보너스 점수를 부여하여 우선 순위 랭킹업
-            if course.get("type") == "계열공통" or "계공" in course.get("type", ""):
-                score += 25.0
-            else:
-                score += 15.0
+    # 2. 대화 추천 과목 보너스 (과목당 +100.0점)
+    rec_codes = student.get("chatbot_recommended_courses", [])
+    if rec_codes:
+        for course in schedule:
+            if course["code"] in rec_codes:
+                score += 100.0
 
-    # 수강 가능한 과목 보너스
-    available = {c["code"] for c in get_available_courses(student)}
-    for course in schedule:
-        if course["code"] in available:
-            score += 5.0
+    # 3. 학생 관심사 매칭 보너스 (+20.0)
+    interests = student.get("interests", [])
+    if interests:
+        for course in schedule:
+            course_text = (course.get("name", "") + " " + course.get("description", "")).lower()
+            if any(interest.lower() in course_text for interest in interests):
+                score += 20.0
 
-    # 융합전공 및 특화트랙 매칭 보너스
+    # 4. 융합전공 및 특화트랙 매칭 보너스
     conv = student.get("convergence_major")
     spec = student.get("specialized_track")
     if conv or spec:
@@ -114,42 +149,38 @@ def _score_schedule(schedule: list[dict], student: dict) -> float:
             course_name = course.get("name", "")
             course_desc = course.get("description", "")
             
-            # 특화트랙 매칭
+            # 특화트랙 매칭 (+15.0)
             if spec == "데이터 사이언스 트랙":
                 keywords = ["데이터", "분석", "통계", "머신러닝", "딥러닝", "인공지능", "AI", "Data"]
                 if any(kw in course_name or kw in course_desc for kw in keywords):
-                    score += 8.0
+                    score += 15.0
             elif spec == "인지 감성 특화 트랙":
                 keywords = ["인지", "감성", "인간", "HCI", "심리", "UX", "디자인"]
                 if any(kw in course_name or kw in course_desc for kw in keywords):
-                    score += 8.0
+                    score += 15.0
             elif spec == "지능형 IoT 소프트웨어 트랙":
                 keywords = ["IoT", "임베디드", "네트워크", "센서", "통신", "시스템"]
                 if any(kw in course_name or kw in course_desc for kw in keywords):
-                    score += 8.0
+                    score += 15.0
             elif spec == "풀스택 웹/모바일 소프트웨어 트랙":
                 keywords = ["웹", "모바일", "앱", "안드로이드", "iOS", "프론트", "백엔드", "네트워크", "서버"]
                 if any(kw in course_name or kw in course_desc for kw in keywords):
-                    score += 8.0
+                    score += 15.0
                     
-            # 융합전공 매칭
+            # 융합전공 매칭 (+10.0)
             if conv:
                 conv_clean = conv.replace("융합전공", "")
                 match_terms = [conv_clean, "융합", "문화", "콘텐츠", "경영", "스마트", "공공", "서비스"]
                 if any(term in course_name or term in course_desc for term in match_terms):
-                    score += 5.0
+                    score += 10.0
 
-    # 선호 시간대 매칭 보너스
+    # 5. 선호 시간대 매칭 보너스 (+5.0)
     for course in schedule:
         if _fits_preferences(course, student["preferred_days"], student["preferred_times"], student.get("avoid_times", [])):
-            score += 3.0
+            score += 5.0
 
-    # 대화 추천 과목 보너스 (과목당 +100.0점)
-    rec_codes = student.get("chatbot_recommended_courses", [])
-    if rec_codes:
-        for course in schedule:
-            if course["code"] in rec_codes:
-                score += 100.0
+    # 6. 일반 수강 가능 과목 기본 점수 (+2.0)
+    score += len(schedule) * 2.0
 
     # 학점 수 보너스 (많을수록 좋지만, 21학점 이상이면 감점)
     total_credits = sum(c["credits"] for c in schedule)
@@ -255,9 +286,8 @@ def _generate_timetable_with_preferences(
         for code in rec_codes:
             full_c = get_course(code)
             if full_c and full_c.get("time_slots") and code not in seen_codes:
-                from .data.courses import _get_taken_course_filter, _is_course_already_taken
-                taken_codes, taken_names = _get_taken_course_filter(student)
-                if not _is_course_already_taken(full_c, taken_codes, taken_names):
+                from .data.courses import _is_course_already_taken
+                if not _is_course_already_taken(full_c, student):
                     course_pool.append(full_c)
                     seen_codes.add(code)
 
@@ -275,11 +305,32 @@ def _generate_timetable_with_preferences(
     except Exception as e:
         print(f"Error loading semester required courses for scheduler: {e}")
 
+    # 미이수 트랙 전공선택 과목 우선 탐색 풀 배치
+    try:
+        from .data.courses import get_track_elective_remaining
+        electives = get_track_elective_remaining(student, target_semester)
+        for c in electives:
+            if c["code"] not in seen_codes and c.get("time_slots"):
+                course_pool.append(c)
+                seen_codes.add(c["code"])
+    except Exception as e:
+        print(f"Error loading track electives for scheduler: {e}")
+
     # 필수 과목 먼저 (항상 포함)
     for c in required_remaining:
         if c["code"] not in seen_codes and c.get("time_slots"):
             course_pool.append(c)
             seen_codes.add(c["code"])
+
+    # 사용자 관심사(interests) 매칭 과목 우선 탐색 풀 배치
+    interests = student.get("interests", [])
+    if interests:
+        for c in available_with_schedule:
+            if c["code"] not in seen_codes:
+                course_text = (c.get("name", "") + " " + c.get("description", "")).lower()
+                if any(interest.lower() in course_text for interest in interests):
+                    course_pool.append(c)
+                    seen_codes.add(c["code"])
 
     # 융합/특화전공 관련 과목 우선 탐색 풀 배치
     conv = student.get("convergence_major")
@@ -340,9 +391,9 @@ def _generate_timetable_with_preferences(
     # 필수 과목 세트
     required_codes = {c["code"] for c in required_remaining}
 
-    # 4단계: 조합 생성 (3~5과목)
+    # 4단계: 조합 생성 (3~7과목)
     candidates = []
-    max_combo_size = min(6, len(course_pool) + 1)
+    max_combo_size = min(8, len(course_pool) + 1)
 
     for size in range(3, max_combo_size):
         for combo in combinations(course_pool, size):

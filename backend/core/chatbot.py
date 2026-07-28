@@ -57,7 +57,7 @@ _AISW_CHAPEL_CODE = "KY101"
 _ALL_CHAPEL_CODES = {"KY100", "KY101", "KY201", "KY304", "KY509"}
 
 # 채플 필수 이수 횟수 (졸업요건 고정값 - 수정 시 업데이트 필요)
-_CHAPEL_REQUIRED_COUNT = 8
+_CHAPEL_REQUIRED_COUNT = 4
 
 # 대화 히스토리 최대 턴 수 (user+assistant 쌍 기준)
 _MAX_HISTORY_TURNS = 8
@@ -408,7 +408,7 @@ def _build_available_courses_summary(available: list, limit: int = 40) -> str:
     return "\n".join(lines)
 
 
-def _build_strict_available_courses_json(student: dict, limit: int = 60) -> str:
+def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str:
     """원칙 1: 백엔드 사전 필터링 완료된 수강 가능 과목을 JSON 형태로 구성합니다.
 
     - get_available_courses()가 이미 기수강 과목, 채플 완료 과목, 타학과 과목을 100% 필터링함
@@ -743,15 +743,14 @@ def _extract_and_save_recommended_courses(ai_response: str, student_id: str):
     code_pattern = re.compile(r'\b([A-Z]{2,4}-\d{3}|[A-Z]{2,5}\d{3})\b')
     mentioned_codes = code_pattern.findall(ai_response)
     
-    from .data.courses import _get_taken_course_filter, _is_course_already_taken, get_course
-    taken_codes, taken_names = _get_taken_course_filter(student)
+    from .data.courses import _is_course_already_taken, get_course
     
     recommended_codes = []
     for code in mentioned_codes:
         full_c = get_course(code)
         if full_c and code not in recommended_codes:
             # 과거 이수 과목 및 채플 이수 완료 시 추가 제외
-            if not _is_course_already_taken(full_c, taken_codes, taken_names):
+            if not _is_course_already_taken(full_c, student):
                 recommended_codes.append(code)
                 
     student["chatbot_recommended_courses"] = recommended_codes
@@ -860,6 +859,41 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
             - message: AI 응답 텍스트
             - structured_data: JSON 구조화 데이터 (recommendations 등) 또는 None
     """
+    # 사용자의 대화 입력 텍스트에서 실제 개설 과목명 매칭 수집하여 선주입
+    if student_id:
+        student_temp = get_student(student_id)
+        if student_temp:
+            from .data.courses import load_courses, _is_course_already_taken
+            courses_db = load_courses()
+            matched_codes = []
+            clean_msg = user_message.replace(" ", "").lower()
+            
+            for code, course in courses_db.items():
+                name = course.get("name", "")
+                clean_name = name.replace(" ", "").lower()
+                
+                # 과목명이 최소 3글자 이상이고 사용자 입력 텍스트에 포함되어 있다면
+                if len(clean_name) >= 3 and clean_name in clean_msg:
+                    if not _is_course_already_taken(course, student_temp):
+                        matched_codes.append(code)
+                # 예외 대응 (AISW수학, UIUX 등)
+                elif "aisw수학" in clean_msg and clean_name == "ai·sw수학":
+                    if not _is_course_already_taken(course, student_temp):
+                        matched_codes.append(code)
+                elif "uiux" in clean_msg and "ui" in clean_name and "ux" in clean_name:
+                    if not _is_course_already_taken(course, student_temp):
+                        matched_codes.append(code)
+            
+            # 기존 추천 과목 풀에 병합
+            if matched_codes:
+                current_recs = student_temp.get("chatbot_recommended_courses", [])
+                for code in matched_codes:
+                    if code not in current_recs:
+                        current_recs.append(code)
+                student_temp["chatbot_recommended_courses"] = current_recs
+                from .data.students import save_student
+                save_student(student_id, student_temp)
+
     interest_kws, negative_kws = detect_interest_keywords(user_message)
     lower_msg = user_message.lower()
     is_full_context = _has_recommend_keyword(lower_msg)
@@ -947,7 +981,7 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
             if student_obj:
                 if target_semester:
                     student_obj["target_semester"] = target_semester
-                available_json = _build_strict_available_courses_json(student_obj, limit=60)
+                available_json = _build_strict_available_courses_json(student_obj, limit=150)
                 messages.append({
                     "role": "system",
                     "content": (

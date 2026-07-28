@@ -217,3 +217,7 @@ __marimo__/
 # Streamlit
 .streamlit/secrets.toml
 
+# Grad Manager Database
+gradmanager.db
+gradmanager.db-journal
+

@@ -134,70 +134,127 @@ def _get_taken_course_filter(student: dict) -> tuple[set[str], set[str]]:
     return taken_codes, taken_names
 
 
-def _get_chapel_completed_count(student: dict) -> int:
-    """학생이 이수한 채플 과목의 총 횟수를 반환합니다. (학수번호 무관, 이름에 '채플' 포함)"""
+def _get_completed_count_by_name(student: dict, keyword: str) -> int:
+    """학생이 이수한 과목 중 이름에 특정 키워드가 포함된 과목의 총 횟수를 반환합니다."""
     _ensure_loaded()
     _ensure_completed_course_names(student)
     
-    chapel_completed_count = 0
-    
-    # 1. student 객체에 completed_course_names가 제공되는 경우 우선 사용
+    completed_count = 0
     completed_names = student.get("completed_course_names", [])
     if completed_names:
         for name in completed_names:
-            if "채플" in name:
-                chapel_completed_count += 1
+            if keyword in name:
+                completed_count += 1
     else:
-        # 2. completed_course_names가 없는 경우 (completed_courses_detail이 제공되는 경우)
         completed_details = student.get("completed_courses_detail", [])
         if completed_details:
             for detail in completed_details:
                 name = detail.get("name", "")
-                if name and "채플" in name:
-                    chapel_completed_count += 1
+                if name and keyword in name:
+                    completed_count += 1
         else:
-            # 3. 상세 정보가 전혀 없는 경우 (Fallback)
             completed_codes = student.get("completed_courses", [])
             for code in completed_codes:
                 code_clean = code.lstrip("*")
                 course_obj = COURSES.get(code_clean)
                 if course_obj:
                     name = course_obj.get("name", "")
-                    if "채플" in name:
-                        chapel_completed_count += 1
-                else:
-                    if code_clean in _CHAPEL_CODES:
-                        chapel_completed_count += 1
+                    if keyword in name:
+                        completed_count += 1
+    return completed_count
+
+
+def _get_chapel_completed_count(student: dict) -> int:
+    """학생이 이수한 0.5학점짜리 채플 과목의 총 횟수를 반환합니다. (학수번호 무관, 이름에 '채플' 포함)"""
+    _ensure_loaded()
+    _ensure_completed_course_names(student)
+    
+    chapel_completed_count = 0
+    completed_details = student.get("completed_courses_detail", [])
+    
+    if completed_details:
+        for detail in completed_details:
+            name = detail.get("name", "")
+            credits = detail.get("credits", 0.0)
+            if name and "채플" in name and float(credits) == 0.5:
+                chapel_completed_count += 1
+    else:
+        completed_codes = student.get("completed_courses", [])
+        for code in completed_codes:
+            code_clean = code.lstrip("*")
+            course_obj = COURSES.get(code_clean)
+            if course_obj:
+                name = course_obj.get("name", "")
+                credits = course_obj.get("credits", 0.0)
+                if name and "채플" in name and float(credits) == 0.5:
+                    chapel_completed_count += 1
+            else:
+                if code_clean in _CHAPEL_CODES:
+                    chapel_completed_count += 1
                         
     return chapel_completed_count
 
 
 def _is_chapel_completed(student: dict) -> bool:
-    """학생이 채플 요건(과목명에 '채플'이 포함된 과목을 8회 이수)을 충족했는지 확인합니다."""
-    return _get_chapel_completed_count(student) >= 8
+    """학생이 채플 요건(과목명에 '채플'이 포함된 과목을 4회 이수)을 충족했는지 확인합니다."""
+    return _get_chapel_completed_count(student) >= 4
 
 
-def _is_course_already_taken(course: dict, taken_codes: set[str], taken_names: set[str]) -> bool:
-    if not course:
+def _is_course_already_taken(course: dict, student: dict) -> bool:
+    if not course or not student:
         return False
 
     raw_code = course.get("code") or ""
     code_key = raw_code.strip().lstrip("*").lower()
     
-    # 채플 과목인 경우 과목명 매칭으로 제외 처리하지 않음 (8회 미만 이수 시 다른 코드의 채플은 수강 가능해야 하므로)
-    if _is_chapel_course(course):
-        return bool(code_key and code_key in {c.strip().lstrip("*").lower() for c in taken_codes if c})
+    # 1. 현재 이번 학기 수강 중(in_progress_courses)인 과목 코드는 중복으로 들을 수 없으므로 제외
+    in_progress = {c.strip().lstrip("*").lower() for c in student.get("in_progress_courses", []) if c}
+    if code_key in in_progress:
+        return True
 
-    # 기독교/성서 과목 예외 처리: 이미 기독교 관련 과목을 1과목 이상 이수했다면, 다른 기독교 과목들도 기이수한 것으로 간주
+    course_name = course.get("name", "")
+
+    # 2. 채플 과목 요건 예외 처리
+    if _is_chapel_course(course):
+        # 4회 이상이면 이수 완료(더 이상 안 들음)
+        if _get_chapel_completed_count(student) >= 4:
+            return True
+        else:
+            return False
+
+    # 3. 진로와상담 예외 처리 (4회 이수 필요)
+    if "진로와상담" in course_name:
+        if _get_completed_count_by_name(student, "진로와상담") >= 4:
+            return True
+        else:
+            return False
+
+    # 4. 사회생활길잡이 예외 처리 (1회 이수 필요)
+    if "사회생활길잡이" in course_name:
+        if _get_completed_count_by_name(student, "사회생활길잡이") >= 1:
+            return True
+        else:
+            return False
+
+    # 5. 대학생활길잡이 예외 처리 (1회 이수 필요)
+    if "대학생활길잡이" in course_name:
+        if _get_completed_count_by_name(student, "대학생활길잡이") >= 1:
+            return True
+        else:
+            return False
+
+    # 6. 기독교/성서 과목 예외 처리: 이미 기독교 관련 과목을 1과목 이상 이수했다면, 다른 기독교 과목들도 기이수한 것으로 간주
+    taken_codes, taken_names = _get_taken_course_filter(student)
     if _is_christianity_course(course):
         has_taken_christianity = any("기독교" in name or "성서" in name for name in taken_names if name)
         if has_taken_christianity:
             return True
 
+    # 7. 일반 과목의 중복 방지 (동일 코드 또는 동일 과목명 기이수 여부 확인)
     if code_key and code_key in {c.strip().lstrip("*").lower() for c in taken_codes if c}:
         return True
 
-    normalized_name = _normalize_course_name(course.get("name", ""))
+    normalized_name = _normalize_course_name(course_name)
     return bool(normalized_name and normalized_name in taken_names)
 
 
@@ -278,7 +335,7 @@ def get_available_courses(student: dict, semester: str = None) -> list[dict]:
     filtered_courses = []
     for code, course in COURSES.items():
         # 1. 기이수/수강중 과목 완전 차단
-        if _is_course_already_taken(course, taken, taken_names):
+        if _is_course_already_taken(course, student):
             continue
 
         # 2. 채플 이수 요건 충족 시 채플 과목 완전 제외
@@ -322,7 +379,7 @@ def get_required_remaining(student: dict, semester: str = None) -> list[dict]:
 
     filtered_courses = []
     for code, course in COURSES.items():
-        if _is_course_already_taken(course, taken, taken_names):
+        if _is_course_already_taken(course, student):
             continue
         if course.get("type") not in ("전공필수", "required"):
             continue
@@ -360,7 +417,7 @@ def get_all_remaining_required_for_semester(student: dict, semester: str = None)
 
     by_category = {}
     for code, course in COURSES.items():
-        if _is_course_already_taken(course, taken, taken_names):
+        if _is_course_already_taken(course, student):
             continue
         # 채플 이수 요건 충족 시 채플 과목 완전 제외
         if is_chapel_satisfied and _is_chapel_course(course):
@@ -604,7 +661,7 @@ def get_required_remaining_by_track(student: dict, semester: str = None) -> list
 
     result = []
     for code, course in COURSES.items():
-        if _is_course_already_taken(course, taken, taken_names):
+        if _is_course_already_taken(course, student):
             continue
         if code not in required_course_codes and course.get("type") != "전공필수":
             continue
@@ -709,8 +766,7 @@ def get_graduation_credit_summary(student: dict) -> dict:
     categories = {
         "전공필수": {"required": 0, "completed": 0, "remaining": 0},
         "전공선택": {"required": 0, "completed": 0, "remaining": 0},
-        "교양필수": {"required": 0, "completed": 0, "remaining": 0},
-        "교양선택": {"required": 0, "completed": 0, "remaining": 0},
+        "교양": {"required": 0, "completed": 0, "remaining": 0},
         "계열공통": {"required": 0, "completed": 0, "remaining": 0},
         "일반선택": {"required": 0, "completed": 0, "remaining": 0},
     }
@@ -743,10 +799,11 @@ def get_graduation_credit_summary(student: dict) -> dict:
             else:
                 categories["전공선택"]["required"] += credits
         elif "교양" in cat_lower:
-            if "필수" in cat_lower:
-                categories["교양필수"]["required"] += credits
-            else:
-                categories["교양선택"]["required"] += credits
+            categories["교양"]["required"] += credits
+
+    # 교양 최소 35학점 요건 보정
+    if categories["교양"]["required"] < 35:
+        categories["교양"]["required"] = 35
 
     for code in taken:
         course = COURSES.get(code)
@@ -761,6 +818,10 @@ def get_graduation_credit_summary(student: dict) -> dict:
         # AISW 학과 학생은 전공필수 과목도 전공선택으로 인정
         if is_aisw and ctype == "전공필수":
             ctype = "전공선택"
+
+        # 교양필수/교양선택 구분 통합
+        if ctype in ("교양필수", "교양선택"):
+            ctype = "교양"
 
         if ctype in categories:
             categories[ctype]["completed"] += credits
@@ -925,7 +986,7 @@ def get_interest_matching_courses(student: dict, interest_keywords: list[str]) -
     if not target_categories:
         target_categories = {"전공필수", "전공선택", "교양선택", "계열공통"}
 
-    # 채플 8회 이수 완료 체크
+    # 채플 4회 이수 완료 체크
     completed_codes = student.get("completed_courses", [])
     chapel_completed_count = 0
     for code in completed_codes:
@@ -933,12 +994,12 @@ def get_interest_matching_courses(student: dict, interest_keywords: list[str]) -
         course_obj = COURSES.get(code_clean)
         if _is_chapel_course({"code": code_clean, "name": course_obj.get("name", "") if course_obj else ""}):
             chapel_completed_count += 1
-    is_chapel_satisfied = chapel_completed_count >= 8
+    is_chapel_satisfied = chapel_completed_count >= 4
 
     results = []
     for code, course in COURSES.items():
         # 기이수/수강중 과목 차단
-        if _is_course_already_taken(course, taken, taken_names):
+        if _is_course_already_taken(course, student):
             continue
 
         # 채플 과목 차단
@@ -1023,3 +1084,52 @@ def recommend_by_interest_with_graduation(student: dict, interest_text: str) -> 
             item["credit_status"] = f"{cat} 요건 충족 완료"
 
     return raw_results
+
+
+def get_track_elective_remaining(student: dict, semester: str = None) -> list[dict]:
+    """학생의 학과/학번 트랙에 해당하는 미이수 전공선택 과목 중 이번 학기에 개설된 과목 목록을 반환합니다."""
+    _ensure_loaded()
+    curriculum_info = get_track_curriculum(student)
+
+    sem = semester or student.get("target_semester")
+    target_year = None
+    target_sem = None
+    if sem and "-" in sem:
+        parts = sem.split("-", 1)
+        target_year = parts[0]
+        target_sem = parts[1]
+
+    id_to_code = _build_course_id_to_code_map()
+    track_course_codes = set()
+    for pid, courses_list in curriculum_info["courses_by_program"].items():
+        for entry in courses_list:
+            if not entry.get("is_required"):
+                cid = entry["course_id"]
+                code = id_to_code.get(cid)
+                if code:
+                    track_course_codes.add(code)
+
+    result = []
+    for code, course in COURSES.items():
+        if _is_course_already_taken(course, student):
+            continue
+        ctype = course.get("type", "")
+        # 전공선택이거나 curriculum에 등록된 전공선택 과목
+        if code not in track_course_codes and ctype != "전공선택":
+            continue
+        
+        # 학과/트랙 필터링 검증
+        if not _is_course_allowed_for_department(course, student):
+            continue
+
+        if target_year and target_sem:
+            offerings = course.get("offerings", [])
+            if offerings:
+                has_offering = any(
+                    str(o.get("academic_year")) == target_year and o.get("semester") == target_sem
+                    for o in offerings
+                )
+                if not has_offering:
+                    continue
+        result.append(course)
+    return result

@@ -835,10 +835,10 @@ export function ProfileTab() {
           <div className="bg-secondary/40 rounded-2xl p-4 flex items-center justify-between">
             <div className="space-y-0.5">
               <span className="text-[10px] text-muted-foreground font-bold">기수강 이수 학점</span>
-              <p className="text-sm font-bold text-foreground">총 {currentEarnedCredits} / {userInfo.totalRequired || 130} 학점</p>
+              <p className="text-sm font-bold text-foreground">총 {userInfo.earnedCredits || 0} / {userInfo.totalRequired || 130} 학점</p>
             </div>
             <span className="text-[11px] bg-[#3182f6]/10 text-[#3182f6] px-2.5 py-1 rounded-xl font-bold">
-              진척도 {Math.round((currentEarnedCredits / (userInfo.totalRequired || 130)) * 100)}%
+              진척도 {userInfo.overallProgress || 0}%
             </span>
           </div>
 

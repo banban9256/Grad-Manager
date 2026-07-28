@@ -21,7 +21,8 @@ const CATEGORY_COLORS: Record<string, string> = {
 }
 
 export function DigitalTwinScreen({ onBack }: { onBack: () => void }) {
-  const { digitalTwin } = useGradData()
+
+  const { user, digitalTwin } = useGradData()
   const { showToast } = useToast()
 
   const categoryProgress = digitalTwin.categoryProgress || {}
@@ -97,11 +98,11 @@ export function DigitalTwinScreen({ onBack }: { onBack: () => void }) {
           {/* Top floating stat cards */}
           <div className="flex items-start justify-between gap-3 w-full">
             <GlassCard className="flex-1">
-              <p className="text-2xl font-bold text-foreground">{digitalTwin.progress}%</p>
+              <p className="text-2xl font-bold text-foreground">{user.userInfo.overallProgress}%</p>
               <p className="mt-0.5 text-xs text-muted-foreground">졸업 진행률</p>
             </GlassCard>
             <GlassCard className="flex-1 text-right">
-              <p className="text-2xl font-bold text-foreground">{digitalTwin.remainingCredits}학점</p>
+              <p className="text-2xl font-bold text-foreground">{user.userInfo.remainingCredits}학점</p>
               <p className="mt-0.5 text-xs text-muted-foreground">남은 학점</p>
             </GlassCard>
           </div>
@@ -141,7 +142,7 @@ export function DigitalTwinScreen({ onBack }: { onBack: () => void }) {
             <div className="rounded-2xl border border-border bg-card p-4 shadow-sm space-y-3">
               <p className="text-xs font-bold text-muted-foreground">카테고리별 이수 진행률</p>
               {Object.entries(categoryProgress).map(([cat, info]) => {
-                const pct = info.required > 0 ? Math.min(100, Math.round((info.earned / info.required) * 100)) : 0
+                const pct = info.required > 0 ? Math.min(100, Math.round((info.earned / info.required) * 100)) : 100
                 const barColor = CATEGORY_COLORS[cat] || "bg-primary"
                 return (
                   <div key={cat} className="space-y-1">

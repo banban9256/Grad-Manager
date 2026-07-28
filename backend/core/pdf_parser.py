@@ -1,4 +1,4 @@
-"""PDF 성적확인서 파서 - pdfplumber + Groq AI 기반 과목 추출"""
+"""PDF 성적확인서 파서 - pdfplumber + Google Gemini AI 기반 과목 추출"""
 
 import os
 import json
@@ -14,10 +14,30 @@ try:
 except ImportError:
     pdfplumber = None
 
-try:
-    from groq import Groq
-except ImportError:
-    Groq = None
+from google import genai
+from google.genai import types
+from pydantic import BaseModel, Field
+from typing import List, Optional
+
+
+class StudentInfo(BaseModel):
+    name: Optional[str] = None
+    student_id: Optional[str] = None
+    department: Optional[str] = None
+
+
+class CourseEntry(BaseModel):
+    course_name: str
+    course_code: Optional[str] = None
+    course_type: str = Field(description="전공필수, 전공선택, 교양필수, 교양선택, 일반선택, 계열공통 중 하나")
+    credits: float
+    grade: str = Field(description="A+, A0, B+, B0, C+, C0, D+, D0, F, P, NP 중 하나")
+    semester: str = Field(description="YYYY-N학기 형식 (예: 2021-1학기)")
+
+
+class TranscriptSchema(BaseModel):
+    student_info: StudentInfo
+    courses: List[CourseEntry]
 
 
 def extract_text_from_pdf(pdf_bytes: bytes) -> str:
@@ -55,31 +75,18 @@ def extract_text_from_pdf(pdf_bytes: bytes) -> str:
 
 def parse_transcript_with_ai(pdf_text: str) -> dict:
     """
-    Groq AI를 사용하여 추출된 PDF 텍스트를 구조화된 과목 데이터로 변환합니다.
-
-    Returns:
-        {
-            "student_info": {"name": str, "student_id": str, "department": str},
-            "courses": [
-                {
-                    "course_name": str,
-                    "course_code": str | None,
-                    "course_type": str,  # 전공필수, 전공선택, 교양필수, 교양선택, 일반선택, 계열공통
-                    "credits": float,
-                    "grade": str,  # A+, A0, B+, B0, ...
-                    "semester": str  # 2021-1학기
-                }
-            ]
-        }
+    Google Gemini API를 사용하여 추출된 PDF 텍스트를 구조화된 과목 데이터로 변환합니다.
     """
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key or Groq is None:
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
         return _fallback_parse(pdf_text)
 
-    client = Groq(api_key=api_key)
-
-    prompt = f"""당신은 한국 대학 성적확인서를 분석하는 전문가입니다.
-아래 PDF에서 추출한 텍스트를 분석하여 각 수강 과목의 정보를 JSON 배열로 정리해주세요.
+    try:
+        client = genai.Client(api_key=api_key)
+        model_name = os.getenv("GEMINI_MODEL", "models/gemini-1.5-flash")
+        
+        prompt = f"""당신은 한국 대학 성적확인서를 분석하는 전문가입니다.
+아래 PDF에서 추출한 텍스트를 분석하여 학생 정보와 수강 과목들의 정보를 JSON 구조로 정리해주세요.
 
 ## 추출 규칙
 1. 과목명(course_name): 반드시 포함
@@ -93,62 +100,34 @@ def parse_transcript_with_ai(pdf_text: str) -> dict:
 6. 학기(semester): "YYYY-N학기" 형식 (예: "2021-1학기")
    - 학기 정보가 없으면 가장 최근 학기부터 역순으로 추정
 
-## 학생 정보
-- 이름, 학번, 학과가 있으면 포함
-
-## 출력 형식
-반드시 다음 JSON 형식으로만 출력하세요. 다른 텍스트를 포함하지 마세요.
-```json
-{{
-  "student_info": {{
-    "name": "홍길동",
-    "student_id": "20210001",
-    "department": "AISW"
-  }},
-  "courses": [
-    {{
-      "course_name": "프로그래밍기초",
-      "course_code": null,
-      "course_type": "전공필수",
-      "credits": 3.0,
-      "grade": "A+",
-      "semester": "2021-1학기"
-    }}
-  ]
-}}
-```
-
 ## PDF 텍스트
 ---
 {pdf_text[:8000]}
 ---
-
-위 텍스트를 분석하여 JSON으로 출력해주세요."""
-
-    try:
-        response = client.chat.completions.create(
-            model=os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile"),
-            messages=[{"role": "user", "content": prompt}],
-            temperature=0.1,
-            max_tokens=4000,
+"""
+        response = client.models.generate_content(
+            model=model_name,
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_mime_type="application/json",
+                response_schema=TranscriptSchema,
+                temperature=0.1
+            ),
         )
-        raw_response = response.choices[0].message.content
-
-        json_match = re.search(r'\{[\s\S]*\}', raw_response)
-        if json_match:
-            result = json.loads(json_match.group())
-            if "courses" in result:
-                return result
+        
+        result = json.loads(response.text)
+        if "courses" in result:
+            return result
 
         return _fallback_parse(pdf_text)
 
     except Exception as e:
-        print(f"AI 파싱 오류: {e}")
+        print(f"Gemini AI 파싱 오류: {e}")
         return _fallback_parse(pdf_text)
 
 
 def _fallback_parse(pdf_text: str) -> dict:
-    """AI 파싱 실패 시 정규식 기반 폴백 파싱"""
+    """AI 파싱 실패 시 규칙 및 정규식 기반 폴백 파싱"""
     courses = []
     student_info = {"name": "", "student_id": "", "department": ""}
 
@@ -164,11 +143,6 @@ def _fallback_parse(pdf_text: str) -> dict:
     if dept_match:
         student_info["department"] = dept_match.group(1)
 
-    grade_pattern = re.compile(
-        r'(\S+?)(?:\s+\S+?)?\s+(\d+(?:\.\d+)?)\s+([A-F][\+\-]?0?|P|NP)',
-        re.MULTILINE
-    )
-
     type_map = {
         "전공필수": "전공필수", "전필": "전공필수",
         "전공선택": "전공선택", "전선": "전공선택",
@@ -178,31 +152,70 @@ def _fallback_parse(pdf_text: str) -> dict:
         "계열공통": "계열공통", "계공": "계열공통",
     }
 
+    # 정규식 패턴: 과목코드(옵션), 과목명, 학점(숫자), 성적(A~F, P, NP)
+    course_pattern = re.compile(
+        r'(?P<type>전필|전선|교필|교선|일선|계공|전공필수|전공선택|교양필수|교양선택|일반선택|계열공통)?\s*'
+        r'(?P<code>[A-Z]{2,4}-\d{3}|[A-Z]{2,5}\d{3})?\s*'
+        r'(?P<name>[가-힣A-Za-z0-9_\s\-\&\(\)]+?)\s+'
+        r'(?P<credits>\d+(?:\.\d+)?)\s+'
+        r'(?P<grade>[A-F][\+\-]?0?|P|NP)\b'
+    )
+
     lines = pdf_text.split("\n")
     for line in lines:
-        parts = [p.strip() for p in line.split("|") if p.strip()]
-        if len(parts) >= 3:
-            course_type_raw = parts[0]
-            course_type = type_map.get(course_type_raw, course_type_raw)
+        line = line.strip()
+        if not line:
+            continue
 
-            remaining_parts = parts[1:]
-            credits = None
-            grade = None
-            course_name = None
+        # 1. 파이프 기호 기반 파싱 시도
+        if "|" in line:
+            parts = [p.strip() for p in line.split("|") if p.strip()]
+            if len(parts) >= 3:
+                course_type_raw = parts[0]
+                course_type = type_map.get(course_type_raw, "일반선택")
 
-            for p in remaining_parts:
-                if re.match(r'^\d+(\.\d+)?$', p):
-                    credits = float(p)
-                elif re.match(r'^[A-F][+-]?0?$|^P$|^NP$', p):
-                    grade = p
-                elif not course_name:
-                    course_name = p
+                remaining_parts = parts[1:]
+                credits = None
+                grade = None
+                course_name = None
+                course_code = None
 
-            if course_name and credits and grade:
+                for p in remaining_parts:
+                    if re.match(r'^\d+(\.\d+)?$', p):
+                        credits = float(p)
+                    elif re.match(r'^[A-F][+-]?0?$|^P$|^NP$', p):
+                        grade = p
+                    elif re.match(r'^[A-Z]{2,4}-\d{3}$|^[A-Z]{2,5}\d{3}$', p):
+                        course_code = p
+                    elif not course_name:
+                        course_name = p
+
+                if course_name and credits is not None and grade:
+                    courses.append({
+                        "course_name": course_name,
+                        "course_code": course_code,
+                        "course_type": course_type,
+                        "credits": credits,
+                        "grade": grade,
+                        "semester": ""
+                    })
+                    continue
+
+        # 2. 파이프가 없거나 파이프 파싱 실패 시 정규식 기반 매칭 시도
+        match = course_pattern.search(line)
+        if match:
+            raw_type = match.group("type")
+            course_type = type_map.get(raw_type, "일반선택") if raw_type else "일반선택"
+            course_code = match.group("code")
+            course_name = match.group("name").strip()
+            credits = float(match.group("credits"))
+            grade = match.group("grade")
+
+            if course_name and len(course_name) >= 2:
                 courses.append({
                     "course_name": course_name,
-                    "course_code": None,
-                    "course_type": course_type if course_type in type_map.values() else "일반선택",
+                    "course_code": course_code,
+                    "course_type": course_type,
                     "credits": credits,
                     "grade": grade,
                     "semester": ""

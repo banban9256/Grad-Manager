@@ -10,10 +10,7 @@ router = APIRouter()
 
 def get_student_from_token(authorization: Optional[str]) -> dict:
     if not authorization:
-        student = get_student("20210001")
-        if not student:
-            raise HTTPException(status_code=404, detail="기본 데모 학생을 찾을 수 없습니다.")
-        return student
+        raise HTTPException(status_code=401, detail="인증 토큰이 없습니다. 로그인 후 이용해주세요.")
     try:
         token = authorization.split(" ")[1]
         student_id = token.replace("mock-jwt-token-", "")
@@ -70,7 +67,7 @@ def get_recommendations(authorization: Optional[str] = Header(None)):
         schedule_reasons = [
             {"icon": "GraduationCap", "title": "미이수한 졸업 필수과목 자동 배정", "desc": "졸업 요건을 충족하기 위해 미이수 필수 과목을 자동으로 배정했습니다."},
             {"icon": "CalendarOff", "title": "선호 요일 최적 배정 완료", "desc": "사용자의 선호 요일을 반영하여 최적의 시간표를 구성했습니다."},
-            {"icon": "BrainCircuit", "title": "강의동 간 동선 최소화", "desc": "연강 시 강의실 이동 거리를 최소화하기 위해 같은 건물 위주로 배정했습니다."}
+            {"icon": "Check", "title": "강의실 간 거리 제외", "desc": "사용자 요청에 따라 강의실 간 거리를 계산에서 배제하고 추천 과목들로만 배정했습니다."}
         ]
 
         # 각 과목별 상세 추천 사유 생성

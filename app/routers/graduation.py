@@ -47,11 +47,7 @@ class UpdateCoursesRequest(BaseModel):
 def get_student_from_token(authorization: Optional[str]) -> dict:
     # Authorization header 파싱하여 학번 추출
     if not authorization:
-        # 헤더가 없으면 기본 데모 계정 반환
-        student = get_student("20210001")
-        if not student:
-            raise HTTPException(status_code=404, detail="기본 데모 학생을 찾을 수 없습니다.")
-        return student
+        raise HTTPException(status_code=401, detail="인증 토큰이 없습니다. 로그인 후 이용해주세요.")
         
     try:
         token = authorization.split(" ")[1]
@@ -306,17 +302,107 @@ def get_graduation_summary(
         else:
             category_earned["일반선택"] += credits
 
+    # 교양필수와 교양선택의 이수 학점 병합
+    liberal_earned = category_earned.get("교양필수", 0.0) + category_earned.get("교양선택", 0.0)
+    
+    # category_goals 정비
+    if "교양필수" in category_goals:
+        del category_goals["교양필수"]
+    if "교양선택" in category_goals:
+        del category_goals["교양선택"]
+        
+    category_goals["교양"] = 35
+    category_earned["교양"] = liberal_earned
+
     completed = sum(category_earned.values())
     
     # 대시보드 리턴 데이터에 활용할 학생 딕셔너리 정보 오버라이드
     student["completed_credits"] = completed
     student["completed_courses"] = completed_courses_list
 
+    # 교양필수 세부 체크박스 목록 생성
+    liberal_reqs = []
+    
+    # 1. 채플 이수 횟수 (최대 4회)
+    from backend.core.data.courses import _get_chapel_completed_count, _get_completed_count_by_name, _get_taken_course_filter
+    chapel_cnt = min(4, _get_chapel_completed_count(student))
+    for i in range(1, 5):
+        liberal_reqs.append({
+            "id": f"chapel-{i}",
+            "label": f"채플 ({i}/4)",
+            "checked": chapel_cnt >= i,
+            "category": "채플"
+        })
+        
+    # 2. 진로와상담 (최대 4회)
+    jilro_cnt = min(4, _get_completed_count_by_name(student, "진로와상담"))
+    for i in range(1, 5):
+        liberal_reqs.append({
+            "id": f"jilro-{i}",
+            "label": f"진로와상담 ({i}/4)",
+            "checked": jilro_cnt >= i,
+            "category": "진로와상담"
+        })
+        
+    # 3. 사회생활길잡이 (1)
+    society_cnt = _get_completed_count_by_name(student, "사회생활길잡이")
+    liberal_reqs.append({
+        "id": "society-1",
+        "label": "사회생활길잡이",
+        "checked": society_cnt >= 1,
+        "category": "길잡이"
+    })
+    
+    # 4. 대학생활길잡이 (1)
+    univ_cnt = _get_completed_count_by_name(student, "대학생활길잡이")
+    liberal_reqs.append({
+        "id": "univ-1",
+        "label": "대학생활길잡이",
+        "checked": univ_cnt >= 1,
+        "category": "길잡이"
+    })
+    
+    # 5. 기독교/성서 이수 (1)
+    taken_codes, taken_names = _get_taken_course_filter(student)
+    has_christianity = any("기독교" in name or "성서" in name for name in taken_names if name)
+    liberal_reqs.append({
+        "id": "christianity-1",
+        "label": "기독교/성서 이수",
+        "checked": has_christianity,
+        "category": "사상/신학"
+    })
+    
+    # 6. 글쓰기기초 / 창의적사고와글쓰기 (1)
+    has_writing = any("글쓰기" in name or "논술" in name for name in taken_names if name)
+    liberal_reqs.append({
+        "id": "writing-1",
+        "label": "글쓰기의 기초",
+        "checked": has_writing,
+        "category": "기초소양"
+    })
+    
+    # 7. 영어 (Essential English 등) (1)
+    has_english = any("english" in name.lower() or "영어" in name for name in taken_names if name)
+    liberal_reqs.append({
+        "id": "english-1",
+        "label": "Essential English",
+        "checked": has_english,
+        "category": "기초소양"
+    })
+    
+    # 8. SW 코딩 (컴퓨팅사고와SW코딩 등) (1)
+    has_coding = any("코딩" in name or "컴퓨팅" in name or "소프트웨어" in name for name in taken_names if name)
+    liberal_reqs.append({
+        "id": "coding-1",
+        "label": "컴퓨팅사고와SW코딩",
+        "checked": has_coding,
+        "category": "기초소양"
+    })
+
     category_keys = {
         "전공필수": "major_req",
         "전공선택": "major_sel",
-        "교양필수": "liberal_req",
-        "교양선택": "liberal_sel",
+        "교양": "liberal",
         "계열공통": "core_common",
         "일반선택": "general_sel"
     }
@@ -324,14 +410,15 @@ def get_graduation_summary(
     category_tones = {
         "전공필수": "chart-1",
         "전공선택": "chart-2",
-        "교양필수": "chart-3",
-        "교양선택": "chart-1",
+        "교양": "chart-3",
         "계열공통": "chart-2",
         "일반선택": "chart-3"
     }
 
     credit_categories = []
     for cat, req_credits in category_goals.items():
+        if req_credits == 0:
+            continue
         credit_categories.append({
             "key": category_keys.get(cat, "etc"),
             "label": cat,
@@ -581,7 +668,7 @@ def get_graduation_summary(
                 "required": category_goals.get(cat, 0),
                 "remaining": max(0, category_goals.get(cat, 0) - float(category_earned[cat]))
             }
-            for cat in category_goals
+            for cat in category_goals if category_goals.get(cat, 0) > 0
         },
         "specializedTrack": spec_track_name,
         "specializedEarned": spec_earned,
@@ -841,6 +928,7 @@ def get_graduation_summary(
         "user": {
             "userInfo": user_info_mapped,
             "creditCategories": credit_categories,
+            "liberalRequirements": liberal_reqs,
             "quickMenus": [
                 {"key": "diagnostic", "label": "졸업요건 진단", "icon": "GraduationCap", "title": "졸업요건 진단", "description": "나의 부족 학점 확인"},
                 {"key": "recommend", "label": "AI 과목 추천", "icon": "Sparkles", "title": "AI 과목 추천", "description": "인공지능 시간표 추천"},
