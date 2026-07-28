@@ -15,7 +15,8 @@ from pathlib import Path
 from collections import defaultdict
 
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 
 from .persona import SYSTEM_PROMPT
 from .data.csv_loader import hanja_to_hangul
@@ -38,17 +39,12 @@ load_dotenv(Path(__file__).parent.parent / ".env")
 load_dotenv(Path(__file__).parent.parent.parent / ".env")
 
 api_key = os.getenv("GEMINI_API_KEY")
+_model_name = os.getenv("GEMINI_MODEL", "gemini-2.0-flash")
+
 if api_key:
-    genai.configure(api_key=api_key)
-    gemini_model = genai.GenerativeModel(
-        model_name=os.getenv("GEMINI_MODEL", "gemini-2.0-flash"),
-        generation_config=genai.GenerationConfig(
-            temperature=0.4,
-            max_output_tokens=1500,
-        ),
-    )
+    gemini_client = genai.Client(api_key=api_key)
 else:
-    gemini_model = None
+    gemini_client = None
 
 # ==============================
 # 채플 설정
@@ -66,6 +62,98 @@ _CHAPEL_REQUIRED_COUNT = 8
 # 대화 히스토리 최대 턴 수 (user+assistant 쌍 기준)
 _MAX_HISTORY_TURNS = 8
 
+# ==============================
+# 계열 공통 과목 (AISW 필수)
+# ==============================
+
+# AS0xx 시리즈: AISW 계열 공통 과목 코드 -> 과목명
+_TRACK_COMMON_COURSES = {
+    "AS001": "AI.SW개론",
+    "AS002": "C언어",
+    "AS003": "공학설계입문",
+    "AS004": "AI·SW수학",
+    "AS005": "문제해결형프로그래밍",
+    "AS006": "웹프로그래밍",
+    "AS007": "자료구조",
+    "AS008": "자바프로그래밍",
+    "AS009": "논리회로",
+    "AS010": "데이터통신",
+    "AS011": "운영체제",
+    "AS012": "데이터베이스",
+}
+
+# 1학기 개설: AS001, AS002, AS003, AS007, AS008, AS010
+_TRACK_COMMON_1ST_SEMESTER = {"AS001", "AS002", "AS003", "AS007", "AS008", "AS010"}
+# 2학기 개설: AS004, AS005, AS006, AS009, AS011, AS012
+_TRACK_COMMON_2ND_SEMESTER = {"AS004", "AS005", "AS006", "AS009", "AS011", "AS012"}
+
+
+def _get_unfinished_track_common(student: dict, target_semester: str = None) -> dict:
+    """학생이 아직 이수하지 않은 계열 공통 과목을 반환합니다.
+
+    Returns:
+        {"all_unfinished": [...], "semester_match": [...], "other": [...]}
+    """
+    from .data.courses import _get_taken_course_filter, _normalize_course_name
+    taken_codes, taken_names = _get_taken_course_filter(student)
+
+    all_unfinished = []
+    for code, name in _TRACK_COMMON_COURSES.items():
+        normalized_name = _normalize_course_name(name)
+        is_taken = code in taken_codes or (normalized_name and normalized_name in taken_names)
+        if not is_taken:
+            semester_tag = "1학기" if code in _TRACK_COMMON_1ST_SEMESTER else "2학기"
+            all_unfinished.append({"code": code, "name": name, "semester": semester_tag})
+
+    if not all_unfinished:
+        return {"all_unfinished": [], "semester_match": [], "other": []}
+
+    # 목표 학기에 개설된 과목 분리
+    semester_match = []
+    other = []
+    if target_semester:
+        is_2nd = "2학기" in target_semester
+        for c in all_unfinished:
+            if is_2nd and c["code"] in _TRACK_COMMON_2ND_SEMESTER:
+                semester_match.append(c)
+            elif not is_2nd and c["code"] in _TRACK_COMMON_1ST_SEMESTER:
+                semester_match.append(c)
+            else:
+                other.append(c)
+    else:
+        other = all_unfinished
+
+    return {"all_unfinished": all_unfinished, "semester_match": semester_match, "other": other}
+
+
+def _build_track_common_context(student: dict, target_semester: str = None) -> str:
+    """계열 공통 과목 미이수 현황을 텍스트로 구성합니다."""
+    result = _get_unfinished_track_common(student, target_semester)
+    all_unfinished = result["all_unfinished"]
+
+    if not all_unfinished:
+        return "계열 공통 과목 12개를 모두 이수 완료했습니다."
+
+    lines = [f"## 미이수 계열 공통 과목 ({len(all_unfinished)}개 부족)"]
+
+    if result["semester_match"]:
+        lines.append("")
+        lines.append(f"### 이번 학기({target_semester}) 개설 가능 과목 (최우선 추천)")
+        for c in result["semester_match"]:
+            lines.append(f"- **{c['code']}** {c['name']} [{c['semester']}] ← 반드시 추천하세요")
+
+    if result["other"]:
+        lines.append("")
+        lines.append("### 다른 학기 개설 과목")
+        for c in result["other"]:
+            lines.append(f"- {c['code']} {c['name']} [{c['semester']}]")
+
+    lines.append("")
+    lines.append("**규칙: 계열 공통 과목은 AISW 졸업 필수입니다. 미이수 과목이 있다면 반드시 우선 추천하세요.**")
+
+    return "\n".join(lines)
+
+
 # 추천 관련 키워드 (컨텍스트 풀 주입 트리거)
 _RECOMMEND_KEYWORDS = {"추천", "들을까", "들어", "수강", "신청", "시간표", "짜줘", "짜자", "추천해"}
 _SCHEDULE_KEYWORDS = {"시간표", "스케줄", "공강", "연강"}
@@ -79,16 +167,32 @@ def _count_chapel_completed(student: dict) -> dict:
     """채플 이수 현황을 계산합니다.
 
     채플은 AISW 학과 수업이 아니어도 필수 횟수만 채우면 인정됩니다.
-    따라서 KY100/KY101/KY201/KY304 등 모든 채플 과목을 이수 횟수에 포함합니다.
+    학수번호에 상관없이 이름에 '채플'이 포함된 횟수를 기준으로 합산합니다.
     """
-    completed = set(student.get("completed_courses", []))
-    chapel_done = completed & _ALL_CHAPEL_CODES
+    from .data.courses import _get_chapel_completed_count
+    completed_count = _get_chapel_completed_count(student)
+
+    # 채플 코드를 구하기 위해 상세 정보나 이름 목록과 매핑
+    completed_codes = []
+    completed_details = student.get("completed_courses_detail", [])
+    if completed_details:
+        for detail in completed_details:
+            name = detail.get("name", "")
+            code = detail.get("code", "")
+            if name and "채플" in name:
+                completed_codes.append(code)
+    else:
+        completed_names = student.get("completed_course_names", [])
+        completed_list = student.get("completed_courses", [])
+        for idx, name in enumerate(completed_names):
+            if "채플" in name and idx < len(completed_list):
+                completed_codes.append(completed_list[idx])
 
     return {
-        "completed_count": len(chapel_done),
+        "completed_count": completed_count,
         "required_count": _CHAPEL_REQUIRED_COUNT,
-        "is_satisfied": len(chapel_done) >= _CHAPEL_REQUIRED_COUNT,
-        "completed_codes": list(chapel_done),
+        "is_satisfied": completed_count >= _CHAPEL_REQUIRED_COUNT,
+        "completed_codes": completed_codes,
     }
 
 
@@ -282,24 +386,78 @@ def _build_unfilled_required_summary(student: dict, target_semester: str = None)
                         for c in avail[:5]:
                             times = ", ".join(f"{d} {s}~{e}" for d, s, e in c.get("time_slots", []))
                             time_str = f" [{times}]" if times else ""
-                            lines.append(f"  - {c['code']} {c['name']} ({c['credits']}학점){time_str} [{cat}]")
+                            prof = c.get("professor") or "미정"
+                            lines.append(f"  - {c['code']} {c['name']} ({c['credits']}학점) (담당교수: {prof}){time_str} [{cat}]")
         except Exception:
             pass
 
     return "\n".join(lines)
 
 
-def _build_available_courses_summary(available: list, limit: int = 15) -> str:
-    """수강 가능 과목 요약을 생성합니다."""
+def _build_available_courses_summary(available: list, limit: int = 40) -> str:
+    """수강 가능 과목 요약을 생성합니다. (담당교수 및 시간표 포함)"""
     lines = []
     for c in available[:limit]:
         times = ", ".join(f"{d} {s}~{e}" for d, s, e in c.get("time_slots", []))
         time_str = f" [{times}]" if times else ""
-        lines.append(f"- {c['code']} {c['name']} ({c['credits']}학점){time_str}")
+        prof = c.get("professor") or "미정"
+        lines.append(f"- {c['code']} {c['name']} ({c['credits']}학점) (담당교수: {prof}){time_str}")
 
     if not lines:
         return "수강 가능 과목 없음"
     return "\n".join(lines)
+
+
+def _build_strict_available_courses_json(student: dict, limit: int = 60) -> str:
+    """원칙 1: 백엔드 사전 필터링 완료된 수강 가능 과목을 JSON 형태로 구성합니다.
+
+    - get_available_courses()가 이미 기수강 과목, 채플 완료 과목, 타학과 과목을 100% 필터링함
+    - LLM에게 텍스트가 아닌 정형화된 JSON만 전달하여 환각 원천 차단
+    - 과목 수 제한으로 토큰 사용량 최적화
+    """
+    available = get_available_courses(student)
+
+    if not available:
+        return "[]"
+
+    courses_json = []
+    for c in available[:limit]:
+        course_entry = {
+            "code": c.get("code", ""),
+            "name": c.get("name", ""),
+            "credits": c.get("credits", 3),
+            "type": c.get("type", "일반선택"),
+            "professor": c.get("professor") or "미정",
+            "time_slots": c.get("time_slots", []),
+            "classroom": c.get("room", "미정"),
+        }
+        courses_json.append(course_entry)
+
+    return json.dumps(courses_json, ensure_ascii=False, indent=1)
+
+
+def _parse_structured_output(llm_response: str) -> tuple[str, dict | None]:
+    """원칙 4: LLM 응답에서 ```json 코드 블록을 파싱하여 (텍스트, 구조화데이터) 튜플로 반환합니다.
+
+    Returns:
+        (text_response, structured_data) - structured_data가 None이면 일반 대화
+    """
+    json_block_pattern = re.compile(r'```json\s*\n(.*?)\n\s*```', re.DOTALL)
+    match = json_block_pattern.search(llm_response)
+
+    if not match:
+        return llm_response, None
+
+    json_str = match.group(1).strip()
+    try:
+        parsed = json.loads(json_str)
+        # JSON 블록 앞뒤의 텍스트만 추출
+        text_before = llm_response[:match.start()].strip()
+        text_after = llm_response[match.end():].strip()
+        clean_text = (text_before + "\n\n" + text_after).strip() if text_before and text_after else (text_before or text_after)
+        return clean_text, parsed
+    except (json.JSONDecodeError, KeyError):
+        return llm_response, None
 
 
 # ==============================
@@ -354,6 +512,7 @@ def build_student_context(student_id: str, target_semester: str = None, full: bo
         interest_text += f"\n- 제외 분야: {', '.join(excluded)} (이 분야 과목 추천 금지)"
 
     # 필수 컨텍스트 (항상 주입)
+    track_common_ctx = _build_track_common_context(student, target_semester)
     context = f"""## 현재 학생 정보
 - 이름: {student['name']}
 - 학번: {student['student_id']}
@@ -365,6 +524,8 @@ def build_student_context(student_id: str, target_semester: str = None, full: bo
 
 ## 채플 이수 현황
 {chapel_status}
+
+{track_common_ctx}
 
 ## 카테고리별 졸업요건 현황
 {_build_category_requirements_text(student)}
@@ -385,16 +546,14 @@ def build_student_context(student_id: str, target_semester: str = None, full: bo
 """
 
     # 확장 컨텍스트 (추천/시간표 키워드가 있을 때만)
+    # 주의: 수강 가능 과목은 _build_strict_available_courses_json()로 별도 주입되므로
+    # 여기서는 텍스트 요약만 포함 (LLM은 JSON 데이터를 우선 사용)
     if full:
-        available = get_available_courses(student)
         completed_summary = _build_completed_history_text(student)
 
         context += f"""
 ## 이수 완료 과목 요약
 {completed_summary}
-
-## 수강 가능 과목 (일부, 총 {len(available)}개 중 상위 15개)
-{_build_available_courses_summary(available)}
 
 ## 융합전공/특화트랙
 - 융합전공: {student.get('convergence_major', '설정 안 함')}
@@ -506,7 +665,7 @@ _INTEREST_PATTERNS = [
     ("정치", ["정치", "정책"]),
     ("사회", ["사회", "복지"]),
     ("인문", ["인문", "역사", "문화"]),
-    ("자연과학", ["자연과학", "물리", "화학", "생물"]),
+    ("과학", ["과학", "물리", "화학", "생물", "천문", "지구과학", "자연과학"]),
     ("언론", ["언론", "미디어", "방송"]),
 ]
 
@@ -571,10 +730,96 @@ def _extract_preference_from_message(user_message: str) -> dict:
     return preferences
 
 
+def _extract_and_save_recommended_courses(ai_response: str, student_id: str):
+    """챗봇 답변 텍스트에서 과목 코드를 추출하여 학생 프로필에 추천 과목으로 실시간 반영 및 DB 동기화"""
+    if not student_id:
+        return
+        
+    student = get_student(student_id)
+    if not student:
+        return
+        
+    # 과목 코드 정규식 (예: SH319, KYC54, FLOW-050 등)
+    code_pattern = re.compile(r'\b([A-Z]{2,4}-\d{3}|[A-Z]{2,5}\d{3})\b')
+    mentioned_codes = code_pattern.findall(ai_response)
+    
+    from .data.courses import _get_taken_course_filter, _is_course_already_taken, get_course
+    taken_codes, taken_names = _get_taken_course_filter(student)
+    
+    recommended_codes = []
+    for code in mentioned_codes:
+        full_c = get_course(code)
+        if full_c and code not in recommended_codes:
+            # 과거 이수 과목 및 채플 이수 완료 시 추가 제외
+            if not _is_course_already_taken(full_c, taken_codes, taken_names):
+                recommended_codes.append(code)
+                
+    student["chatbot_recommended_courses"] = recommended_codes
+    from .data.students import save_student
+    save_student(student_id, student)
+
+
+def _validate_recommendation_against_data(ai_response: str, context_courses: list[dict]) -> str:
+    """LLM 응답에서 컨텍스트에 없는 과목 코드를 감지하고, 해당 코드를 응답에서 침묵적으로 제거합니다.
+
+    - 유효하지 않은 과목 코드는 응답 텍스트에서 제거되며, 사용자에게 경고를 노출하지 않습니다.
+    - 제거된 과목은 대체 유효 과목으로 자동 대체되도록 처리됩니다.
+    """
+    if not context_courses:
+        return ai_response
+
+    # 컨텍스트에 있는 실제 과목 코드集合
+    valid_codes = {c.get("code", "") for c in context_courses if c.get("code")}
+
+    # 응답에서 과목 코드 추출
+    code_pattern = re.compile(r'\b([A-Z]{2,4}-\d{3}|[A-Z]{2,5}\d{3})\b')
+    mentioned_codes = code_pattern.findall(ai_response)
+
+    hallucinated = [code for code in mentioned_codes if code not in valid_codes]
+
+    if not hallucinated:
+        return ai_response
+
+    # DB에 없는 과목 코드를 침묵적으로 응답 텍스트에서 제거
+    cleaned_response = ai_response
+    for code in hallucinated:
+        # 과목 코드 참조 패턴 제거 (예: "AS004", "AS004 (AI·SW수학)" 등)
+        # 코드만 단독으로 등장하는 경우 코드명만 제거
+        cleaned_response = re.sub(
+            rf'\b{re.escape(code)}\b(?:\s*\([^)]*\))?',
+            '',
+            cleaned_response
+        )
+
+    # 중복 공백 정리
+    cleaned_response = re.sub(r'  +', ' ', cleaned_response).strip()
+
+    return cleaned_response
+
+
 def _has_recommend_keyword(msg: str) -> bool:
     """메시지에 추천/시간표 관련 키워드가 포함되어 있는지 확인합니다."""
     all_keywords = _RECOMMEND_KEYWORDS | _SCHEDULE_KEYWORDS
     return any(kw in msg for kw in all_keywords)
+
+
+def _is_liberal_arts_only_request(msg: str) -> bool:
+    """사용자가 교양 과목만 추천 요청했는지 확인합니다."""
+    patterns = [
+        "교양만", "교양 추천", "교양 과목", "教養",
+        "교양 듣고 싶", "교양 들어볼", "교양 수업",
+        "general only", "liberal only",
+    ]
+    return any(p in msg for p in patterns)
+
+
+def _is_major_only_request(msg: str) -> bool:
+    """사용자가 전공 과목만 추천 요청했는지 확인합니다."""
+    patterns = [
+        "전공만", "전공 추천", "전공 과목", "전공 수업",
+        "전필", "전선", "전공 필수만", "전공 선택만",
+    ]
+    return any(p in msg for p in patterns)
 
 
 # ==============================
@@ -607,8 +852,14 @@ def _format_schedules(schedules: list) -> str:
 # 메인 챗봇 함수
 # ==============================
 
-def chat(user_message: str, student_id: str = None, history: list = None, target_semester: str = None) -> str:
-    """챗봇 대화를 처리합니다."""
+def chat(user_message: str, student_id: str = None, history: list = None, target_semester: str = None) -> dict:
+    """챗봇 대화를 처리합니다.
+
+    Returns:
+        dict with keys:
+            - message: AI 응답 텍스트
+            - structured_data: JSON 구조화 데이터 (recommendations 등) 또는 None
+    """
     interest_kws, negative_kws = detect_interest_keywords(user_message)
     lower_msg = user_message.lower()
     is_full_context = _has_recommend_keyword(lower_msg)
@@ -666,9 +917,8 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
                 updated = True
 
             if updated:
-                # TODO: 추후 DB 저장 필요 (현재 in-memory SQLite 연동)
-                from .data.students import STUDENTS
-                STUDENTS[student_id] = student
+                from .data.students import save_student
+                save_student(student_id, student)
 
     # 시스템 프롬프트 + 히스토리
     messages = [{"role": "system", "content": SYSTEM_PROMPT}]
@@ -689,6 +939,24 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
         )
         if curriculum_ctx:
             messages.append({"role": "system", "content": curriculum_ctx})
+
+        # 원칙 1: 추천 요청 시 수강 가능 과목을 JSON 형태로 시스템에 주입
+        # 백엔드 사전 필터링이 완료된 과목만 LLM에 전달
+        if is_full_context:
+            student_obj = get_student(student_id)
+            if student_obj:
+                if target_semester:
+                    student_obj["target_semester"] = target_semester
+                available_json = _build_strict_available_courses_json(student_obj, limit=60)
+                messages.append({
+                    "role": "system",
+                    "content": (
+                        f"## 수강 가능 과목 JSON 데이터 (반드시 이 목록 내에서만 추천하라)\n"
+                        f"아래 JSON은 시스템이 사전 필터링(기수강 제거, 채플 완료 제거, 학과 필터링)을 완료한 "
+                        f"실제 수강 가능한 과목 목록입니다. 이 목록에 없는 과목/교수/시간을 절대 지어내지 마라.\n\n"
+                        f"```json\n{available_json}\n```"
+                    ),
+                })
 
     # 시간표 추천
     if "시간표" in lower_msg and student_id:
@@ -764,24 +1032,54 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
             })
 
     # 관심 과목 추천 (관심사가 있고, 관심사 질문이 아닌 경우에만)
-    is_asking_about_interests = any(w in lower_msg for w in ["관심", "관심사", "뭐 듣", "추천해", "추천해줘", "들어볼까", "좋은 과목"])
-    if interest_kws and student_id and not is_asking_about_interests:
+    # "교양만 추천해줘", "전공만 추천해줘" 등 구체적 유형 지정 시에는 항상 실행
+    liberal_only = _is_liberal_arts_only_request(lower_msg)
+    major_only = _is_major_only_request(lower_msg)
+    # "관심사가 뭐야?", "관심 뭐 있어?" 등 순수 관심사 문의일 때만 스킵
+    # "추천해줘", "교양만 추천" 등 추천 요청 시에는 항상 실행
+    is_pure_interest_question = any(w in lower_msg for w in ["관심사", "관심 뭐", "뭐가 관심"])
+    has_type_specifier = liberal_only or major_only
+    skip_interest = is_pure_interest_question and not has_type_specifier
+
+    if interest_kws and student_id and not skip_interest:
         student_obj = get_student(student_id)
         if student_obj:
             for kw in interest_kws:
                 try:
                     interest_results = get_interest_matching_courses(student_obj, [kw])
+
+                    # 교양만 요청 시 교양 과목만 필터링
+                    if liberal_only:
+                        interest_results = [
+                            r for r in interest_results
+                            if r["category"] in ("교양선택", "교양필수")
+                        ]
+                    # 전공만 요청 시 전공/계열공통만 필터링
+                    elif major_only:
+                        interest_results = [
+                            r for r in interest_results
+                            if r["category"] in ("전공필수", "전공선택", "계열공통")
+                        ]
+                    else:
+                        # 기본: 교양 + 전공 모두 포함 (교양 우선순위 약간 높임)
+                        liberal = [r for r in interest_results if r["category"] in ("교양선택", "교양필수")]
+                        major = [r for r in interest_results if r["category"] in ("전공필수", "전공선택", "계열공통")]
+                        # 교양 4개 + 전공 4개로 혼합 구성
+                        interest_results = liberal[:4] + major[:4]
+
                     if interest_results:
                         lines = []
                         for item in interest_results[:8]:
                             c = item["course"]
+                            prof = c.get("professor") or "미정"
                             lines.append(
-                                f"- {c['code']} {c['name']} ({c['credits']}학점) "
+                                f"- {c['code']} {c['name']} ({c['credits']}학점) (담당교수: {prof}) "
                                 f"[{item['category']}] - {item['reason']}"
                             )
+                        label = f"'{kw}' 교양 추천" if liberal_only else f"'{kw}' 관심 과목 추천"
                         messages.append({
                             "role": "system",
-                            "content": f"## '{kw}' 관심 과목 추천 결과\n{chr(10).join(lines)}",
+                            "content": f"## {label} 결과\n{chr(10).join(lines)}",
                         })
                 except Exception:
                     pass
@@ -789,7 +1087,7 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
     messages.append({"role": "user", "content": user_message})
 
     # 데모 모드 (API 키 없음)
-    if not gemini_model:
+    if not gemini_client:
         system_context = ""
         for m in messages:
             if m["role"] == "system" and "시간표" in m["content"]:
@@ -822,52 +1120,76 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
             )
         if system_context:
             reply += f"\n\n[시스템 데이터]\n{system_context[:500]}"
-        return reply
+        reply_with_hanja = hanja_to_hangul(reply)
+        _extract_and_save_recommended_courses(reply_with_hanja, student_id)
+        return {"message": reply_with_hanja, "structured_data": None}
 
     # Gemini API 호출: 시스템 프롬프트 + 히스토리 + 사용자 메시지를 contents로 결합
     try:
-        # Gemini는 contents 배열에 system instruction과 대화를 결합
-        contents = []
-        
-        # 시스템 프롬프트와 컨텍스트를 하나의 텍스트로 결합
         system_parts = []
         for m in messages:
             if m["role"] == "system":
                 system_parts.append(m["content"])
-        
-        # 대화 히스토리 (user/assistant)
+
         chat_history = []
         for m in messages:
             if m["role"] == "user":
-                chat_history.append({"role": "user", "parts": [m["content"]]})
+                chat_history.append({"role": "user", "parts": [{"text": m["content"]}]})
             elif m["role"] == "assistant":
-                chat_history.append({"role": "model", "parts": [m["content"]]})
-        
-        # 시스템 컨텍스트를 첫 번째 user 메시지 앞에 추가
+                chat_history.append({"role": "model", "parts": [{"text": m["content"]}]})
+
         system_text = "\n\n".join(system_parts) if system_parts else ""
-        
-        # Gemini chat 세션 생성
-        chat = gemini_model.start_chat(history=chat_history)
-        
-        # 시스템 프롬프트 + 컨텍스트 + 사용자 메시지 결합
+
+        # 원칙 3: Temperature를 0.0으로 고정 (시간표 추천은 창의성보다 정확성)
+        chat = gemini_client.chats.create(
+            model=_model_name,
+            config=types.GenerateContentConfig(
+                temperature=0.0,
+                max_output_tokens=2000,
+            ),
+            history=chat_history,
+        )
+
         full_prompt = system_text + "\n\n[사용자 질문]\n" + user_message
-        
+
         response = chat.send_message(full_prompt)
-        return hanja_to_hangul(response.text)
+        reply_with_hanja = hanja_to_hangul(response.text)
+
+        # 추천된 과목이 컨텍스트에 존재하는지 검증
+        if student_id and _has_recommend_keyword(lower_msg):
+            try:
+                student_obj = get_student(student_id)
+                if student_obj:
+                    available = get_available_courses(student_obj)
+                    reply_with_hanja = _validate_recommendation_against_data(reply_with_hanja, available)
+            except Exception:
+                pass
+
+        # 원칙 4: Structured Output 파싱
+        clean_text, structured_data = _parse_structured_output(reply_with_hanja)
+
+        _extract_and_save_recommended_courses(reply_with_hanja, student_id)
+        return {"message": clean_text, "structured_data": structured_data}
     except Exception as e:
         error_msg = str(e)
         if "429" in error_msg or "quota" in error_msg.lower() or "limit" in error_msg.lower():
-            return (
-                "⚠️ **Gemini API 호출 제한(Quota Exceeded) 초과 안내**\n\n"
-                "현재 설정된 Gemini API 키의 무료 호출 한도를 초과하였거나, 한도가 0으로 제한되어 있습니다.\n\n"
-                "**해결 방법:**\n"
-                "1. **데모 모드 사용:** 프로젝트 루트의 `.env` 파일에서 `GEMINI_API_KEY` 값을 비우거나 삭제하면 로컬 시뮬레이션 기반의 데모 조교 모드로 정상 작동합니다.\n"
-                "2. **API 키 갱신:** [Google AI Studio](https://aistudio.google.com/)에서 새 API 키를 발급받아 `.env` 파일의 `GEMINI_API_KEY`에 등록해 주세요.\n"
-                "3. **모델 변경:** `.env` 파일의 `GEMINI_MODEL`을 `gemini-1.5-flash` 등으로 변경하여 다른 쿼터 한도가 적용되는지 시도할 수 있습니다."
-            )
+            return {
+                "message": (
+                    "⚠️ **Gemini API 호출 제한(Quota Exceeded) 초과 안내**\n\n"
+                    "현재 설정된 Gemini API 키의 무료 호출 한도를 초과하였거나, 한도가 0으로 제한되어 있습니다.\n\n"
+                    "**해결 방법:**\n"
+                    "1. **데모 모드 사용:** 프로젝트 루트의 `.env` 파일에서 `GEMINI_API_KEY` 값을 비우거나 삭제하면 로컬 시뮬레이션 기반의 데모 조교 모드로 정상 작동합니다.\n"
+                    "2. **API 키 갱신:** [Google AI Studio](https://aistudio.google.com/)에서 새 API 키를 발급받아 `.env` 파일의 `GEMINI_API_KEY`에 등록해 주세요.\n"
+                    "3. **모델 변경:** `.env` 파일의 `GEMINI_MODEL`을 `gemini-1.5-flash` 등으로 변경하여 다른 쿼터 한도가 적용되는지 시도할 수 있습니다."
+                ),
+                "structured_data": None,
+            }
         elif "api_key" in error_msg.lower() or "invalid" in error_msg.lower():
-            return (
-                "⚠️ **Gemini API 키 오류 안내**\n\n"
-                "설정된 API 키가 유효하지 않거나 잘못되었습니다. 프로젝트 루트의 `.env` 파일에 유효한 `GEMINI_API_KEY`가 올바르게 입력되어 있는지 확인해 주세요."
-            )
-        return f"API 호출 중 오류가 발생했습니다: {error_msg}"
+            return {
+                "message": (
+                    "⚠️ **Gemini API 키 오류 안내**\n\n"
+                    "설정된 API 키가 유효하지 않거나 잘못되었습니다. 프로젝트 루트의 `.env` 파일에 유효한 `GEMINI_API_KEY`가 올바르게 입력되어 있는지 확인해 주세요."
+                ),
+                "structured_data": None,
+            }
+        return {"message": f"API 호출 중 오류가 발생했습니다: {error_msg}", "structured_data": None}

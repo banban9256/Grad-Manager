@@ -90,21 +90,8 @@ def init_db():
             )
         conn.commit()
     else:
-        # 기존 프로필 데이터가 존재할 경우 preferred_days 마이그레이션 (주 5일로 초기화)
-        cursor.execute("SELECT student_id, profile_json FROM student_profiles;")
-        rows = cursor.fetchall()
-        for sid, p_json in rows:
-            try:
-                profile = json.loads(p_json)
-                if len(profile.get("preferred_days", [])) < 5:
-                    profile["preferred_days"] = ["월", "화", "수", "목", "금"]
-                    cursor.execute(
-                        "UPDATE student_profiles SET profile_json = ? WHERE student_id = ?;",
-                        (json.dumps(profile, ensure_ascii=False), sid)
-                    )
-            except Exception as e:
-                print(f"[MIGRATION ERROR] failed to migrate {sid}: {e}")
-        conn.commit()
+        # 기존 프로필 데이터 유지 (자동 리셋 비활성화)
+        pass
     conn.close()
 
 # 백엔드 모듈 로딩 시 데이터베이스 및 테이블 자동 초기화 트리거
@@ -161,7 +148,7 @@ def get_student(student_id: str) -> dict | None:
                 if cursor.fetchone():
                     # F학점(낙제)을 제외하고 통과한 과목들만 기수강 과목 코드로 수집
                     cursor.execute("""
-                        SELECT c.course_code, h.earned_credit, h.grade
+                        SELECT c.course_code, h.earned_credit, h.grade, c.course_name
                         FROM student_course_history h
                         JOIN courses c ON h.course_id = c.course_id
                         WHERE h.student_id = ?
@@ -169,15 +156,27 @@ def get_student(student_id: str) -> dict | None:
                     
                     histories = cursor.fetchall()
                     completed_codes = []
+                    completed_course_names = []
+                    completed_courses_detail = []
                     total_credits = 0.0
-                    for code, credit, grade in histories:
+                    for code, credit, grade, name in histories:
                         c_code = code.lstrip("*")
                         if grade and grade.upper() != "F":
                             if c_code not in completed_codes:
                                 completed_codes.append(c_code)
+                            if name:
+                                completed_course_names.append(name)
+                                completed_courses_detail.append({
+                                    "code": c_code,
+                                    "name": name,
+                                    "credits": float(credit) if credit else 0.0,
+                                    "grade": grade
+                                })
                             total_credits += float(credit) if credit else 0.0
                     
                     student["completed_courses"] = completed_codes
+                    student["completed_course_names"] = completed_course_names
+                    student["completed_courses_detail"] = completed_courses_detail
                     student["completed_credits"] = int(total_credits) if total_credits == int(total_credits) else total_credits
             except Exception as inner_e:
                 print(f"[SQLITE ERROR] failed to sync completed courses: {inner_e}")

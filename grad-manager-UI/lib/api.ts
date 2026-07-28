@@ -106,7 +106,7 @@ export async function sendChatMessage(
   history?: Array<{ role: "user" | "assistant"; content: string }>,
   semester?: string,
   department?: string
-): Promise<{ message: string; simulated_timetable?: any }> {
+): Promise<{ message: string; simulated_timetable?: any; structured_data?: any }> {
   let convergenceMajor = ""
   let specializedTrack = ""
   

@@ -571,17 +571,104 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
         setMessages((prev) => [...prev, aiMsg])
       }
 
-      // 백엔드가 제공한 정밀 추천 시간표가 존재할 경우 상태 및 캐시 업데이트
-      if (chatResult.simulated_timetable && setSimulatedSchedule) {
-        setSimulatedSchedule(chatResult.simulated_timetable)
-        if (typeof window !== "undefined") {
-          const simulatedTimetableKey = `grad_simulated_timetable_${activeStudentId}_${selectedSemester}`
-          const simulationAppliedKey = `chatbot_simulation_applied_${activeStudentId}_${selectedSemester}`
-          const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${activeStudentId}_${selectedSemester}`
-          
-          sessionStorage.setItem(simulatedTimetableKey, JSON.stringify(chatResult.simulated_timetable))
-          sessionStorage.setItem(simulationAppliedKey, "true")
-          localStorage.setItem(aiRecommendedTimetableKey, JSON.stringify(chatResult.simulated_timetable))
+      // 원칙 4: 백엔드에서 반환된 structured_data가 있을 경우 UI 시뮬레이션 데이터와 동기화
+      if (chatResult.structured_data && chatResult.structured_data.recommendations?.length > 0 && setSimulatedSchedule) {
+        const sd = chatResult.structured_data
+        // 기존 simulated_timetable가 있으면 그걸 우선 사용하고, 없으면 structured_data로 구성
+        if (!chatResult.simulated_timetable?.scheduleBlocks || chatResult.simulated_timetable.scheduleBlocks.length === 0) {
+          // structured_data로부터 시뮬레이션 시간표 블록 구성
+          const dayMap: Record<string, number> = { "월": 0, "화": 1, "수": 2, "목": 3, "금": 4 }
+          const scheduleBlocks: any[] = []
+          const pastelPalette = [
+            { bg: "bg-[#e8f3ff]", text: "text-[#1b64da]", bar: "bg-[#3182f6]" },
+            { bg: "bg-[#daf2ee]", text: "text-[#008f80]", bar: "bg-[#00b5a3]" },
+            { bg: "bg-[#fff3f5]", text: "text-[#d6284a]", bar: "bg-[#f04452]" },
+            { bg: "bg-[#f4edff]", text: "text-[#6b31f6]", bar: "bg-[#8f5cf0]" },
+            { bg: "bg-[#fffae8]", text: "text-[#b08b00]", bar: "bg-[#ffc900]" },
+          ]
+
+          sd.recommendations.forEach((rec: any, idx: number) => {
+            const color = pastelPalette[idx % pastelPalette.length]
+            ;(rec.time_slots || []).forEach((slot: any[]) => {
+              const [day, start, end] = slot
+              if (dayMap[day] !== undefined) {
+                const [sh, sm] = start.split(":").map(Number)
+                const [eh, em] = end.split(":").map(Number)
+                const startH = sh + sm / 60
+                const endH = eh + em / 60
+                scheduleBlocks.push({
+                  id: `structured-${rec.code}-${day}-${start}-${end}`,
+                  name: rec.name,
+                  professor: rec.professor || "미정",
+                  room: "미정",
+                  day: dayMap[day],
+                  start: startH,
+                  end: endH,
+                  span: endH - startH,
+                  color: color.bg,
+                  textColor: color.text,
+                })
+              }
+            })
+          })
+
+          const structuredTimetable = {
+            scheduleDays: ["월", "화", "수", "목", "금"],
+            scheduleHours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+            scheduleBlocks,
+            scheduleReasons: sd.recommendations.map((rec: any) => ({
+              icon: "Sparkles",
+              title: `${rec.name} (${rec.code})`,
+              desc: rec.reason || "추천 과목",
+            })),
+            pastelPalette,
+            totalCredits: sd.total_credits || 0,
+            courseCount: sd.recommendations.length,
+            preferences: {
+              freeDays: sd.free_days || [],
+              preferredDays: ["월", "화", "수", "목", "금"],
+              avoidMorning: false,
+              preferAfternoon: false,
+            },
+          }
+          setSimulatedSchedule(structuredTimetable)
+          if (typeof window !== "undefined") {
+            const simulatedTimetableKey = `grad_simulated_timetable_${activeStudentId}_${selectedSemester}`
+            const simulationAppliedKey = `chatbot_simulation_applied_${activeStudentId}_${selectedSemester}`
+            const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${activeStudentId}_${selectedSemester}`
+            sessionStorage.setItem(simulatedTimetableKey, JSON.stringify(structuredTimetable))
+            sessionStorage.setItem(simulationAppliedKey, "true")
+            localStorage.setItem(aiRecommendedTimetableKey, JSON.stringify(structuredTimetable))
+          }
+        } else {
+          // 기존 simulated_timetable이 있으면 그걸 사용
+          const timetable = chatResult.simulated_timetable
+          if (timetable.scheduleBlocks && timetable.scheduleBlocks.length > 0) {
+            setSimulatedSchedule(timetable)
+            if (typeof window !== "undefined") {
+              const simulatedTimetableKey = `grad_simulated_timetable_${activeStudentId}_${selectedSemester}`
+              const simulationAppliedKey = `chatbot_simulation_applied_${activeStudentId}_${selectedSemester}`
+              const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${activeStudentId}_${selectedSemester}`
+              sessionStorage.setItem(simulatedTimetableKey, JSON.stringify(timetable))
+              sessionStorage.setItem(simulationAppliedKey, "true")
+              localStorage.setItem(aiRecommendedTimetableKey, JSON.stringify(timetable))
+            }
+          }
+        }
+      } else if (chatResult.simulated_timetable && setSimulatedSchedule) {
+        // structured_data가 없으면 기존 방식대로 simulated_timetable 사용
+        const timetable = chatResult.simulated_timetable
+        const hasBlocks = timetable.scheduleBlocks && timetable.scheduleBlocks.length > 0
+        if (hasBlocks) {
+          setSimulatedSchedule(timetable)
+          if (typeof window !== "undefined") {
+            const simulatedTimetableKey = `grad_simulated_timetable_${activeStudentId}_${selectedSemester}`
+            const simulationAppliedKey = `chatbot_simulation_applied_${activeStudentId}_${selectedSemester}`
+            const aiRecommendedTimetableKey = `grad_manager_ai_recommended_timetable_${activeStudentId}_${selectedSemester}`
+            sessionStorage.setItem(simulatedTimetableKey, JSON.stringify(timetable))
+            sessionStorage.setItem(simulationAppliedKey, "true")
+            localStorage.setItem(aiRecommendedTimetableKey, JSON.stringify(timetable))
+          }
         }
       }
     } catch (err) {

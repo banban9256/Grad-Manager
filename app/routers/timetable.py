@@ -55,7 +55,7 @@ def get_recommendations(authorization: Optional[str] = Header(None)):
                         end_h = eh + em / 60
                         
                         schedule_blocks.append({
-                          "id": f"block-{c['code']}-{d}",
+                          "id": f"block-{c['code']}-{d}-{start}-{end}",
                           "name": c["name"],
                           "professor": c["professor"],
                           "day": day_map[d],
@@ -68,12 +68,68 @@ def get_recommendations(authorization: Optional[str] = Header(None)):
                         pass
                         
         schedule_reasons = [
-            {"icon": "GraduationCap", "text": "미이수한 졸업 필수 1과목 자동 배정"},
-            {"icon": "CalendarOff", "text": "선호 요일 최적 배정 완료"},
-            {"icon": "BrainCircuit", "text": "이동 거리 최소화를 위한 한 건물 위주 배정"}
+            {"icon": "GraduationCap", "title": "미이수한 졸업 필수과목 자동 배정", "desc": "졸업 요건을 충족하기 위해 미이수 필수 과목을 자동으로 배정했습니다."},
+            {"icon": "CalendarOff", "title": "선호 요일 최적 배정 완료", "desc": "사용자의 선호 요일을 반영하여 최적의 시간표를 구성했습니다."},
+            {"icon": "BrainCircuit", "title": "강의동 간 동선 최소화", "desc": "연강 시 강의실 이동 거리를 최소화하기 위해 같은 건물 위주로 배정했습니다."}
         ]
+
+        # 각 과목별 상세 추천 사유 생성
+        _TRACK_NAMES = {
+            "AS001": "AI.SW개론", "AS002": "C언어", "AS003": "공학설계입문",
+            "AS004": "AI·SW수학", "AS005": "문제해결형프로그래밍", "AS006": "웹프로그래밍",
+            "AS007": "자료구조", "AS008": "자바프로그래밍", "AS009": "논리회로",
+            "AS010": "데이터통신", "AS011": "운영체제", "AS012": "데이터베이스",
+        }
+        _TYPE_REASONS = {
+            "전공필수": "졸업을 위한 전공 필수 과목으로, 반드시 이수해야 합니다.",
+            "전공선택": "전공 역량을 강화하는 선택 과목으로, 관심 분야 심화에 적합합니다.",
+            "교양필수": "졸업을 위한 교양 필수 과목으로, 기초 소양 함양에 필요합니다.",
+            "교양선택": "학문적 시야를 넓히는 교양 선택 과목입니다.",
+            "계열공통": "AISW 계열 공통 과목으로, 전공 기초 역량 강화에 필수적입니다.",
+        }
+        _TRACK_KEYWORDS = {
+            "앰비언트": ["앰비언트", "IoT", "센서", "임베디드", "통신"],
+            "데이터 사이언스": ["데이터", "분석", "통계", "머신러닝", "딥러닝"],
+            "인지 감성": ["인지", "감성", "HCI", "심리", "UX"],
+        }
+
+        seen_course_codes = set()
+        for c in sched.get("courses", []):
+            code = c.get("code", "")
+            if code in seen_course_codes:
+                continue
+            seen_course_codes.add(code)
+
+            course_name = c.get("name", "")
+            course_type = c.get("type", "")
+            credits = c.get("credits", 3)
+
+            reason_desc = ""
+            if code in _TRACK_NAMES:
+                reason_desc = f"계열 공통 과목({code})으로, AISW 전공 기초 역량을 갖추기 위한 필수 과목입니다."
+            elif course_type in _TYPE_REASONS:
+                reason_desc = _TYPE_REASONS[course_type]
+            else:
+                specialized_track = student.get("specialized_track", "")
+                if specialized_track:
+                    for track_name, keywords in _TRACK_KEYWORDS.items():
+                        if track_name in specialized_track:
+                            if any(kw in course_name for kw in keywords):
+                                reason_desc = f"특화트랙({specialized_track}) 관련 과목으로, 트랙 전문성 강화에 기여합니다."
+                                break
+                if not reason_desc:
+                    if credits >= 3:
+                        reason_desc = f"{credits}학점 과목으로, 졸업 학점 요건 충족에 기여합니다."
+                    else:
+                        reason_desc = f"추가 역량 개발을 위한 과목입니다."
+
+            schedule_reasons.append({
+                "icon": "Sparkles",
+                "title": f"{course_name} ({code})",
+                "desc": reason_desc
+            })
     else:
-        schedule_reasons = [{"icon": "AlertTriangle", "text": "추천 조건에 맞는 조합이 존재하지 않습니다."}]
+        schedule_reasons = [{"icon": "AlertTriangle", "title": "추천 시간표 없음", "desc": "추천 조건에 맞는 조합이 존재하지 않습니다."}]
 
     return {
         "scheduleDays": ["월", "화", "수", "목", "금"],

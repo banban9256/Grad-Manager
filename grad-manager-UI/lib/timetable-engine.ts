@@ -105,8 +105,9 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
       if (key === "all" || key === "major" || key === "liberal" || key === "settings") continue
 
       // 학점 필터 (예: "3학점 제한")
-      if (label.includes("3학점") && course.credit !== 3) return false
-      if (label.includes("2학점") && course.credit !== 2) return false
+      const courseCredits = course.credits ?? course.credit ?? 3
+      if (label.includes("3학점") && courseCredits !== 3) return false
+      if (label.includes("2학점") && courseCredits !== 2) return false
 
       // 특정 요교시 필터 (예: "오전 수업 제외" -> 9시 수업 제거)
       if ((label.includes("오전") || label.includes("9시")) && label.includes("제외")) {
@@ -217,7 +218,8 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
   }
 
   for (const rawCourse of sortedPool) {
-    if (totalCredits + rawCourse.credit > 18) continue
+    const rawCourseCredits = rawCourse.credits ?? rawCourse.credit ?? 3
+    if (totalCredits + rawCourseCredits > 18) continue
 
     // 단일 분반으로 schedules 정제
     const cleanedSchedules = extractSingleSectionSchedules(rawCourse.schedules)
@@ -256,7 +258,7 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
 
     if (!conflict) {
       selectedCourses.push(course)
-      totalCredits += course.credit
+      totalCredits += (course.credits ?? course.credit ?? 3)
     }
 
     if (totalCredits >= 15) break
@@ -337,6 +339,41 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
     desc: "연강일 때 강의실 이동 거리를 감안하여 효율적인 강의실 위주로 배정했습니다."
   })
 
+  // 각 과목별 상세 추천 사유 생성
+  const _TYPE_REASONS: Record<string, string> = {
+    "전공필수": "졸업을 위한 전공 필수 과목으로, 반드시 이수해야 합니다.",
+    "전공선택": "전공 역량을 강화하는 선택 과목으로, 관심 분야 심화에 적합합니다.",
+    "교양필수": "졸업을 위한 교양 필수 과목으로, 기초 소양 함양에 필요합니다.",
+    "교양선택": "학문적 시야를 넓히는 교양 선택 과목입니다.",
+    "계열공통": "AISW 계열 공통 과목으로, 전공 기초 역량 강화에 필수적입니다.",
+  }
+
+  const seenCodes = new Set<string>()
+  for (const c of selectedCourses) {
+    const code = String(c.course_id || c.code || "")
+    if (!code || seenCodes.has(code)) continue
+    seenCodes.add(code)
+
+    const courseName = cleanCourseName(c.title || c.name || code)
+    const courseType = c.type || c.category || ""
+    const credits = c.credits ?? c.credit ?? 3
+
+    let reasonDesc = ""
+    if (courseType in _TYPE_REASONS) {
+      reasonDesc = _TYPE_REASONS[courseType]
+    } else if (credits >= 3) {
+      reasonDesc = `${credits}학점 과목으로, 졸업 학점 요건 충족에 기여합니다.`
+    } else {
+      reasonDesc = `추가 역량 개발을 위한 과목입니다.`
+    }
+
+    reasons.push({
+      icon: "Sparkles",
+      title: `${courseName} (${code})`,
+      desc: reasonDesc
+    })
+  }
+
   return {
     scheduleDays: ["월", "화", "수", "목", "금"],
     scheduleHours: [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
@@ -349,7 +386,7 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
       id: String(c.course_id || c.code || ""),
       name: cleanCourseName(c.title || c.name || String(c.course_id || c.code || "과목명 미정")),
       code: String(c.course_id || c.code || ""),
-      credit: c.credit,
+      credit: c.credits ?? c.credit ?? 3,
       match: 95,
       tags: c.program_type === "MAJOR" ? ["필수"] : ["관심사 매칭"],
       retake: false,

@@ -176,7 +176,8 @@ def run_cli():
         if not user_input:
             continue
 
-        response = chat(user_input, student_id=student_id, history=history)
+        result = chat(user_input, student_id=student_id, history=history)
+        response = result["message"]
         print(f"\n그레듀: {response}")
 
         history.append({"role": "user", "content": user_input})

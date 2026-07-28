@@ -322,7 +322,10 @@ export function ScheduleTab() {
   }, [])
 
   const hasSimulatedSchedule = simulatedSchedule !== null
-  const activeSchedule = schedule
+  // AI 추천 시간표가 있을 경우 scheduleReasons(과목별 추천 사유)를 우선 사용
+  const activeSchedule = simulatedSchedule?.scheduleReasons
+    ? { ...schedule, scheduleReasons: simulatedSchedule.scheduleReasons }
+    : schedule
 
   // 호버된 분반(groupId) 상태 관리
   const [hoveredGroupId, setHoveredGroupId] = useState<string | null>(null)

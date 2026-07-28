@@ -53,13 +53,15 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
     from backend.core.data.students import STUDENTS
     STUDENTS[student_id] = student
     
-    # backend/core/chatbot.py 의 chat 함수 호출
-    ai_response = chat(
+    # backend/core/chatbot.py 의 chat 함수 호출 (dict 반환: {message, structured_data})
+    chat_result = chat(
         user_message=req.message,
         student_id=student_id,
         history=req.history or [],
         target_semester=req.semester
     )
+    ai_response = chat_result["message"]
+    structured_data = chat_result.get("structured_data")
 
     # chat() 함수가 preferred_days 등을 갱신할 수 있으므로 최신 학생 정보 재조회
     student = get_student(student_id)
@@ -91,13 +93,14 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
                         start_h = sh + sm / 60
                         end_h = eh + em / 60
                         schedule_blocks.append({
-                          "id": f"block-{c['code']}-{d}",
+                          "id": f"block-{c['code']}-{d}-{start}-{end}",
                           "name": c["name"],
                           "professor": c.get("professor", "미정"),
                           "room": c.get("room", "미정"),
                           "day": day_map[d],
                           "start": start_h,
                           "end": end_h,
+                          "span": end_h - start_h,
                           "color": color["bg"],
                           "textColor": color["text"]
                         })
@@ -167,6 +170,78 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
         "desc": "연강일 때 강의실 이동 거리를 감안하여 IT융합관/공학관 위주로 묶어 배정했습니다."
     })
 
+    # 각 과목별 상세 추천 사유 생성 (대화에서 생성된 AI 추천 이유를 시간표 페이지에 전달)
+    if schedules:
+        sched = schedules[0]
+        # 트랙 공통 과목 코드 매핑 (chatbot.py의 _TRACK_COMMON_COURSES와 동기화)
+        _TRACK_NAMES = {
+            "AS001": "AI.SW개론", "AS002": "C언어", "AS003": "공학설계입문",
+            "AS004": "AI·SW수학", "AS005": "문제해결형프로그래밍", "AS006": "웹프로그래밍",
+            "AS007": "자료구조", "AS008": "자바프로그래밍", "AS009": "논리회로",
+            "AS010": "데이터통신", "AS011": "운영체제", "AS012": "데이터베이스",
+        }
+        # 과목 타입별 추천 사유 템플릿
+        _TYPE_REASONS = {
+            "전공필수": "졸업을 위한 전공 필수 과목으로, 반드시 이수해야 합니다.",
+            "전공선택": "전공 역량을 강화하는 선택 과목으로, 관심 분야 심화에 적합합니다.",
+            "교양필수": "졸업을 위한 교양 필수 과목으로, 기초 소양 함양에 필요합니다.",
+            "교양선택": "학문적 시야를 넓히는 교양 선택 과목입니다.",
+            "계열공통": "AISW 계열 공통 과목으로, 전공 기초 역량 강화에 필수적입니다.",
+        }
+        # 특화트랙 키워드 매핑
+        _TRACK_KEYWORDS = {
+            "앰비언트": ["앰비언트", "IoT", "센서", "임베디드", "통신"],
+            "데이터 사이언스": ["데이터", "분석", "통계", "머신러닝", "딥러닝"],
+            "인지 감성": ["인지", "감성", "HCI", "심리", "UX"],
+        }
+
+        seen_course_codes = set()
+        for c in sched.get("courses", []):
+            code = c.get("code", "")
+            if code in seen_course_codes:
+                continue
+            seen_course_codes.add(code)
+
+            course_name = c.get("name", "")
+            course_type = c.get("type", "")
+            credits = c.get("credits", 3)
+            professor = c.get("professor", "미정")
+
+            # 과목별 사유 생성
+            reason_desc = ""
+
+            # 1. 계열 공통 과목인 경우 특별 사유
+            if code in _TRACK_NAMES:
+                reason_desc = f"계열 공통 과목({code})으로, AISW 전공 기초 역량을 갖추기 위한 필수 과목입니다."
+
+            # 2. 과목 타입 기반 사유
+            elif course_type in _TYPE_REASONS:
+                reason_desc = _TYPE_REASONS[course_type]
+
+            # 3. 특화트랙 매칭 사유
+            else:
+                specialized_track = student.get("specialized_track", "")
+                if specialized_track:
+                    for track_name, keywords in _TRACK_KEYWORDS.items():
+                        if track_name in specialized_track:
+                            if any(kw in course_name for kw in keywords):
+                                reason_desc = f"특화트랙({specialized_track}) 관련 과목으로, 트랙 전문성 강화에 기여합니다."
+                                break
+
+                # 4. 트랙 매칭이 없으면 학점 기반 사유
+                if not reason_desc:
+                    if credits >= 3:
+                        reason_desc = f"{credits}학점 과목으로, 졸업 학점 요건 충족에 기여합니다."
+                    else:
+                        reason_desc = f"추가 역량 개발을 위한 과목입니다."
+
+            # 과목명+교수명+사유를 하나의 추천 이유로 구성
+            reasons.append({
+                "icon": "Sparkles",
+                "title": f"{course_name} ({code})",
+                "desc": reason_desc
+            })
+
     simulated_timetable = {
         "scheduleDays": ["월", "화", "수", "목", "금"],
         "scheduleHours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
@@ -185,7 +260,8 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
     
     return {
         "message": ai_response,
-        "simulated_timetable": simulated_timetable
+        "simulated_timetable": simulated_timetable,
+        "structured_data": structured_data,
     }
 
 

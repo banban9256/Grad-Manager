@@ -95,17 +95,86 @@ def test_same_name_completed_course_is_not_recommended():
     original_courses = course_module.COURSES
     try:
         course_module.COURSES = {
-            "CS101": {"code": "CS101", "name": "알고리즘", "credits": 3, "type": "전공선택", "offerings": []},
-            "CS999": {"code": "CS999", "name": "알고리즘", "credits": 3, "type": "전공선택", "offerings": []},
-            "CS200": {"code": "CS200", "name": "데이터베이스", "credits": 3, "type": "전공선택", "offerings": []},
+            "SH101": {"code": "SH101", "name": "알고리즘", "credits": 3, "type": "전공선택", "offerings": []},
+            "SH999": {"code": "SH999", "name": "알고리즘", "credits": 3, "type": "전공선택", "offerings": []},
+            "SH200": {"code": "SH200", "name": "데이터베이스", "credits": 3, "type": "전공선택", "offerings": []},
         }
 
-        student = {"completed_courses": ["CS101"], "in_progress_courses": []}
+        student = {
+            "student_id": "20210001",
+            "department": "AISW",
+            "completed_courses": ["SH101"],
+            "in_progress_courses": []
+        }
         available = get_available_courses(student)
         codes = [course["code"] for course in available]
 
-        assert "CS999" not in codes
-        assert "CS200" in codes
+        assert "SH999" not in codes
+        assert "SH200" in codes
+    finally:
+        course_module.COURSES = original_courses
+
+
+def test_chapel_satisfied_rule():
+    import core.data.courses as course_module
+
+    original_courses = course_module.COURSES
+    try:
+        # 가상의 개설 과목 등록
+        # KY100: 이수 완료한 채플
+        # KY201: 미이수한 채플
+        course_module.COURSES = {
+            "KY100": {"code": "KY100", "name": "채플", "credits": 1.0, "type": "교양필수", "offerings": []},
+            "KY201": {"code": "KY201", "name": "채플", "credits": 1.0, "type": "교양필수", "offerings": []},
+            "SH200": {"code": "SH200", "name": "데이터베이스", "credits": 3, "type": "전공선택", "offerings": []},
+        }
+
+        # 1. 0.5학점 또는 1.0학점 채플을 8번 이수한 학생 (과목명이 '채플')
+        student_satisfied = {
+            "completed_courses": ["KY100", "KY102", "KY103", "KY104", "KY105", "KY106", "KY107", "KY108"],
+            "completed_course_names": ["채플", "채플", "채플", "채플", "채플", "채플", "채플", "채플"],
+            "completed_courses_detail": [
+                {"code": "KY100", "name": "채플", "credits": 1.0},
+                {"code": "KY102", "name": "채플", "credits": 0.5},
+                {"code": "KY103", "name": "채플", "credits": 0.5},
+                {"code": "KY104", "name": "채플", "credits": 1.0},
+                {"code": "KY105", "name": "채플", "credits": 0.5},
+                {"code": "KY106", "name": "채플", "credits": 0.5},
+                {"code": "KY107", "name": "채플", "credits": 1.0},
+                {"code": "KY108", "name": "채플", "credits": 0.5},
+            ],
+            "in_progress_courses": [],
+            "department": "AISW"
+        }
+        available_satisfied = get_available_courses(student_satisfied)
+        satisfied_codes = [c["code"] for c in available_satisfied]
+        
+        # 채플 요건을 만족했으므로 미이수한 KY201(채플)도 추천에서 빠져야 함
+        assert "KY201" not in satisfied_codes
+        assert "SH200" in satisfied_codes
+
+        # 2. 채플을 7번 이수한 학생
+        student_unsatisfied = {
+            "completed_courses": ["KY100", "KY102", "KY103", "KY104", "KY105", "KY106", "KY107"],
+            "completed_course_names": ["채플", "채플", "채플", "채플", "채플", "채플", "채플"],
+            "completed_courses_detail": [
+                {"code": "KY100", "name": "채플", "credits": 1.0},
+                {"code": "KY102", "name": "채플", "credits": 0.5},
+                {"code": "KY103", "name": "채플", "credits": 0.5},
+                {"code": "KY104", "name": "채플", "credits": 1.0},
+                {"code": "KY105", "name": "채플", "credits": 0.5},
+                {"code": "KY106", "name": "채플", "credits": 0.5},
+                {"code": "KY107", "name": "채플", "credits": 1.0},
+            ],
+            "in_progress_courses": [],
+            "department": "AISW"
+        }
+        available_unsatisfied = get_available_courses(student_unsatisfied)
+        unsatisfied_codes = [c["code"] for c in available_unsatisfied]
+        
+        # 채플 요건을 만족하지 못했으므로 미이수한 KY201(채플)은 추천에 포함되어야 함
+        assert "KY201" in unsatisfied_codes
+        assert "SH200" in unsatisfied_codes
     finally:
         course_module.COURSES = original_courses
 
@@ -248,6 +317,86 @@ def test_keyword_registration():
     print(f"  {result['message']}")
     for n in result["existing_matches"][:5]:
         print(f"    - {n['title'][:60]}")
+def test_chatbot_chapel_and_taken_courses():
+    print("=" * 60)
+    print("TEST: 챗봇 채플 및 기이수 과목명 필터링 검증")
+    print("=" * 60)
+
+    from core.chatbot import _count_chapel_completed, _get_unfinished_track_common
+
+    # 채플을 8번 이수한 가상 학생
+    student_satisfied = {
+        "student_id": "9999",
+        "completed_courses": ["KY101", "KY201", "KY304", "KY509", "KY901", "KY902", "KY903", "KY904"],
+        "completed_course_names": ["채플", "채플", "채플", "채플", "채플", "채플", "채플", "채플"]
+    }
+
+    # 채플을 1번 이수한 가상 학생
+    student_unsatisfied = {
+        "student_id": "8888",
+        "completed_courses": ["KY101"],
+        "completed_course_names": ["채플"]
+    }
+
+    sat_info = _count_chapel_completed(student_satisfied)
+    unsat_info = _count_chapel_completed(student_unsatisfied)
+
+    print(f"  8회 이수 학생 채플 카운트: {sat_info['completed_count']} (만족 여부: {sat_info['is_satisfied']})")
+    print(f"  1회 이수 학생 채플 카운트: {unsat_info['completed_count']} (만족 여부: {unsat_info['is_satisfied']})")
+
+    assert sat_info["is_satisfied"] == True
+    assert unsat_info["is_satisfied"] == False
+
+    # 웹프로그래밍을 이미 이수한 학생 (과목 코드 FLOW-050)
+    student_web = {
+        "student_id": "7777",
+        "completed_courses": ["FLOW-050"],
+        "completed_course_names": ["웹프로그래밍"]
+    }
+
+    unfinished_commons = _get_unfinished_track_common(student_web, "2학기")
+    web_unfinished = [c for c in unfinished_commons["all_unfinished"] if c["name"] == "웹프로그래밍"]
+
+    print(f"  웹프로그래밍(FLOW-050) 기이수 학생의 계공 미이수 목록 내 웹프로그래밍 포함 여부: {len(web_unfinished) > 0}")
+    assert len(web_unfinished) == 0, "이미 과목명 '웹프로그래밍'으로 이수했으므로 미이수 계공에 나타나지 않아야 합니다."
+
+    print("  [✓] 챗봇 검증 테스트 완료!")
+
+
+def test_christianity_course_satisfied():
+    print("=" * 60)
+    print("TEST: 기독교/성서 계열 중복 이수 예외 처리 검증")
+    print("=" * 60)
+
+    from core.data.courses import get_available_courses
+
+    # '성서와여성'을 기이수한 학생
+    student_bible = {
+        "student_id": "6666",
+        "enrolled_year": 2024,
+        "department": "AI.SW학",
+        "major_tracks": ["AI.SW학 본전공"],
+        "completed_courses": ["KY894"],
+        "completed_course_names": ["성서와여성"],
+        "in_progress_courses": [],
+        "in_progress_course_names": [],
+        "required_credits": 130,
+        "completed_credits": 2,
+        "gpa": 4.0,
+        "preferred_days": ["월", "화", "수", "목", "금"],
+        "preferred_times": ["09:00-12:00", "13:00-18:00"],
+        "avoid_times": []
+    }
+
+    avail = get_available_courses(student_bible, "2학기")
+    
+    # 성서 관련 다른 과목인 '성서와평화'가 추천 목록에 등장하는지 확인
+    bible_peace_avail = [c for c in avail if "성서" in c.get("name", "") or "기독교" in c.get("name", "")]
+    
+    print(f"  성서와여성 기이수 학생의 수강 가능 추천 목록 내 기독교/성서 과목 존재 여부: {len(bible_peace_avail) > 0}")
+    assert len(bible_peace_avail) == 0, "이미 '성서와여성'을 이수했으므로 다른 성서/기독교 과목이 추천되지 않아야 합니다."
+    
+    print("  [✓] 기독교 중복 이수 배제 검증 완료!")
 
 
 if __name__ == "__main__":
@@ -256,6 +405,10 @@ if __name__ == "__main__":
     test_csv_loading()
     test_students()
     test_courses()
+    test_same_name_completed_course_is_not_recommended()
+    test_chapel_satisfied_rule()
+    test_chatbot_chapel_and_taken_courses()
+    test_christianity_course_satisfied()
     test_timetable()
     test_time_conflict()
     test_preferences()

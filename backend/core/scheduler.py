@@ -144,6 +144,13 @@ def _score_schedule(schedule: list[dict], student: dict) -> float:
         if _fits_preferences(course, student["preferred_days"], student["preferred_times"], student.get("avoid_times", [])):
             score += 3.0
 
+    # 대화 추천 과목 보너스 (과목당 +100.0점)
+    rec_codes = student.get("chatbot_recommended_courses", [])
+    if rec_codes:
+        for course in schedule:
+            if course["code"] in rec_codes:
+                score += 100.0
+
     # 학점 수 보너스 (많을수록 좋지만, 21학점 이상이면 감점)
     total_credits = sum(c["credits"] for c in schedule)
     score += total_credits * 1.0
@@ -241,6 +248,18 @@ def _generate_timetable_with_preferences(
     # 3단계: 탐색 풀 구성 (필수 + 선호 + 나머지)
     course_pool = []
     seen_codes = set()
+
+    # 대화 추천 과목 (Must-Have) 최우선 배치
+    rec_codes = student.get("chatbot_recommended_courses", [])
+    if rec_codes:
+        for code in rec_codes:
+            full_c = get_course(code)
+            if full_c and full_c.get("time_slots") and code not in seen_codes:
+                from .data.courses import _get_taken_course_filter, _is_course_already_taken
+                taken_codes, taken_names = _get_taken_course_filter(student)
+                if not _is_course_already_taken(full_c, taken_codes, taken_names):
+                    course_pool.append(full_c)
+                    seen_codes.add(code)
 
     # 필수 및 계열공통/교양필수 미이수 과목 수집 (최우선 순위)
     target_semester = student.get("target_semester") or "2026-2학기"
@@ -371,7 +390,7 @@ def _generate_timetable_with_preferences(
 
             # 학점 합계 체크 (최대 21학점)
             total_credits = sum(c["credits"] for c in combo_list)
-            if total_credits > 21 or total_credits < 9:
+            if total_credits > 21 or total_credits < 6:
                 continue
 
             # 필수 과목 포함 여부 기록

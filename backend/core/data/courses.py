@@ -60,13 +60,70 @@ def _is_chapel_course(course: dict) -> bool:
     return code in _CHAPEL_CODES or "채플" in name
 
 
+def _is_christianity_course(course: dict) -> bool:
+    """과목이 기독교/성서 관련 과목인지 확인"""
+    name = course.get("name", "")
+    return "기독교" in name or "성서" in name
+
+
+def _ensure_completed_course_names(student: dict):
+    """
+    학생 정보 딕셔너리에 completed_course_names가 없거나 비어있는 경우,
+    completed_courses 코드를 기반으로 전역 COURSES 사전에서 이름을 찾아 채워줍니다.
+    또한 completed_courses_detail도 마찬가지로 보완합니다.
+    """
+    _ensure_loaded()
+    if not student:
+        return
+
+    # 완성된 과목명이 없을 경우에만 또는 보강이 필요할 때 수행
+    completed_names = student.setdefault("completed_course_names", [])
+    completed_details = student.setdefault("completed_courses_detail", [])
+    
+    # 만약 completed_names가 비어있거나, completed_courses의 크기와 맞지 않다면 다시 채움
+    completed_codes = student.get("completed_courses", [])
+    if not completed_names or len(completed_names) < len(completed_codes):
+        # 중복 방지를 위해 set으로 관리한 뒤 변환
+        existing_names = {name for name in completed_names if name}
+        for code in completed_codes:
+            code_clean = code.lstrip("*")
+            course_obj = COURSES.get(code_clean)
+            if course_obj:
+                name = course_obj.get("name", "")
+                if name:
+                    if name not in existing_names:
+                        completed_names.append(name)
+                        existing_names.add(name)
+                    
+                    if not any(d.get("code") == code_clean for d in completed_details):
+                        completed_details.append({
+                            "code": code_clean,
+                            "name": name,
+                            "credits": float(course_obj.get("credits", 3.0)),
+                            "grade": "A"
+                        })
+
+
 def _get_taken_course_filter(student: dict) -> tuple[set[str], set[str]]:
     _ensure_loaded()
+    _ensure_completed_course_names(student)
     completed = set(student.get("completed_courses", []))
     in_progress = set(student.get("in_progress_courses", []))
     taken_codes = completed | in_progress
 
     taken_names = set()
+
+    # 1. student 객체에 이미 이수/수강중 과목명 목록이 있다면 먼저 반영
+    for name in student.get("completed_course_names", []):
+        norm = _normalize_course_name(name)
+        if norm:
+            taken_names.add(norm)
+    for name in student.get("in_progress_course_names", []):
+        norm = _normalize_course_name(name)
+        if norm:
+            taken_names.add(norm)
+
+    # 2. 과목 코드를 기반으로 COURSES 사전에서 과목명을 찾아 매칭 보강 (Fallback)
     for code in taken_codes:
         course = COURSES.get(code)
         if course:
@@ -77,12 +134,66 @@ def _get_taken_course_filter(student: dict) -> tuple[set[str], set[str]]:
     return taken_codes, taken_names
 
 
+def _get_chapel_completed_count(student: dict) -> int:
+    """학생이 이수한 채플 과목의 총 횟수를 반환합니다. (학수번호 무관, 이름에 '채플' 포함)"""
+    _ensure_loaded()
+    _ensure_completed_course_names(student)
+    
+    chapel_completed_count = 0
+    
+    # 1. student 객체에 completed_course_names가 제공되는 경우 우선 사용
+    completed_names = student.get("completed_course_names", [])
+    if completed_names:
+        for name in completed_names:
+            if "채플" in name:
+                chapel_completed_count += 1
+    else:
+        # 2. completed_course_names가 없는 경우 (completed_courses_detail이 제공되는 경우)
+        completed_details = student.get("completed_courses_detail", [])
+        if completed_details:
+            for detail in completed_details:
+                name = detail.get("name", "")
+                if name and "채플" in name:
+                    chapel_completed_count += 1
+        else:
+            # 3. 상세 정보가 전혀 없는 경우 (Fallback)
+            completed_codes = student.get("completed_courses", [])
+            for code in completed_codes:
+                code_clean = code.lstrip("*")
+                course_obj = COURSES.get(code_clean)
+                if course_obj:
+                    name = course_obj.get("name", "")
+                    if "채플" in name:
+                        chapel_completed_count += 1
+                else:
+                    if code_clean in _CHAPEL_CODES:
+                        chapel_completed_count += 1
+                        
+    return chapel_completed_count
+
+
+def _is_chapel_completed(student: dict) -> bool:
+    """학생이 채플 요건(과목명에 '채플'이 포함된 과목을 8회 이수)을 충족했는지 확인합니다."""
+    return _get_chapel_completed_count(student) >= 8
+
+
 def _is_course_already_taken(course: dict, taken_codes: set[str], taken_names: set[str]) -> bool:
     if not course:
         return False
 
     raw_code = course.get("code") or ""
     code_key = raw_code.strip().lstrip("*").lower()
+    
+    # 채플 과목인 경우 과목명 매칭으로 제외 처리하지 않음 (8회 미만 이수 시 다른 코드의 채플은 수강 가능해야 하므로)
+    if _is_chapel_course(course):
+        return bool(code_key and code_key in {c.strip().lstrip("*").lower() for c in taken_codes if c})
+
+    # 기독교/성서 과목 예외 처리: 이미 기독교 관련 과목을 1과목 이상 이수했다면, 다른 기독교 과목들도 기이수한 것으로 간주
+    if _is_christianity_course(course):
+        has_taken_christianity = any("기독교" in name or "성서" in name for name in taken_names if name)
+        if has_taken_christianity:
+            return True
+
     if code_key and code_key in {c.strip().lstrip("*").lower() for c in taken_codes if c}:
         return True
 
@@ -162,15 +273,7 @@ def get_available_courses(student: dict, semester: str = None) -> list[dict]:
         target_sem = parts[1]
 
     # 채플 8회 이수 완료 체크
-    completed_codes = student.get("completed_courses", [])
-    chapel_completed_count = 0
-    for code in completed_codes:
-        code_clean = code.lstrip("*")
-        course_obj = COURSES.get(code_clean)
-        if _is_chapel_course({"code": code_clean, "name": course_obj.get("name", "") if course_obj else ""}):
-            chapel_completed_count += 1
-
-    is_chapel_satisfied = chapel_completed_count >= 8
+    is_chapel_satisfied = _is_chapel_completed(student)
 
     filtered_courses = []
     for code, course in COURSES.items():
@@ -253,9 +356,14 @@ def get_all_remaining_required_for_semester(student: dict, semester: str = None)
     is_aisw = student.get("department") in ("AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부")
     required_types = {"교양필수", "general_required", "계열공통"} if is_aisw else {"전공필수", "교양필수", "required", "general_required", "계열공통"}
 
+    is_chapel_satisfied = _is_chapel_completed(student)
+
     by_category = {}
     for code, course in COURSES.items():
         if _is_course_already_taken(course, taken, taken_names):
+            continue
+        # 채플 이수 요건 충족 시 채플 과목 완전 제외
+        if is_chapel_satisfied and _is_chapel_course(course):
             continue
         ctype = course.get("type", "")
         if ctype not in required_types:
@@ -519,6 +627,7 @@ def get_required_remaining_by_track(student: dict, semester: str = None) -> list
 
 def get_graduation_credit_summary(student: dict) -> dict:
     _ensure_loaded()
+    _ensure_completed_course_names(student)
     curriculum_info = get_track_curriculum(student)
     
     # DB 수강 기록 조회 및 course_type/earned_credit 매핑 구축
@@ -779,6 +888,15 @@ _INTEREST_CATEGORY_MAP = {
     "네트워크": ["전공선택"],
     "웹": ["전공선택"],
     "서버": ["전공선택"],
+    "과학": ["전공선택", "교양선택", "교양필수"],
+    "물리": ["교양선택", "전공선택"],
+    "화학": ["교양선택", "전공선택"],
+    "생물": ["교양선택", "전공선택"],
+    "천문": ["교양선택"],
+    "지구과학": ["교양선택"],
+    "자연과학": ["교양선택", "전공선택"],
+    "수학": ["교양선택", "전공필수", "전공선택"],
+    "통계": ["교양선택", "전공선택"],
 }
 
 

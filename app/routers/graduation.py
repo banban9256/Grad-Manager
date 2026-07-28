@@ -711,9 +711,19 @@ def get_graduation_summary(
     student_dept = student.get("department", "AISW")
     aisw_depts = {"AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부", "컴퓨터공학과", "소프트웨어융합학과", "ICT융합학부", "데이터사이언스학과"}
     
+    # 이미 이수한 과목의 코드 및 이름 목록 조회
+    from backend.core.data.courses import _get_taken_course_filter, _normalize_course_name
+    taken_codes, taken_names = _get_taken_course_filter(student)
+    
     recommend_candidates = []
     for code, info in courses_db.items():
         if code in student.get("completed_courses", []):
+            continue
+            
+        # 과목명 기준 기이수 필터링 (단, 채플은 8회 만족하기 전까지는 중복 수강을 위해 제외하지 않음)
+        normalized_name = _normalize_course_name(info.get("name", ""))
+        is_chapel = "채플" in (info.get("name", ""))
+        if not is_chapel and normalized_name and normalized_name in taken_names:
             continue
             
         course_dept = info.get("department", "AISW")

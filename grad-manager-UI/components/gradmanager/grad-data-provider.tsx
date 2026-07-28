@@ -201,9 +201,20 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
       if (cached) {
         try {
           const parsed = JSON.parse(cached)
-          setSimulatedSchedule(parsed)
-          return
+          if (parsed && parsed.scheduleBlocks && parsed.scheduleBlocks.length > 0) {
+            setSimulatedSchedule(parsed)
+            return
+          }
         } catch (e) {}
+      }
+    }
+
+    // 이미 simulatedSchedule가 설정되어 있으면 (챗봇 핸들러가 설정한 경우)
+    // 절대 null이나 빈 결과로 덮어쓰지 않는다
+    if (typeof window !== "undefined") {
+      const simulationApplied = sessionStorage.getItem(simulationAppliedKey)
+      if (simulationApplied === "true") {
+        return
       }
     }
 
