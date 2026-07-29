@@ -41,7 +41,7 @@ def _run_pdf_pipeline_if_needed():
     import sys
     
     root_dir = Path(__file__).resolve().parent.parent.parent.parent
-    db_path = root_dir / "gradmanager.db"
+    db_path = root_dir / "backend" / "gradmanager.db"
     
     need_pipeline = True
     if db_path.exists():
@@ -63,10 +63,10 @@ def _run_pdf_pipeline_if_needed():
             python_exe = sys.executable or "python"
             
         try:
-            subprocess.run([str(python_exe), "save_all_pdf_curriculum.py"], cwd=str(root_dir), check=True)
-            subprocess.run([str(python_exe), "generate_all_data.py"], cwd=str(root_dir), check=True)
-            subprocess.run([str(python_exe), "generate_dump.py"], cwd=str(root_dir), check=True)
-            subprocess.run([str(python_exe), "app/convert_db.py"], cwd=str(root_dir), check=True)
+            subprocess.run([str(python_exe), "scripts/save_all_pdf_curriculum.py"], cwd=str(root_dir), check=True)
+            subprocess.run([str(python_exe), "scripts/generate_all_data.py"], cwd=str(root_dir), check=True)
+            subprocess.run([str(python_exe), "scripts/generate_dump.py"], cwd=str(root_dir), check=True)
+            subprocess.run([str(python_exe), "backend/app/convert_db.py"], cwd=str(root_dir), check=True)
             print("[PIPELINE SUCCESS] PDF curriculum data loaded into DB successfully.")
         except Exception as e:
             print(f"[PIPELINE ERROR] Failed to run PDF data load pipeline: {e}")
@@ -675,7 +675,7 @@ def get_all_semesters() -> list[str]:
         pass
 
     try:
-        db_path = Path(__file__).resolve().parent.parent.parent.parent / "gradmanager.db"
+        db_path = Path(__file__).resolve().parent.parent.parent / "gradmanager.db"
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             cursor = conn.cursor()
@@ -750,7 +750,7 @@ def _build_course_id_to_code_map() -> dict[int, str]:
     from pathlib import Path
     id_to_code = {}
     try:
-        db_path = Path(__file__).resolve().parent.parent.parent.parent / "gradmanager.db"
+        db_path = Path(__file__).resolve().parent.parent.parent / "gradmanager.db"
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             cursor = conn.cursor()
@@ -771,7 +771,7 @@ def _get_course_id_for_code(code: str) -> int | None:
     import sqlite3
     from pathlib import Path
     try:
-        db_path = Path(__file__).resolve().parent.parent.parent.parent / "gradmanager.db"
+        db_path = Path(__file__).resolve().parent.parent.parent / "gradmanager.db"
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             cursor = conn.cursor()
@@ -894,8 +894,8 @@ def get_graduation_credit_summary(student: dict) -> dict:
     completed_credits_map = {}
     db = None
     try:
-        from app.database import SessionLocal
-        from app import models as db_models
+        from backend.app.database import SessionLocal
+        from backend.app import models as db_models
         db = SessionLocal()
         sid_int = int(student["student_id"])
         histories = db.query(db_models.StudentCourseHistory).filter(

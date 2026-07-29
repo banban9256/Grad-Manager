@@ -413,8 +413,8 @@ async def chatbot_upload_transcript(
     try:
         from backend.core.pdf_parser import extract_text_from_pdf, parse_transcript_with_ai, match_courses_to_db
         from backend.core.data.csv_loader import load_courses
-        from app import models
-        from app.database import SessionLocal
+        from backend.app import models
+        from backend.app.database import SessionLocal
 
         pdf_bytes = await file.read()
         if len(pdf_bytes) > 10 * 1024 * 1024:

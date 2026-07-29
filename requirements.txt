@@ -3,5 +3,7 @@ uvicorn
 pydantic
 pdfplumber
 python-multipart
-google-generativeai
 python-dotenv
+sqlalchemy
+google-generativeai
+google-genai

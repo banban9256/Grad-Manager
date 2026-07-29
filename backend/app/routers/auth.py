@@ -3,9 +3,9 @@ from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from app.database import get_db
-from app.models import User, Student
-from app import schemas
+from backend.app.database import get_db
+from backend.app.models import User, Student
+from backend.app import schemas
 from backend.core.data.students import get_student, STUDENTS
 from backend.core.data.csv_loader import load_courses
 import hashlib
@@ -44,8 +44,8 @@ def map_user_info(student: dict) -> dict:
     # SQLite DB 수강 이력 기반으로 실제 취득 학점을 재계산
     actual_completed = completed
     try:
-        from app.database import SessionLocal
-        from app import models as db_models
+        from backend.app.database import SessionLocal
+        from backend.app import models as db_models
         from backend.core.data.csv_loader import _normalize_completion_type
         db = SessionLocal()
         sid_int = int(student["student_id"])

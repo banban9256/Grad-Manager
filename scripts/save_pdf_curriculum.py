@@ -6,7 +6,7 @@ Source: 특화전공 교과과정 편성표, 융합전공 교과과정 편성표
 """
 import csv, os
 
-OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "input_data", "pdf_curriculum")
+OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "input_data", "pdf_curriculum")
 os.makedirs(OUT, exist_ok=True)
 
 def save(name, headers, rows):

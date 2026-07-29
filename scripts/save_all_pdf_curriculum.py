@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """Save all PDF-extracted curriculum data as CSV files."""
 
@@ -7,7 +7,7 @@ import os
 
 OUTPUT_DIR = os.path.join(
     os.path.dirname(os.path.abspath(__file__)),
-    'input_data', 'pdf_curriculum'
+    '..', 'data', 'input_data', 'pdf_curriculum'
 )
 
 

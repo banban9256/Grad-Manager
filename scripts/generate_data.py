@@ -9,7 +9,7 @@ import re
 import xml.etree.ElementTree as ET
 from datetime import datetime, date
 
-OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "output")
+OUTPUT_DIR = os.path.join(os.path.dirname(__file__), "..", "data", "output")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 NS = {"ns": "http://www.nexacroplatform.com/platform/dataset"}

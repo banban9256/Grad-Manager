@@ -6,6 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
 sys.path.insert(0, str(Path(__file__).parent.parent))
+sys.path.insert(0, str(Path(__file__).parent.parent / "scripts"))
 
 from core.data.csv_loader import load_courses, load_notices, load_academic_schedule
 from core.data.students import get_student, get_all_students
@@ -176,7 +177,7 @@ def test_special_track_credit_only_counts_special_electives():
     import sys
     from pathlib import Path
     sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-    from app.routers.graduation import _calculate_track_credits
+    from backend.app.routers.graduation import _calculate_track_credits
 
     history_details = [
         {"history_id": 1, "course_code": "SP1", "grade": "A", "earned_credit": 3, "course_type": "특화전공 전선"},

@@ -9,8 +9,8 @@ import subprocess
 import sys
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DATA_DIR = os.path.join(BASE_DIR, "data", "output")
-NEW_LIST_PATH = os.path.join(BASE_DIR, "26전체강의목록.csv")
+DATA_DIR = os.path.join(BASE_DIR, "..", "data", "output")
+NEW_LIST_PATH = os.path.join(BASE_DIR, "..", "data", "input_data", "26전체강의목록.csv")
 
 _CHAPEL_CODES = {"KY100", "KY101", "KY201", "KY304", "KY509"}
 
@@ -25,7 +25,7 @@ def run_command(command_list, cwd):
 
 def copy_csv_files_to_output():
     import shutil
-    dest_dir = os.path.join(BASE_DIR, "output")
+    dest_dir = os.path.join(BASE_DIR, "..", "data", "output")
     os.makedirs(dest_dir, exist_ok=True)
     print(f"Copying CSV files from {DATA_DIR} to {dest_dir}...")
     for fname in os.listdir(DATA_DIR):
@@ -217,7 +217,7 @@ def main():
     offerings_headers = ["offering_id", "course_id", "academic_year", "semester", "section", "professor_name", "syllabus_url"]
     schedules_headers = ["schedule_id", "offering_id", "day_of_week", "start_time", "end_time", "classroom"]
 
-    output_dir_dest = os.path.join(BASE_DIR, "output")
+    output_dir_dest = os.path.join(BASE_DIR, "..", "data", "output")
     os.makedirs(output_dir_dest, exist_ok=True)
 
     for path_dir in [DATA_DIR, output_dir_dest]:
@@ -247,13 +247,14 @@ def main():
     print("-" * 60)
 
     # 7. dump sql 갱신
-    python_exe = os.path.join(BASE_DIR, ".venv", "Scripts", "python.exe")
+    python_exe = os.path.join(BASE_DIR, "..", ".venv", "Scripts", "python.exe")
     if not os.path.exists(python_exe):
         python_exe = "python"
     
     # generate_dump.py 및 app/convert_db.py 차례로 실행
     run_command([python_exe, "generate_dump.py"], BASE_DIR)
-    run_command([python_exe, "app/convert_db.py"], BASE_DIR)
+    backend_dir = os.path.abspath(os.path.join(BASE_DIR, "..", "backend"))
+    run_command([python_exe, "app/convert_db.py"], backend_dir)
 
     print("=" * 60)
     print("Migration finished successfully!")

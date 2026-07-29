@@ -3,11 +3,14 @@ import sqlite3
 import os
 import re
 
+DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "gradmanager.db")
+DUMP_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "database", "gradmanager_dump.sql")
+
 # --- [추가] 마이그레이션 중 사용자 데이터 유실 방지 가드 ---
 backed_up_profiles = []
-if os.path.exists("gradmanager.db"):
+if os.path.exists(DB_PATH):
     try:
-        temp_conn = sqlite3.connect("gradmanager.db")
+        temp_conn = sqlite3.connect(DB_PATH)
         temp_cursor = temp_conn.cursor()
         temp_cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='student_profiles';")
         if temp_cursor.fetchone():
@@ -19,9 +22,9 @@ if os.path.exists("gradmanager.db"):
         print(f"[BACKUP GUARD WARNING] 백업 도중 오류 발생: {e}")
 
 # 1. 기존 실패한 DB 삭제 대신 테이블 DROP 처리 (Windows 파일 락 우회)
-if os.path.exists("gradmanager.db"):
+if os.path.exists(DB_PATH):
     try:
-        conn_drop = sqlite3.connect("gradmanager.db")
+        conn_drop = sqlite3.connect(DB_PATH)
         cursor_drop = conn_drop.cursor()
         cursor_drop.execute("PRAGMA foreign_keys = OFF;")
         cursor_drop.execute("SELECT name FROM sqlite_master WHERE type='table' AND name != 'sqlite_sequence';")
@@ -35,7 +38,7 @@ if os.path.exists("gradmanager.db"):
         print(f"[DROP GUARD WARNING] 테이블 DROP 중 오류 발생: {e}")
 
 # 2. 파일 읽기
-with open("gradmanager_dump.sql", "r", encoding="utf-8-sig") as f:
+with open(DUMP_PATH, "r", encoding="utf-8-sig") as f:
     sql_text = f.read()
 
 # 3. 주석 제거 
@@ -144,7 +147,7 @@ for stmt in raw_statements:
     cleaned_statements.append(stmt)
 
 # 5. SQLite DB 연결 및 실행
-conn = sqlite3.connect("gradmanager.db")
+conn = sqlite3.connect(DB_PATH)
 cursor = conn.cursor()
 cursor.execute("PRAGMA foreign_keys = OFF;")
 
@@ -196,21 +199,21 @@ if backed_up_profiles:
     except Exception as e:
         print(f"[RESTORE GUARD ERROR] 프로필 복원 실패: {e}")
 
-    # --- [추가] student_course_history 테이블 컬럼 보정 플로우 ---
-    try:
-        cursor.execute("PRAGMA table_info(student_course_history);")
-        columns = [row[1] for row in cursor.fetchall()]
+# --- [추가] student_course_history 테이블 컬럼 보정 플로우 ---
+try:
+    cursor.execute("PRAGMA table_info(student_course_history);")
+    columns = [row[1] for row in cursor.fetchall()]
+    
+    if "semester_taken" not in columns:
+        cursor.execute("ALTER TABLE student_course_history ADD COLUMN semester_taken VARCHAR(20) DEFAULT NULL;")
+        print("[PATCH GUARD] student_course_history 테이블에 'semester_taken' 컬럼 추가 완료.")
+    if "grade" not in columns:
+        cursor.execute("ALTER TABLE student_course_history ADD COLUMN grade VARCHAR(10) DEFAULT NULL;")
+        print("[PATCH GUARD] student_course_history 테이블에 'grade' 컬럼 추가 완료.")
         
-        if "semester_taken" not in columns:
-            cursor.execute("ALTER TABLE student_course_history ADD COLUMN semester_taken VARCHAR(20) DEFAULT NULL;")
-            print("[PATCH GUARD] student_course_history 테이블에 'semester_taken' 컬럼 추가 완료.")
-        if "grade" not in columns:
-            cursor.execute("ALTER TABLE student_course_history ADD COLUMN grade VARCHAR(10) DEFAULT NULL;")
-            print("[PATCH GUARD] student_course_history 테이블에 'grade' 컬럼 추가 완료.")
-            
-        conn.commit()
-    except Exception as e:
-        print(f"[PATCH GUARD ERROR] 컬럼 추가 실패: {e}")
+    conn.commit()
+except Exception as e:
+    print(f"[PATCH GUARD ERROR] 컬럼 추가 실패: {e}")
 
 print(f"==================================================")
 conn.close()

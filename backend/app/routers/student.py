@@ -1,9 +1,9 @@
 # app/routers/student.py
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app.models import Student, StudentCourseHistory
-from app.schemas import StudentSyncRequest
+from backend.app.database import get_db
+from backend.app.models import Student, StudentCourseHistory
+from backend.app.schemas import StudentSyncRequest
 
 # 기존에 만들어두신 졸업 요건/부족 학점 계산 로직 함수가 있다면 가져옵니다.
 # (예시: from app.services.graduation import calculate_graduation_credits)

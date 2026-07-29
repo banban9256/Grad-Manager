@@ -19,7 +19,7 @@ if sys.platform == 'win32':
 
 BASE = os.path.dirname(os.path.abspath(__file__))
 RAW_DIR = r'C:\Users\cwr12\Downloads'
-OUT_DIR = os.path.join(BASE, 'data', 'output')
+OUT_DIR = os.path.join(BASE, '..', 'data', 'output')
 CSV_DIR = os.path.join(OUT_DIR, 'csv')
 SQL_DIR = os.path.join(OUT_DIR, 'sql')
 

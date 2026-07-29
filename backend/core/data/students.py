@@ -5,7 +5,7 @@ import json
 import os
 
 # DB 파일 절대경로 계산 (프로젝트 루트의 gradmanager.db)
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../../.."))
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../.."))
 DB_PATH = os.path.join(BASE_DIR, "gradmanager.db")
 
 # 인메모리 기본 가상 데이터 (최초 1회 DB 적재용)

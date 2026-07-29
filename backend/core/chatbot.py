@@ -241,8 +241,8 @@ def _build_completed_history_text(student: dict) -> str:
         pass
 
     try:
-        from app.database import SessionLocal
-        from app import models as db_models
+        from backend.app.database import SessionLocal
+        from backend.app import models as db_models
 
         db = SessionLocal()
         try:

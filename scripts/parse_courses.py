@@ -5,8 +5,8 @@ sugang.hs.ac.kr 에서 수집한 전체 개설강의 데이터 파싱
 import json, csv, os, re
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-INPUT = os.path.join(BASE_DIR, "input_data", "all_courses_26_1.json")
-OUT = os.path.join(BASE_DIR, "output")
+INPUT = os.path.join(BASE_DIR, "..", "data", "input_data", "all_courses_26_1.json")
+OUT = os.path.join(BASE_DIR, "..", "data", "output")
 
 SOURCE_URL = "https://sugang.hs.ac.kr/course/subject/list"
 

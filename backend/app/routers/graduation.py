@@ -2,8 +2,8 @@ from fastapi import APIRouter, Header, HTTPException, Depends
 from pydantic import BaseModel
 from typing import Optional, List
 from sqlalchemy.orm import Session
-from app.database import get_db
-from app import models
+from backend.app.database import get_db
+from backend.app import models
 import math
 
 from backend.core.data.students import get_student, STUDENTS
@@ -78,8 +78,8 @@ def map_user_info(student: dict) -> dict:
     # SQLite DB 수강 이력 기반으로 실제 취득 학점을 재계산
     actual_completed = completed
     try:
-        from app.database import SessionLocal
-        from app import models as db_models
+        from backend.app.database import SessionLocal
+        from backend.app import models as db_models
         db_s = SessionLocal()
         sid_int = int(student["student_id"])
         histories = db_s.query(db_models.StudentCourseHistory).filter(
@@ -176,7 +176,7 @@ def get_graduation_summary(
     courses_db = load_courses()
     
     # SQLite StudentCourseHistory 기반의 최신 실시간 이수현황 집계
-    from app import models
+    from backend.app import models
     histories = db.query(models.StudentCourseHistory).filter(
         models.StudentCourseHistory.student_id == int(student_id)
     ).all()

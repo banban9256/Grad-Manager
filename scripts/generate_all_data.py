@@ -14,8 +14,8 @@ import os
 import re
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-PDF_DIR = os.path.join(BASE_DIR, "input_data", "pdf_curriculum")
+OUTPUT_DIR = os.path.join(BASE_DIR, "..", "data", "output")
+PDF_DIR = os.path.join(BASE_DIR, "..", "data", "input_data", "pdf_curriculum")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 SOURCE_URL_SUGANG = "https://sugang.hs.ac.kr/course/subject/list"
@@ -42,7 +42,7 @@ def read_pdf_csv(filename):
 # ============================================================
 print("=" * 60)
 print("Step 1: Loading sugang JSON...")
-JSON_PATH = os.path.join(BASE_DIR, "input_data", "all_courses_26_1.json")
+JSON_PATH = os.path.join(BASE_DIR, "..", "data", "input_data", "all_courses_26_1.json")
 with open(JSON_PATH, "r", encoding="utf-8-sig") as f:
     data = json.load(f)
 

@@ -206,7 +206,7 @@ def load_courses() -> dict[str, dict]:
 
     try:
         import sqlite3
-        db_path = Path(__file__).resolve().parent.parent.parent.parent / "gradmanager.db"
+        db_path = Path(__file__).resolve().parent.parent.parent / "gradmanager.db"
         if db_path.exists():
             conn = sqlite3.connect(str(db_path))
             cursor = conn.cursor()

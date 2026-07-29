@@ -7,8 +7,8 @@ import csv
 import os
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-OUTPUT_DIR = os.path.join(BASE_DIR, "output")
-DUMP_PATH = os.path.join(BASE_DIR, "gradmanager_dump.sql")
+OUTPUT_DIR = os.path.join(BASE_DIR, "..", "data", "output")
+DUMP_PATH = os.path.join(BASE_DIR, "..", "database", "gradmanager_dump.sql")
 
 # CSV 파일 읽기
 def read_csv(name):
@@ -244,7 +244,7 @@ def escape_value(val, col_type):
 # ============================================================
 # Read DDL
 # ============================================================
-with open(os.path.join(BASE_DIR, "gradmanager_schema.sql"), "r", encoding="utf-8") as f:
+with open(os.path.join(BASE_DIR, "..", "database", "gradmanager_schema.sql"), "r", encoding="utf-8") as f:
     ddl_content = f.read()
 
 # ============================================================

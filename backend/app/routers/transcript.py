@@ -104,8 +104,8 @@ def confirm_transcript_courses(
     student_id_int = int(student_id)
 
     try:
-        from app.database import SessionLocal
-        from app import models
+        from backend.app.database import SessionLocal
+        from backend.app import models
 
         db = SessionLocal()
         try:

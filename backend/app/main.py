@@ -4,9 +4,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import Optional
 
-from app.database import get_db
-from app import models, schemas
-from app.routers import auth, graduation, timetable, notices, chatbot, transcript
+from backend.app.database import get_db
+from backend.app import models, schemas
+from backend.app.routers import auth, graduation, timetable, notices, chatbot, transcript
 
 app = FastAPI(title="GradManager API")
 
@@ -28,7 +28,7 @@ app.include_router(transcript.router, prefix="/api/v1/transcript", tags=["transc
 
 # 자동 DDL 마이그레이션 실행
 def run_db_migrations():
-    from app.database import engine
+    from backend.app.database import engine
     from sqlalchemy import text
     try:
         with engine.connect() as conn:
@@ -47,7 +47,7 @@ run_db_migrations()
 def sync_student_cache(student_id: int, db: Session):
     from backend.core.data.students import STUDENTS
     from backend.core.data.csv_loader import load_courses
-    from app.routers.graduation import get_course_category
+    from backend.app.routers.graduation import get_course_category
     import re
     from collections import defaultdict
 
@@ -287,7 +287,7 @@ def add_student_course_history(
         c_type = history_data.course_type
         if not c_type and new_course_code:
             from backend.core.data.csv_loader import load_courses
-            from app.routers.graduation import get_course_category
+            from backend.app.routers.graduation import get_course_category
             c_type = get_course_category(new_course_code, load_courses())
         if not c_type:
             c_type = "일반선택"
@@ -419,7 +419,7 @@ def get_graduation_summary(
             c_type = hd.get("course_type")
             if not c_type or c_type.strip() == "":
                 from backend.core.data.csv_loader import load_courses
-                from app.routers.graduation import get_course_category
+                from backend.app.routers.graduation import get_course_category
                 c_type = get_course_category(hd["course_code"], load_courses())
 
             total_completed += credit_val
@@ -460,7 +460,7 @@ def get_student_course_history(
         db_course_type = getattr(h, 'course_type', None)
         if not db_course_type:
             from backend.core.data.csv_loader import load_courses
-            from app.routers.graduation import get_course_category
+            from backend.app.routers.graduation import get_course_category
             courses_db = load_courses()
             db_course_type = get_course_category(course_code, courses_db)
 
