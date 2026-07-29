@@ -25,8 +25,8 @@
 | 팀원 | 역할 | 주요 담당 업무 |
 | :---: | :---: | :--- |
 | **이예은** | **Frontend Developer** | • Next.js 기반 반응형 UI/UX 화면 개발 및 컴포넌트 설계<br>• 성적표 업로드 및 시각화 대시보드 구현, 시간표 조율 탭 개발 |
-| **서현** | **Backend Developer** | • FastAPI 기반 RESTful API 설계 및 백엔드 서버 개발<br>• 학생 성적 입력, 졸업 조건 충족도 연산 로직 API 라우터 구현 |
-| **우리** | **Data Engineer** | • MySQL / SQLite 관계형 데이터베이스 스키마(DDL) 설계<br>• 학교 개설 강의 목록 JSON 파싱 및 데이터 정제, SW공지 크롤링 파이프라인 구축 |
+| **윤서현** | **Backend Developer** | • FastAPI 기반 RESTful API 설계 및 백엔드 서버 개발<br>• 학생 성적 입력, 졸업 조건 충족도 연산 로직 API 라우터 구현 |
+| **최우리** | **Data Engineer** | • MySQL / SQLite 관계형 데이터베이스 스키마(DDL) 설계<br>• 학교 개설 강의 목록 JSON 파싱 및 데이터 정제, SW공지 크롤링 파이프라인 구축 |
 | **반재민** | **AI & Backend Lead** | • Gemini API 연동 AI 챗봇 가이드 로직, 프롬프트 엔지니어링 설계<br>• 키워드 및 학사일정 알림 기능 구현, 최종 리팩토링 및 폴더 구조 통합 총괄 |
 
 ---
