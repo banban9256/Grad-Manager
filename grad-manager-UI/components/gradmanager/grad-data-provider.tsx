@@ -60,36 +60,24 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
   const studentId = data?.user?.userInfo?.studentId
 
   const [semesters, setSemesters] = useState<string[]>([
-    "2026-2학기", "2026-1학기", "2025-2학기", "2025-1학기",
-    "2024-2학기", "2024-1학기", "2023-2학기", "2023-1학기",
-    "2022-2학기", "2022-1학기", "2021-2학기", "2021-1학기"
+    "2026-2학기"
   ])
 
   // 학기 관리 상태 신설 (마지막 조회 학기 복원 지원)
   const getSavedSemester = (id: string) => {
-    if (typeof window !== "undefined" && id) {
-      const lastSem = localStorage.getItem(`grad_last_viewed_semester_${id}`)
-      if (lastSem) return lastSem
-    }
     return "2026-2학기"
   }
 
-  const [selectedSemester, setSelectedSemester] = useState<string>(() => getSavedSemester(studentId || "20210001"))
+  const [selectedSemester, setSelectedSemester] = useState<string>("2026-2학기")
 
   // 학기 동적 로드 이펙트
   useEffect(() => {
     let isMounted = true
     getSemesterList().then((list) => {
-      if (isMounted && list && list.length > 0) {
-        if (!list.includes("2026-2학기")) list.unshift("2026-2학기")
-        if (!list.includes("2026-1학기")) list.unshift("2026-1학기")
-        setSemesters(list)
-        const saved = getSavedSemester(studentId || "20210001")
-        if (saved && list.includes(saved)) {
-          setSelectedSemester(saved)
-        } else {
-          setSelectedSemester(list[0])
-        }
+      if (isMounted) {
+        // 오직 2026-2학기만 노출되도록 강제 고정
+        setSemesters(["2026-2학기"])
+        setSelectedSemester("2026-2학기")
       }
     }).catch((err) => {
       console.error("학기 목록 로드 실패:", err)

@@ -65,24 +65,56 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
     if not student:
         raise HTTPException(status_code=404, detail="학생 정보를 찾을 수 없습니다.")
 
-    # 최신의 갱신된 학생 정보 기준 실제 시간표 생성
-    schedules = generate_timetable(student, max_schedules=1)
-    schedule_blocks = []
-    
-    pastel_palette = [
-        {"bg": "bg-[#e8f3ff]", "text": "text-[#1b64da]", "bar": "bg-[#3182f6]"},
-        {"bg": "bg-[#daf2ee]", "text": "text-[#008f80]", "bar": "bg-[#00b5a3]"},
-        {"bg": "bg-[#fff3f5]", "text": "text-[#d6284a]", "bar": "bg-[#f04452]"},
-        {"bg": "bg-[#f4edff]", "text": "text-[#6b31f6]", "bar": "bg-[#8f5cf0]"},
-        {"bg": "bg-[#fffae8]", "text": "text-[#b08b00]", "bar": "bg-[#ffc900]"}
-    ]
-    day_map = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4}
-    
-    if schedules:
-        sched = schedules[0]
-        for idx, c in enumerate(sched["courses"]):
+    # 1차 분기: LLM이 추천한 시간표 정보가 있는 경우 (structured_data 기반 연동)
+    if structured_data and "courses" in structured_data:
+        schedule_blocks = []
+        reasons = []
+        
+        pastel_palette = [
+            {"bg": "bg-[#e8f3ff]", "text": "text-[#1b64da]", "bar": "bg-[#3182f6]"},
+            {"bg": "bg-[#daf2ee]", "text": "text-[#008f80]", "bar": "bg-[#00b5a3]"},
+            {"bg": "bg-[#fff3f5]", "text": "text-[#d6284a]", "bar": "bg-[#f04452]"},
+            {"bg": "bg-[#f4edff]", "text": "text-[#6b31f6]", "bar": "bg-[#8f5cf0]"},
+            {"bg": "bg-[#fffae8]", "text": "text-[#b08b00]", "bar": "bg-[#ffc900]"}
+        ]
+        day_map = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4}
+        
+        empty_days = structured_data.get("empty_days", [])
+        if empty_days:
+            reasons.append({
+                "icon": "CalendarOff",
+                "title": f"{', '.join(empty_days)}요일 공강 보장",
+                "desc": f"사용자님의 요청을 반영하여 {', '.join(empty_days)}요일에는 단 하나의 수업도 배정하지 않았습니다."
+            })
+        else:
+            reasons.append({
+                "icon": "CalendarOff",
+                "title": "균형 잡힌 주 5일 분산 배치",
+                "desc": "학습 스트레스를 덜기 위해 특정 요일에 편중되지 않도록 시간표를 분산했습니다."
+            })
+            
+        avoid_times = student.get("avoid_times", [])
+        preferred_days = student.get("preferred_days", ["월", "화", "수", "목", "금"])
+
+        for idx, course_item in enumerate(structured_data.get("courses", [])):
             color = pastel_palette[idx % len(pastel_palette)]
-            for d, start, end in c.get("time_slots", []):
+            course_name = course_item.get("course_name", "")
+            course_code = course_item.get("course_code", "")
+            course_type = course_item.get("type", "")
+            credits = course_item.get("credits", 3.0)
+            professor = course_item.get("professor", "미정")
+            reason_desc = course_item.get("reason", "추천 과목")
+            
+            reasons.append({
+                "icon": "Sparkles",
+                "title": f"{course_name} ({course_code})",
+                "desc": reason_desc
+            })
+            
+            for s in course_item.get("schedule", []):
+                d = s.get("day")
+                start = s.get("start")
+                end = s.get("end")
                 if d in day_map:
                     try:
                         sh, sm = map(int, start.split(":"))
@@ -90,10 +122,10 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
                         start_h = sh + sm / 60
                         end_h = eh + em / 60
                         schedule_blocks.append({
-                          "id": f"block-{c['code']}-{d}-{start}-{end}",
-                          "name": c["name"],
-                          "professor": c.get("professor", "미정"),
-                          "room": c.get("room", "미정"),
+                          "id": f"block-{course_code}-{d}-{start}-{end}",
+                          "name": course_name,
+                          "professor": professor,
+                          "room": "미정",
                           "day": day_map[d],
                           "start": start_h,
                           "end": end_h,
@@ -103,158 +135,202 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
                         })
                     except Exception:
                         pass
-
-    # 챗봇 대화에 반영된 선호 요일 및 시간대에 따라 추천 사유 동적 생성
-    reasons = []
-    preferred_days = student.get("preferred_days", ["월", "화", "수", "목", "금"])
-    avoid_times = student.get("avoid_times", [])
-    
-    days = ["월", "화", "수", "목", "금"]
-    free_days = [d for d in days if d not in preferred_days]
-    
-    # 스케줄러 fallback 플래그 확인
-    is_fallback = schedules and not schedules[0].get("preference_applied", True)
-    fallback_reason = schedules[0].get("fallback_reason") if schedules else None
-    
-    if is_fallback and fallback_reason:
-        # fallback 발생 시: 공강 조건을 맞추지 못했다는 사유 표시
-        reasons.append({
-            "icon": "AlertTriangle",
-            "title": "공강 조건 조정 안내",
-            "desc": fallback_reason
-        })
-    elif free_days:
-        reasons.append({
-            "icon": "CalendarOff",
-            "title": f"{', '.join(free_days)}요일 공강 보장",
-            "desc": f"사용자님의 요청을 반영하여 {', '.join(free_days)}요일에는 단 하나의 수업도 배정하지 않았습니다."
-        })
-    else:
-        reasons.append({
-            "icon": "CalendarOff",
-            "title": "균형 잡힌 주 5일 분산 배치",
-            "desc": "학습 스트레스를 덜기 위해 특정 요일에 편중되지 않도록 시간표를 분산했습니다."
-        })
+                        
+        simulated_timetable = {
+            "scheduleDays": ["월", "화", "수", "목", "금"],
+            "scheduleHours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+            "scheduleBlocks": schedule_blocks,
+            "scheduleReasons": reasons,
+            "pastelPalette": pastel_palette[:3],
+            "totalCredits": structured_data.get("total_credits", 0.0),
+            "courseCount": structured_data.get("total_courses", 0),
+            "preferences": {
+                "freeDays": empty_days,
+                "preferredDays": preferred_days,
+                "avoidMorning": "09:00-12:00" in avoid_times,
+                "preferAfternoon": any("13:00-18:00" in t for t in student.get("preferred_times", []))
+            }
+        }
         
-    if "09:00-12:00" in avoid_times:
-        reasons.append({
-            "icon": "Clock",
-            "title": "오전 10시 이전 수업 제외",
-            "desc": "아침 첫 수업(1교시 등)을 배제하여 한결 여유로운 등교 길을 마련해 드립니다."
-        })
+    # 2차 분기: LLM 추천 시간표가 없는 일반 대화인 경우 (기존 백엔드 알고리즘 기반 생성)
     else:
-        reasons.append({
-            "icon": "Clock",
-            "title": "여유로운 1시간 점심시간 보장",
-            "desc": "연강으로 식사를 거르지 않도록 점심 시간대(12:00~13:30) 배치를 피했습니다."
-        })
+        # 최신의 갱신된 학생 정보 기준 실제 시간표 생성
+        target_credits = student.get("target_credits", 18)
+        schedules = generate_timetable(student, max_schedules=1, target_credits=target_credits)
+        schedule_blocks = []
         
-    if student.get("department") in ("AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부"):
-        reasons.append({
-            "icon": "GraduationCap",
-            "title": "졸업 요구 학점 맞춤 배치",
-            "desc": "전공 필수 과목이 없는 AISW 학과 요건에 맞추어 주전공 및 계열공통 과목을 담았습니다."
-        })
-    else:
-        reasons.append({
-            "icon": "GraduationCap",
-            "title": "미이수 졸업 필수과목 자동 배치",
-            "desc": "현재 주전공 이수를 위해 남은 미이수 전공 필수 요건들을 누락 없이 담았습니다."
-        })
-    reasons.append({
-        "icon": "Check",
-        "title": "강의실 간 거리 제외",
-        "desc": "사용자 요청에 따라 강의실 간 거리를 계산에서 배제하고 추천 과목들로만 배정했습니다."
-    })
+        pastel_palette = [
+            {"bg": "bg-[#e8f3ff]", "text": "text-[#1b64da]", "bar": "bg-[#3182f6]"},
+            {"bg": "bg-[#daf2ee]", "text": "text-[#008f80]", "bar": "bg-[#00b5a3]"},
+            {"bg": "bg-[#fff3f5]", "text": "text-[#d6284a]", "bar": "bg-[#f04452]"},
+            {"bg": "bg-[#f4edff]", "text": "text-[#6b31f6]", "bar": "bg-[#8f5cf0]"},
+            {"bg": "bg-[#fffae8]", "text": "text-[#b08b00]", "bar": "bg-[#ffc900]"}
+        ]
+        day_map = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4}
+        
+        if schedules:
+            sched = schedules[0]
+            for idx, c in enumerate(sched["courses"]):
+                color = pastel_palette[idx % len(pastel_palette)]
+                for d, start, end in c.get("time_slots", []):
+                    if d in day_map:
+                        try:
+                            sh, sm = map(int, start.split(":"))
+                            eh, em = map(int, end.split(":"))
+                            start_h = sh + sm / 60
+                            end_h = eh + em / 60
+                            schedule_blocks.append({
+                              "id": f"block-{c['code']}-{d}-{start}-{end}",
+                              "name": c["name"],
+                              "professor": c.get("professor", "미정"),
+                              "room": c.get("room", "미정"),
+                              "day": day_map[d],
+                              "start": start_h,
+                              "end": end_h,
+                              "span": end_h - start_h,
+                              "color": color["bg"],
+                              "textColor": color["text"]
+                            })
+                        except Exception:
+                            pass
 
-    # 각 과목별 상세 추천 사유 생성 (대화에서 생성된 AI 추천 이유를 시간표 페이지에 전달)
-    if schedules:
-        sched = schedules[0]
-        # 트랙 공통 과목 코드 매핑 (chatbot.py의 _TRACK_COMMON_COURSES와 동기화)
-        _TRACK_NAMES = {
-            "AS001": "AI.SW개론", "AS002": "C언어", "AS003": "공학설계입문",
-            "AS004": "AI·SW수학", "AS005": "문제해결형프로그래밍", "AS006": "웹프로그래밍",
-            "AS007": "자료구조", "AS008": "자바프로그래밍", "AS009": "논리회로",
-            "AS010": "데이터통신", "AS011": "운영체제", "AS012": "데이터베이스",
-        }
-        # 과목 타입별 추천 사유 템플릿
-        _TYPE_REASONS = {
-            "전공필수": "졸업을 위한 전공 필수 과목으로, 반드시 이수해야 합니다.",
-            "전공선택": "전공 역량을 강화하는 선택 과목으로, 관심 분야 심화에 적합합니다.",
-            "교양필수": "졸업을 위한 교양 필수 과목으로, 기초 소양 함양에 필요합니다.",
-            "교양선택": "학문적 시야를 넓히는 교양 선택 과목입니다.",
-            "계열공통": "AISW 계열 공통 과목으로, 전공 기초 역량 강화에 필수적입니다.",
-        }
-        # 특화트랙 키워드 매핑
-        _TRACK_KEYWORDS = {
-            "앰비언트": ["앰비언트", "IoT", "센서", "임베디드", "통신"],
-            "데이터 사이언스": ["데이터", "분석", "통계", "머신러닝", "딥러닝"],
-            "인지 감성": ["인지", "감성", "HCI", "심리", "UX"],
-        }
-
-        seen_course_codes = set()
-        for c in sched.get("courses", []):
-            code = c.get("code", "")
-            if code in seen_course_codes:
-                continue
-            seen_course_codes.add(code)
-
-            course_name = c.get("name", "")
-            course_type = c.get("type", "")
-            credits = c.get("credits", 3)
-            professor = c.get("professor", "미정")
-
-            # 과목별 사유 생성
-            reason_desc = ""
-
-            # 1. 계열 공통 과목인 경우 특별 사유
-            if code in _TRACK_NAMES:
-                reason_desc = f"계열 공통 과목({code})으로, AISW 전공 기초 역량을 갖추기 위한 필수 과목입니다."
-
-            # 2. 과목 타입 기반 사유
-            elif course_type in _TYPE_REASONS:
-                reason_desc = _TYPE_REASONS[course_type]
-
-            # 3. 특화트랙 매칭 사유
-            else:
-                specialized_track = student.get("specialized_track", "")
-                if specialized_track:
-                    for track_name, keywords in _TRACK_KEYWORDS.items():
-                        if track_name in specialized_track:
-                            if any(kw in course_name for kw in keywords):
-                                reason_desc = f"특화트랙({specialized_track}) 관련 과목으로, 트랙 전문성 강화에 기여합니다."
-                                break
-
-                # 4. 트랙 매칭이 없으면 학점 기반 사유
-                if not reason_desc:
-                    if credits >= 3:
-                        reason_desc = f"{credits}학점 과목으로, 졸업 학점 요건 충족에 기여합니다."
-                    else:
-                        reason_desc = f"추가 역량 개발을 위한 과목입니다."
-
-            # 과목명+교수명+사유를 하나의 추천 이유로 구성
+        reasons = []
+        preferred_days = student.get("preferred_days", ["월", "화", "수", "목", "금"])
+        avoid_times = student.get("avoid_times", [])
+        
+        days = ["월", "화", "수", "목", "금"]
+        free_days = [d for d in days if d not in preferred_days]
+        
+        is_fallback = schedules and not schedules[0].get("preference_applied", True)
+        fallback_reason = schedules[0].get("fallback_reason") if schedules else None
+        
+        if is_fallback and fallback_reason:
             reasons.append({
-                "icon": "Sparkles",
-                "title": f"{course_name} ({code})",
-                "desc": reason_desc
+                "icon": "AlertTriangle",
+                "title": "공강 조건 조정 안내",
+                "desc": fallback_reason
             })
+        elif free_days:
+            reasons.append({
+                "icon": "CalendarOff",
+                "title": f"{', '.join(free_days)}요일 공강 보장",
+                "desc": f"사용자님의 요청을 반영하여 {', '.join(free_days)}요일에는 단 하나의 수업도 배정하지 않았습니다."
+            })
+        else:
+            reasons.append({
+                "icon": "CalendarOff",
+                "title": "균형 잡힌 주 5일 분산 배치",
+                "desc": "학습 스트레스를 덜기 위해 특정 요일에 편중되지 않도록 시간표를 분산했습니다."
+            })
+            
+        if "09:00-12:00" in avoid_times:
+            reasons.append({
+                "icon": "Clock",
+                "title": "오전 10시 이전 수업 제외",
+                "desc": "아침 첫 수업(1교시 등)을 배제하여 한결 여유로운 등교 길을 마련해 드립니다."
+            })
+        else:
+            reasons.append({
+                "icon": "Clock",
+                "title": "여유로운 1시간 점심시간 보장",
+                "desc": "연강으로 식사를 거르지 않도록 점심 시간대(12:00~13:30) 배치를 피했습니다."
+            })
+            
+        if student.get("department") in ("AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부"):
+            reasons.append({
+                "icon": "GraduationCap",
+                "title": "졸업 요구 학점 맞춤 배치",
+                "desc": "전공 필수 과목이 없는 AISW 학과 요건에 맞추어 주전공 및 계열공통 과목을 담았습니다."
+            })
+        else:
+            reasons.append({
+                "icon": "GraduationCap",
+                "title": "미이수 졸업 필수과목 자동 배치",
+                "desc": "현재 주전공 이수를 위해 남은 미이수 전공 필수 요건들을 누락 없이 담았습니다."
+            })
+        reasons.append({
+            "icon": "Check",
+            "title": "강의실 간 거리 제외",
+            "desc": "사용자 요청에 따라 강의실 간 거리를 계산에서 배제하고 추천 과목들로만 배정했습니다."
+        })
 
-    simulated_timetable = {
-        "scheduleDays": ["월", "화", "수", "목", "금"],
-        "scheduleHours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
-        "scheduleBlocks": schedule_blocks,
-        "scheduleReasons": reasons,
-        "pastelPalette": pastel_palette[:3],
-        "totalCredits": schedules[0]["total_credits"] if schedules else 0,
-        "courseCount": len(schedules[0]["courses"]) if schedules else 0,
-        "preferences": {
-            "freeDays": free_days,
-            "preferredDays": preferred_days,
-            "avoidMorning": "09:00-12:00" in avoid_times,
-            "preferAfternoon": any("13:00-18:00" in t for t in student.get("preferred_times", []))
-        }
-    }
-    
+        if schedules:
+            sched = schedules[0]
+            _TRACK_NAMES = {
+                "AS001": "AI.SW개론", "AS002": "C언어", "AS003": "공학설계입문",
+                "AS004": "AI·SW수학", "AS005": "문제해결형프로그래밍", "AS006": "웹프로그래밍",
+                "AS007": "자료구조", "AS008": "자바프로그래밍", "AS009": "논리회로",
+                "AS010": "데이터통신", "AS011": "운영체제", "AS012": "데이터베이스",
+            }
+            _TYPE_REASONS = {
+                "전공필수": "졸업을 위한 전공 필수 과목으로, 반드시 이수해야 합니다.",
+                "전공선택": "전공 역량을 강화하는 선택 과목으로, 관심 분야 심화에 적합합니다.",
+                "교양필수": "졸업을 위한 교양 필수 과목으로, 기초 소양 함양에 필요합니다.",
+                "교양선택": "학문적 시야를 넓히는 교양 선택 과목입니다.",
+                "계열공통": "AISW 계열 공통 과목으로, 전공 기초 역량 강화에 필수적입니다.",
+            }
+            _TRACK_KEYWORDS = {
+                "앰비언트": ["앰비언트", "IoT", "센서", "임베디드", "통신"],
+                "데이터 사이언스": ["데이터", "분석", "통계", "머신러닝", "딥러닝"],
+                "인지 감성": ["인지", "감성", "HCI", "심리", "UX"],
+            }
+
+            seen_course_codes = set()
+            for c in sched.get("courses", []):
+                code = c.get("code", "")
+                if code in seen_course_codes:
+                    continue
+                seen_course_codes.add(code)
+
+                course_name = c.get("name", "")
+                course_type = c.get("type", "")
+                credits = c.get("credits", 3)
+                professor = c.get("professor", "미정")
+
+                reason_desc = ""
+                if code in _TRACK_NAMES:
+                    reason_desc = f"계열 공통 과목({code})으로, AISW 전공 기초 역량을 갖추기 위한 필수 과목입니다."
+                elif course_type in _TYPE_REASONS:
+                    reason_desc = _TYPE_REASONS[course_type]
+                else:
+                    specialized_track = student.get("specialized_track", "")
+                    if specialized_track:
+                        for track_name, keywords in _TRACK_KEYWORDS.items():
+                            if track_name in specialized_track:
+                                if any(kw in course_name for kw in keywords):
+                                    reason_desc = f"특화트랙({specialized_track}) 관련 과목으로, 트랙 전문성 강화에 기여합니다."
+                                    break
+
+                    if not reason_desc:
+                        if credits >= 3:
+                            reason_desc = f"{credits}학점 과목으로, 졸업 학점 요건 충족에 기여합니다."
+                        else:
+                            reason_desc = f"추가 역량 개발을 위한 과목입니다."
+
+                reasons.append({
+                    "icon": "Sparkles",
+                    "title": f"{course_name} ({code})",
+                    "desc": reason_desc
+                })
+
+            simulated_timetable = {
+                "scheduleDays": ["월", "화", "수", "목", "금"],
+                "scheduleHours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
+                "scheduleBlocks": schedule_blocks,
+                "scheduleReasons": reasons,
+                "pastelPalette": pastel_palette[:3],
+                "totalCredits": schedules[0]["total_credits"] if schedules else 0,
+                "courseCount": len(schedules[0]["courses"]) if schedules else 0,
+                "preferences": {
+                    "freeDays": free_days,
+                    "preferredDays": preferred_days,
+                    "avoidMorning": "09:00-12:00" in avoid_times,
+                    "preferAfternoon": any("13:00-18:00" in t for t in student.get("preferred_times", []))
+                }
+            }
+        else:
+            simulated_timetable = None
+
     return {
         "message": ai_response,
         "simulated_timetable": simulated_timetable,

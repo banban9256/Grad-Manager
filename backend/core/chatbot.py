@@ -13,10 +13,39 @@ import os
 import re
 from pathlib import Path
 from collections import defaultdict
+from pydantic import BaseModel, Field
+from typing import List, Optional
 
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+
+# ==============================
+# Gemini Structured Outputs 스키마 정의
+# ==============================
+class CourseSchedule(BaseModel):
+    day: str = Field(description="요일 (예: '월', '화', '수')")
+    start: str = Field(description="시작 시간 (예: '09:30')")
+    end: str = Field(description="종료 시간 (예: '10:45')")
+
+class TimetableCourse(BaseModel):
+    course_name: str = Field(description="과목명")
+    course_code: str = Field(description="과목 코드 (예: 'SH342')")
+    type: str = Field(description="이수 구분 (예: '전공필수', '전공선택', '교양필수', '교양선택', '계열공통', '일반선택')")
+    credits: float = Field(description="학점 수")
+    professor: str = Field(description="교수명")
+    schedule: List[CourseSchedule] = Field(description="요일별 강의 시간 정보 목록")
+    reason: str = Field(description="이 과목을 추천하는 사유")
+
+class TimetableData(BaseModel):
+    total_credits: float = Field(description="추천된 시간표의 총 학점")
+    total_courses: int = Field(description="추천된 총 과목 수")
+    empty_days: List[str] = Field(description="공강 요일 목록 (예: ['화'])")
+    courses: List[TimetableCourse] = Field(description="추천된 시간표 내 과목 리스트")
+
+class GraduResponseSchema(BaseModel):
+    chat_message: str = Field(description="사용자에게 보낼 친절한 설명 메시지 (추천 시간표에 대한 요약 및 조언 포함)")
+    timetable_data: Optional[TimetableData] = Field(None, description="시간표를 새로 추천하는 경우에만 포함하며, 그 외 단순 질의응답 시에는 null로 설정합니다.")
 
 from .persona import SYSTEM_PROMPT
 from .data.csv_loader import hanja_to_hangul
@@ -409,31 +438,189 @@ def _build_available_courses_summary(available: list, limit: int = 40) -> str:
 
 
 def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str:
-    """원칙 1: 백엔드 사전 필터링 완료된 수강 가능 과목을 JSON 형태로 구성합니다.
+    """원칙 1: 백엔드 사전 필터링 완료된 수강 가능 과목을 5단계 우선순위별로 그룹핑하여 JSON으로 구성합니다.
 
-    - get_available_courses()가 이미 기수강 과목, 채플 완료 과목, 타학과 과목을 100% 필터링함
-    - LLM에게 텍스트가 아닌 정형화된 JSON만 전달하여 환각 원천 차단
-    - 과목 수 제한으로 토큰 사용량 최적화
+    - 1순위: 진로와상담, 채플 등 필수 다회 이수 미달 과목
+    - 2순위: AISW 계열공통 미이수 과목
+    - 3순위: AISW 교양필수 미이수 과목
+    - 4순위: 트랙/특화/융합전공 전공선택 과목 (사용자 선호 반영)
+    - 5순위: 학년 맞춤 전공선택 과목 (학생 학년 일치)
     """
     available = get_available_courses(student)
 
     if not available:
-        return "[]"
+        return json.dumps({"must_take_first": [], "electives": []}, ensure_ascii=False, indent=1)
 
-    courses_json = []
-    for c in available[:limit]:
+    is_aisw = (
+        student.get("department") in ["인공지능소프트웨어학부", "컴퓨터소프트웨어학과", "소프트웨어학과"]
+        or "소프트웨어" in student.get("department", "")
+        or "aisw" in student.get("department", "").lower()
+    )
+
+    # 1. SQLite DB 로드하여 과목 메타정보(권장 학년, 프로그램/트랙명) 조회 및 캐싱
+    import sqlite3
+    from pathlib import Path
+    
+    db_path = Path(__file__).resolve().parent.parent / "gradmanager.db"
+    course_meta = {}
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+            cursor.execute("""
+                SELECT c.course_code, cc.recommended_grade, p.program_name
+                FROM courses c
+                LEFT JOIN curriculum_courses cc ON c.course_id = cc.course_id
+                LEFT JOIN programs p ON cc.program_id = p.program_id
+            """)
+            for code, rec_grade, prog_name in cursor.fetchall():
+                if code not in course_meta:
+                    course_meta[code] = {"recommended_grade": None, "programs": set()}
+                if rec_grade:
+                    course_meta[code]["recommended_grade"] = int(rec_grade)
+                if prog_name:
+                    course_meta[code]["programs"].add(prog_name)
+            conn.close()
+        except Exception:
+            pass
+
+    # 2. 학생 학년 및 선호 트랙 정보 취득
+    student_grade = 3
+    try:
+        student_grade = int(student.get("current_grade") or 3)
+    except:
+        pass
+
+    preferred_tracks = set()
+    for track in student.get("major_tracks", []):
+        preferred_tracks.add(track)
+    for interest in student.get("interests", []):
+        preferred_tracks.add(interest)
+    if student.get("specialized_track"):
+        preferred_tracks.add(student.get("specialized_track"))
+    if student.get("convergence_major"):
+        preferred_tracks.add(student.get("convergence_major"))
+
+    # 3. 5단계 우선순위 가중치 계산 및 정렬
+    scored_courses = []
+    for c in available:
+        code = c.get("code", "")
+        ctype = c.get("type", "일반선택")
+        cname = c.get("name", "")
+        prefix = "".join(ch for ch in code if ch.isalpha())
+
+        # AISW 학생인 경우 타 학과 전공(접두사가 SH, DS, AI 가 아니고 교양/계공이 아닌 경우)은 배제
+        if is_aisw:
+            is_liberal = prefix in {"KY", "KYC", "KYA", "KYD"}
+            is_common = prefix in {"FLOW"}
+            is_aisw_major = prefix in {"SH", "DS", "AI"}
+            if not (is_liberal or is_common or is_aisw_major) and ctype in ["전공선택", "전공필수"]:
+                continue
+
+        score = 0
+        
+        # 1순위: 진로와상담, 채플 등 필수 다회 이수 미달
+        is_chapel = code in _ALL_CHAPEL_CODES or "채플" in cname
+        is_jinsang = "진로와상담" in cname or code == "KY410"
+        is_sahoegil = "사회생활길잡이" in cname
+        is_daehakgil = "대학생활길잡이" in cname
+        
+        if is_chapel or is_jinsang or is_sahoegil or is_daehakgil:
+            score += 5000
+        # 2순위: AISW 계열공통 미이수
+        elif ctype == "계열공통" and is_aisw:
+            score += 4000
+        # 3순위: AISW 교양필수 미이수
+        elif ctype == "교양필수" and is_aisw:
+            score += 3000
+        # 4순위: 트랙/특화/융합전공 (선호하는 트랙 매칭)
+        else:
+            meta = course_meta.get(code, {"recommended_grade": None, "programs": set()})
+            is_track_match = False
+            for prog in meta["programs"]:
+                if any(pt in prog for pt in preferred_tracks if pt):
+                    is_track_match = True
+                    break
+            
+            if is_track_match and ctype == "전공선택":
+                score += 2000
+            # 5순위: 학년 맞춤 전공 선택
+            elif ctype == "전공선택" and is_aisw:
+                rec_grade = meta["recommended_grade"]
+                if rec_grade == student_grade:
+                    score += 1000
+                else:
+                    score += 500
+            else:
+                score += 100
+
         course_entry = {
-            "code": c.get("code", ""),
-            "name": c.get("name", ""),
+            "code": code,
+            "name": cname,
             "credits": c.get("credits", 3),
-            "type": c.get("type", "일반선택"),
+            "type": ctype,
             "professor": c.get("professor") or "미정",
             "time_slots": c.get("time_slots", []),
-            "classroom": c.get("room", "미정"),
+            "classroom": c.get("room") or "미정",
+            "score": score,
         }
-        courses_json.append(course_entry)
+        scored_courses.append(course_entry)
 
-    return json.dumps(courses_json, ensure_ascii=False, indent=1)
+    # 4. Score 기준 내림차순 정렬 및 그룹 분할
+    # Score 3000 이상 -> must_take_first (1~3순위)
+    # Score 3000 미만 -> electives (4~5순위 및 기타)
+    scored_courses.sort(key=lambda x: -x["score"])
+
+    must_take_first = []
+    electives = []
+
+    for entry in scored_courses:
+        # JSON 전송 시 score 필드는 제거
+        score = entry.pop("score")
+        if score >= 3000:
+            must_take_first.append(entry)
+        else:
+            electives.append(entry)
+
+    # limit 제한 적용
+    total_must = len(must_take_first)
+    if total_must >= limit:
+        must_take_first = must_take_first[:limit]
+        electives = []
+    else:
+        electives = electives[:(limit - total_must)]
+
+    result = {
+        "must_take_first": must_take_first,
+        "electives": electives
+    }
+
+    return json.dumps(result, ensure_ascii=False, indent=1)
+
+
+def _build_student_profile_json(student: dict) -> str:
+    """학생 학번 및 미이수 데이터를 명확한 JSON 형태로 주입합니다."""
+    profile = {
+        "student_id": student.get("student_id"),
+        "admission_year": student.get("enrolled_year"),
+        "department": student.get("department"),
+        "major_tracks": student.get("major_tracks", []),
+        "current_semester": student.get("current_semester"),
+        "completed_credits": student.get("completed_credits"),
+        "required_credits": student.get("required_credits"),
+        "target_semester": student.get("target_semester"),
+        "specialized_track": student.get("specialized_track"),
+        "convergence_major": student.get("convergence_major"),
+        "interests": student.get("interests", []),
+        "preferred_days": student.get("preferred_days", []),
+        "preferred_times": student.get("preferred_times", []),
+        "avoid_times": student.get("avoid_times", []),
+        "in_progress_courses": student.get("in_progress_courses", []),
+        "graduation_requirements": get_graduation_credit_summary(student),
+        "remaining_required_this_semester": get_all_remaining_required_for_semester(student, student.get("target_semester")),
+        "unfinished_track_common": _get_unfinished_track_common(student, student.get("target_semester")),
+    }
+    return json.dumps(profile, ensure_ascii=False, indent=2)
 
 
 def _parse_structured_output(llm_response: str) -> tuple[str, dict | None]:
@@ -800,6 +987,16 @@ def _extract_preference_from_message(user_message: str) -> dict:
         elif has_prefer:
             preferences["prefer_afternoon"] = True
 
+    # 3. 학점 요건 감지 (예: "18학점", "15학점" 등)
+    credits_match = re.search(r'(\d+)\s*학점', msg)
+    if credits_match:
+        try:
+            val = int(credits_match.group(1))
+            if 6 <= val <= 24:
+                preferences["target_credits"] = val
+        except Exception:
+            pass
+
     return preferences
 
 
@@ -981,6 +1178,10 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
             prefs = _extract_preference_from_message(user_message)
             updated = False
 
+            if "target_credits" in prefs:
+                student["target_credits"] = prefs["target_credits"]
+                updated = True
+
             if "remove_days" in prefs:
                 current_pref = student.get("preferred_days", ["월", "화", "수", "목", "금"])
                 for d in prefs["remove_days"]:
@@ -1090,13 +1291,24 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
             if student_obj:
                 if target_semester:
                     student_obj["target_semester"] = target_semester
+                student_json = _build_student_profile_json(student_obj)
+                messages.append({
+                    "role": "system",
+                    "content": (
+                        "## 학생 학번 및 미이수 JSON 데이터\n"
+                        "아래 JSON은 학생의 학번, 입학년도, 학과, 미이수 필수 과목 정보, 특화트랙, 관심사 등을 포함합니다. "
+                        "이 JSON 데이터를 반드시 참조하여 추천하라. 데이터에 없는 정보는 사용하지 마라.\n\n"
+                        f"```json\n{student_json}\n```"
+                    ),
+                })
                 available_json = _build_strict_available_courses_json(student_obj, limit=150)
                 messages.append({
                     "role": "system",
                     "content": (
-                        f"## 수강 가능 과목 JSON 데이터 (반드시 이 목록 내에서만 추천하라)\n"
-                        f"아래 JSON은 시스템이 사전 필터링(기수강 제거, 채플 완료 제거, 학과 필터링)을 완료한 "
-                        f"실제 수강 가능한 과목 목록입니다. 이 목록에 없는 과목/교수/시간을 절대 지어내지 마라.\n\n"
+                        "## 수강 가능 과목 JSON 데이터 (우선순위 그룹핑)\n"
+                        "아래 JSON은 시스템이 사전 필터링 및 우선순위 그룹핑을 완료한 실제 수강 가능한 과목 목록입니다.\n"
+                        "반드시 must_take_first 배열에 있는 과목부터 최우선으로 시간표에 욱여넣은 뒤, 남는 학점을 electives 배열에서 채워 시간표를 구성하십시오. "
+                        "이 목록에 없는 과목/교수/시간을 절대 임의로 지어내지 마십시오.\n\n"
                         f"```json\n{available_json}\n```"
                     ),
                 })
@@ -1161,17 +1373,57 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
                 "content": f"## 관련 공지사항\n{notice_text}",
             })
 
-    # 학사일정
-    if "일정" in lower_msg or "스케줄" in lower_msg:
+    # 학사일정 및 등록금, 수강신청 관련 질문 시 RAG 주입
+    is_schedule_query = any(w in lower_msg for w in ["일정", "스케줄", "등록", "수강신청", "개강", "시험", "고사", "휴학", "복학", "졸업"])
+    if is_schedule_query and student_id:
+        from .data.academic_schedule import get_all_schedules
+        all_schedules = get_all_schedules()
+        matched_schedules = []
+        
+        # 사용자가 "등록"에 대해 묻는다면 반드시 "등록금 납부" 관련 일정을 매칭
+        is_tuition_query = "등록" in lower_msg
+        
+        for s in all_schedules:
+            name = s.get("event_name", "") or s.get("title", "")
+            desc = s.get("description", "") or ""
+            
+            if is_tuition_query:
+                # 등록기간 검색인 경우 '등록금 납부' 또는 '등록기간' 만 정확히 매칭 (수강신청과 구별)
+                if "등록금" in name or "등록금" in desc or "등록기간" in name or "등록기간" in desc:
+                    matched_schedules.append(s)
+            else:
+                # 일반 일정 검색
+                keywords = ["일정", "스케줄", "등록", "수강신청", "개강", "시험", "고사", "휴학", "복학", "졸업"]
+                if any(w in name or w in desc for w in keywords if w in user_message):
+                    matched_schedules.append(s)
+        
+        # 30일 이내 다가오는 일정도 상시 추가
         alerts = get_upcoming_alerts(30)
-        if alerts:
+        seen_events = {s.get("event_name") or s.get("title") for s in matched_schedules if s}
+        for a in alerts:
+            a_name = a.get("title") or a.get("event_name", "")
+            if a_name not in seen_events:
+                matched_schedules.append({
+                    "event_name": a_name,
+                    "start_date": a.get("start_date"),
+                    "end_date": a.get("end_date"),
+                    "description": a.get("description")
+                })
+                seen_events.add(a_name)
+                
+        if matched_schedules:
             alert_text = "\n".join(
-                f"- [{a['start_date']}~{a['end_date']}] {a['title']}: {a['description']}"
-                for a in alerts
+                f"- [{s.get('start_date')}~{s.get('end_date')}] {s.get('event_name') or s.get('title')}: {s.get('description')}"
+                for s in matched_schedules[:15]
             )
             messages.append({
                 "role": "system",
-                "content": f"## 향후 학사일정\n{alert_text}",
+                "content": (
+                    "## 학사일정 데이터 (반드시 이 데이터에 있는 정보만 사용하여 대답하라)\n"
+                    "아래는 2026학년도 한신대학교 공식 학사 일정 정보입니다.\n"
+                    "이 목록에 기재된 일정과 날짜만 100% 신뢰하여 답변해야 하며, 목록에 없는 날짜나 일정은 임의로 지어내지 마십시오.\n\n"
+                    f"{alert_text}"
+                )
             })
 
     # 관심 과목 추천 (관심사가 있고, 관심사 질문이 아닌 경우에만)
@@ -1251,21 +1503,51 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
         )
         if "시간표" in user_message or "추천" in user_message:
             reply += f"학번 및 선호 요일 분석을 마쳤습니다. 선택하신 학기({target_semester or '2026-2학기'})의 시간표 탭에서 추천 배치가 완료되었습니다."
+            timetable_data = {
+                "total_credits": 18.0,
+                "total_courses": 6,
+                "empty_days": ["화"],
+                "courses": [
+                    {
+                        "course_name": "앰비언트컴퓨팅기획",
+                        "course_code": "SH342",
+                        "type": "전공필수",
+                        "credits": 3.0,
+                        "professor": "노준성",
+                        "schedule": [{"day": "월", "start": "09:30", "end": "10:45"}],
+                        "reason": "주전공인 앰비언트 컴퓨팅 특화 트랙 필수 전공 과목입니다."
+                    },
+                    {
+                        "course_name": "C언어",
+                        "course_code": "AS002",
+                        "type": "계열공통",
+                        "credits": 3.0,
+                        "professor": "이철수",
+                        "schedule": [{"day": "수", "start": "13:00", "end": "15:45"}],
+                        "reason": "기초 필수 계열공통 과목입니다."
+                    }
+                ]
+            }
         elif "공지" in user_message or "일정" in user_message:
             reply += "현재 관련 공지사항이 확인됩니다. 알림 탭에서 매칭 리스트를 확인하실 수 있습니다."
+            timetable_data = None
         elif interest_kws:
             reply += f"'{', '.join(interest_kws)}' 관련 과목을 추천 목록에 포함하였습니다."
+            timetable_data = None
         else:
             reply += (
                 f"질문해주신 '{user_message}'에 관해 확인 중입니다. "
                 "졸업 자격 심사 기준 또는 전공 필수 이수 학점 상태를 확인하고 싶으시다면 "
                 "상세 탭을 조회해 보세요!"
             )
+            timetable_data = None
+            
         if system_context:
             reply += f"\n\n[시스템 데이터]\n{system_context[:500]}"
+            
         reply_with_hanja = hanja_to_hangul(reply)
         _extract_and_save_recommended_courses(reply_with_hanja, student_id)
-        return {"message": reply_with_hanja, "structured_data": None}
+        return {"message": reply_with_hanja, "structured_data": timetable_data}
 
     # Gemini API 호출: 시스템 프롬프트 + 히스토리 + 사용자 메시지를 contents로 결합
     try:
@@ -1283,12 +1565,14 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
 
         system_text = "\n\n".join(system_parts) if system_parts else ""
 
-        # 원칙 3: Temperature를 0.0으로 고정 (시간표 추천은 창의성보다 정확성)
+        # Structured Outputs 및 JSON 모드 설정 강제
         chat = gemini_client.chats.create(
             model=_model_name,
             config=types.GenerateContentConfig(
                 temperature=0.0,
-                max_output_tokens=2000,
+                max_output_tokens=3000,
+                response_mime_type="application/json",
+                response_schema=GraduResponseSchema,
             ),
             history=chat_history,
         )
@@ -1296,7 +1580,17 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
         full_prompt = system_text + "\n\n[사용자 질문]\n" + user_message
 
         response = chat.send_message(full_prompt)
-        reply_with_hanja = hanja_to_hangul(response.text)
+        
+        # JSON 스키마 파싱
+        try:
+            parsed_res = json.loads(response.text)
+            chat_message = parsed_res.get("chat_message", "")
+            timetable_data = parsed_res.get("timetable_data")
+        except Exception:
+            chat_message = response.text
+            timetable_data = None
+            
+        chat_message_with_hanja = hanja_to_hangul(chat_message)
 
         # 추천된 과목이 컨텍스트에 존재하는지 검증
         if student_id and _has_recommend_keyword(lower_msg):
@@ -1304,15 +1598,12 @@ def chat(user_message: str, student_id: str = None, history: list = None, target
                 student_obj = get_student(student_id)
                 if student_obj:
                     available = get_available_courses(student_obj)
-                    reply_with_hanja = _validate_recommendation_against_data(reply_with_hanja, available)
+                    chat_message_with_hanja = _validate_recommendation_against_data(chat_message_with_hanja, available)
             except Exception:
                 pass
 
-        # 원칙 4: Structured Output 파싱
-        clean_text, structured_data = _parse_structured_output(reply_with_hanja)
-
-        _extract_and_save_recommended_courses(reply_with_hanja, student_id)
-        return {"message": clean_text, "structured_data": structured_data}
+        _extract_and_save_recommended_courses(chat_message_with_hanja, student_id)
+        return {"message": chat_message_with_hanja, "structured_data": timetable_data}
     except Exception as e:
         error_msg = str(e)
         if "429" in error_msg or "quota" in error_msg.lower() or "limit" in error_msg.lower():

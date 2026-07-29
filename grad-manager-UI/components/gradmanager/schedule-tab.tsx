@@ -31,20 +31,6 @@ const reasonIconMap: Record<string, LucideIcon> = {
 // 학기 선택용 상수 정의 (23-1 ~ 26-2 및 계절학기)
 const SEMESTER_OPTIONS = [
   "2026-2학기",
-  "2026-여름계절",
-  "2026-1학기",
-  "2025-겨울계절",
-  "2025-2학기",
-  "2025-여름계절",
-  "2025-1학기",
-  "2024-겨울계절",
-  "2024-2학기",
-  "2024-여름계절",
-  "2024-1학기",
-  "2023-겨울계절",
-  "2023-2학기",
-  "2023-여름계절",
-  "2023-1학기",
 ]
 
 const ROW_H = 52 // px per hour row
@@ -1004,24 +990,7 @@ export function ScheduleTab() {
         </div>
       </section>
 
-      {/* AI recommendation reasons */}
-      <section className="space-y-3">
-        <h2 className="text-sm font-semibold text-muted-foreground">AI 추천 이유</h2>
-        {dynamicReasons.filter((r) => r && r.title).map((r, i) => {
-          const Icon = reasonIconMap[r.icon] ?? BrainCircuit
-          return (
-            <div key={i} className="flex items-start gap-3 rounded-2xl bg-card border border-border p-4.5 shadow-sm">
-              <span className="flex h-9.5 w-9.5 shrink-0 items-center justify-center rounded-full bg-primary/10">
-                <Icon className="h-5 w-5 text-primary" />
-              </span>
-              <div>
-                <h3 className="text-sm font-bold text-foreground">{r.title}</h3>
-                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{r.desc}</p>
-              </div>
-            </div>
-          )
-        })}
-      </section>
+
 
       {/* 수동 추가 및 편집 모달 */}
       <AnimatePresence>

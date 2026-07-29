@@ -33,9 +33,49 @@ _CHAPEL_CODES = {"KY100", "KY101", "KY201", "KY304", "KY509"}
 _SPECIALIZATION_KEYWORDS = ["특화", "융합", "특화전공", "융합전공"]
 
 
+def _run_pdf_pipeline_if_needed():
+    """PDF 교과과정 데이터가 SQLite DB에 적재되어 있지 않은 경우, 자동으로 적재 파이프라인을 구동합니다."""
+    import sqlite3
+    from pathlib import Path
+    import subprocess
+    import sys
+    
+    root_dir = Path(__file__).resolve().parent.parent.parent.parent
+    db_path = root_dir / "gradmanager.db"
+    
+    need_pipeline = True
+    if db_path.exists():
+        try:
+            conn = sqlite3.connect(str(db_path))
+            cursor = conn.cursor()
+            cursor.execute("SELECT COUNT(*) FROM courses WHERE course_code IN ('SD001', 'SH342')")
+            cnt = cursor.fetchone()[0]
+            if cnt > 0:
+                need_pipeline = False
+            conn.close()
+        except Exception:
+            pass
+            
+    if need_pipeline:
+        print("[PIPELINE ALERT] PDF curriculum data is missing in SQLite DB. Running pipeline...")
+        python_exe = root_dir / ".venv" / "Scripts" / "python.exe"
+        if not python_exe.exists():
+            python_exe = sys.executable or "python"
+            
+        try:
+            subprocess.run([str(python_exe), "save_all_pdf_curriculum.py"], cwd=str(root_dir), check=True)
+            subprocess.run([str(python_exe), "generate_all_data.py"], cwd=str(root_dir), check=True)
+            subprocess.run([str(python_exe), "generate_dump.py"], cwd=str(root_dir), check=True)
+            subprocess.run([str(python_exe), "app/convert_db.py"], cwd=str(root_dir), check=True)
+            print("[PIPELINE SUCCESS] PDF curriculum data loaded into DB successfully.")
+        except Exception as e:
+            print(f"[PIPELINE ERROR] Failed to run PDF data load pipeline: {e}")
+
+
 def _ensure_loaded():
     global COURSES
     if COURSES is None:
+        _run_pdf_pipeline_if_needed()
         COURSES = load_courses()
 
 
@@ -105,6 +145,10 @@ def _ensure_completed_course_names(student: dict):
 
 
 def _get_taken_course_filter(student: dict) -> tuple[set[str], set[str]]:
+    # 단일 요청 생명주기 동안 반복 계산 방지를 위한 캐싱
+    if student and "_taken_course_filter_cache" in student:
+        return student["_taken_course_filter_cache"]
+
     _ensure_loaded()
     _ensure_completed_course_names(student)
     completed = set(student.get("completed_courses", []))
@@ -131,7 +175,10 @@ def _get_taken_course_filter(student: dict) -> tuple[set[str], set[str]]:
             if normalized_name:
                 taken_names.add(normalized_name)
 
-    return taken_codes, taken_names
+    result = (taken_codes, taken_names)
+    if student:
+        student["_taken_course_filter_cache"] = result
+    return result
 
 
 def _get_completed_count_by_name(student: dict, keyword: str) -> int:
@@ -273,11 +320,54 @@ def _is_course_allowed_for_department(course: dict, student: dict) -> bool:
     prefix = _get_course_prefix(code)
     course_type = _normalize_completion_type(course.get("type", ""))
 
-    # 1. 교양 과목은 항상 허용
+    # AISW 학부 학생의 경우, 계열공통 및 교양필수 과목은 학번/학과 졸업요건에 맞는 과목만 추천하도록 제한
+    is_aisw = (
+        student.get("department") in ["인공지능소프트웨어학부", "컴퓨터소프트웨어학과", "소프트웨어학과"]
+        or "소프트웨어" in student.get("department", "")
+        or "aisw" in student.get("department", "").lower()
+    )
+
+    course_name = course.get("name", "")
+    is_exception_compulsory = (
+        "채플" in course_name
+        or "진로와상담" in course_name
+        or "사회생활길잡이" in course_name
+        or "대학생활길잡이" in course_name
+        or code in _CHAPEL_CODES
+    )
+
+    if is_aisw and not is_exception_compulsory and (prefix in _COMMON_PREFIXES or (prefix in _LIBERAL_PREFIXES and course_type == "교양필수")):
+        try:
+            curriculum_info = get_track_curriculum(student)
+            id_to_code = _build_course_id_to_code_map()
+            allowed_codes = set()
+            
+            # curriculum 정보 내 모든 과목 수집
+            for pid, courses_list in curriculum_info.get("courses_by_program", {}).items():
+                for entry in courses_list:
+                    cid = entry.get("course_id")
+                    if cid:
+                        mapped_code = id_to_code.get(cid)
+                        if mapped_code:
+                            allowed_codes.add(mapped_code.strip().upper())
+            
+            # graduation_requirements 에도 기재되어 있을 수 있음
+            for req in curriculum_info.get("requirements", []):
+                req_code = req.get("course_code")
+                if req_code:
+                    allowed_codes.add(req_code.strip().upper())
+
+            # 이수 내역이나 졸업 요건에 명시되지 않은 교양필수/계열공통 과목은 타과/타학번 과목으로 간주하여 추천에서 차단
+            if code.strip().upper() not in allowed_codes:
+                return False
+        except Exception:
+            pass
+
+    # 1. 교양 과목은 항상 허용 (위 필터 통과 시)
     if prefix in _LIBERAL_PREFIXES:
         return True
 
-    # 2. 계열공통은 항상 허용
+    # 2. 계열공통은 항상 허용 (위 필터 통과 시)
     if prefix in _COMMON_PREFIXES:
         return True
 
@@ -321,13 +411,9 @@ def get_available_courses(student: dict, semester: str = None) -> list[dict]:
     _ensure_loaded()
     taken, taken_names = _get_taken_course_filter(student)
 
-    sem = semester or student.get("target_semester")
-    target_year = None
-    target_sem = None
-    if sem and "-" in sem:
-        parts = sem.split("-", 1)
-        target_year = parts[0]
-        target_sem = parts[1]
+    # 과거 vs 현재 데이터 용도 분리: 추천 시에는 무조건 2026년 2학기 개설 과목만 추천하도록 고정
+    target_year = "2026"
+    target_sem = "2학기"
 
     # 채플 8회 이수 완료 체크
     is_chapel_satisfied = _is_chapel_completed(student)
@@ -369,13 +455,9 @@ def get_required_remaining(student: dict, semester: str = None) -> list[dict]:
 
     taken, taken_names = _get_taken_course_filter(student)
 
-    sem = semester or student.get("target_semester")
-    target_year = None
-    target_sem = None
-    if sem and "-" in sem:
-        parts = sem.split("-", 1)
-        target_year = parts[0]
-        target_sem = parts[1]
+    # 과거 vs 현재 데이터 용도 분리: 추천 시에는 무조건 2026년 2학기 개설 과목만 추천하도록 고정
+    target_year = "2026"
+    target_sem = "2학기"
 
     filtered_courses = []
     for code, course in COURSES.items():
@@ -401,13 +483,9 @@ def get_all_remaining_required_for_semester(student: dict, semester: str = None)
     _ensure_loaded()
     taken, taken_names = _get_taken_course_filter(student)
 
-    sem = semester or student.get("target_semester")
-    target_year = None
-    target_sem = None
-    if sem and "-" in sem:
-        parts = sem.split("-", 1)
-        target_year = parts[0]
-        target_sem = parts[1]
+    # 과거 vs 현재 데이터 용도 분리: 추천 시에는 무조건 2026년 2학기 개설 과목만 추천하도록 고정
+    target_year = "2026"
+    target_sem = "2학기"
 
     # AISW 학과는 전공필수 과목이 없으므로 필수 과목 타입 목록에서 제외하되 계열공통 추가
     is_aisw = student.get("department") in ("AISW", "AI.SW학", "인공지능소프트웨어학과", "인공지능소프트웨어학부")
@@ -684,12 +762,18 @@ def get_required_remaining_by_track(student: dict, semester: str = None) -> list
 
 def get_graduation_credit_summary(student: dict) -> dict:
     _ensure_loaded()
+    
+    # 단일 API 요청 생명주기 동안 중복 DB 조회를 막기 위한 인메모리 캐싱
+    if student and "_graduation_credit_summary_cache" in student:
+        return student["_graduation_credit_summary_cache"]
+        
     _ensure_completed_course_names(student)
     curriculum_info = get_track_curriculum(student)
     
     # DB 수강 기록 조회 및 course_type/earned_credit 매핑 구축
     course_types = {}
     completed_credits_map = {}
+    db = None
     try:
         from app.database import SessionLocal
         from app import models as db_models
@@ -755,9 +839,11 @@ def get_graduation_credit_summary(student: dict) -> dict:
                 continue
             course_types[rec["code"]] = rec["category"]
             completed_credits_map[rec["code"]] = rec["credit"]
-        db.close()
     except Exception:
         pass
+    finally:
+        if db:
+            db.close()
 
     completed = set(student.get("completed_courses", []))
     in_progress = set(student.get("in_progress_courses", []))
@@ -830,6 +916,10 @@ def get_graduation_credit_summary(student: dict) -> dict:
 
     for cat in categories:
         categories[cat]["remaining"] = max(0, categories[cat]["required"] - categories[cat]["completed"])
+
+    # 다음 호출 시 재사용하도록 캐시 저장
+    if student:
+        student["_graduation_credit_summary_cache"] = categories
 
     return categories
 
