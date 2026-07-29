@@ -23,7 +23,7 @@ export function NoticeTab() {
   }
 
   // 4대 고정 일정 정의 (키워드 상관없이 무조건 렌더링될 대상)
-  const fixedMandatoryEvents = [
+  const fixedMandatoryEvents: any[] = [
     {
       id: "fixed-pre-reg",
       title: "2026-2학기 예비 수강신청",
@@ -70,9 +70,9 @@ export function NoticeTab() {
     }
   ]
 
-  const mergedCalendar = [...(academicCalendar || [])]
+  const mergedCalendar: any[] = [...(academicCalendar || [])]
 
-  fixedMandatoryEvents.forEach((fixedEvt) => {
+  fixedMandatoryEvents.forEach((fixedEvt: any) => {
     const isAlreadyPresent = mergedCalendar.some(
       (item) =>
         (item.title && item.title.includes("예비 수강신청") && fixedEvt.title.includes("예비 수강신청")) ||
@@ -97,9 +97,9 @@ export function NoticeTab() {
         mergedCalendar[idx] = {
           ...mergedCalendar[idx],
           isMandatory: true,
-          isUpcoming: mergedCalendar[idx].isUpcoming ?? true,
-          date: mergedCalendar[idx].date || fixedEvt.date,
-          endDate: mergedCalendar[idx].endDate || fixedEvt.endDate
+          isUpcoming: (mergedCalendar[idx] as any).isUpcoming ?? true,
+          date: (mergedCalendar[idx] as any).date || fixedEvt.date,
+          endDate: (mergedCalendar[idx] as any).endDate || fixedEvt.endDate
         }
       }
     }
@@ -129,7 +129,7 @@ export function NoticeTab() {
       return
     }
 
-    const currentKeywords = interestKeywords.map((k) => k.label || k.text)
+    const currentKeywords = (interestKeywords || []).map((k: any) => k.label || k.text)
     if (currentKeywords.includes(trimmed)) {
       showToast("이미 등록된 키워드입니다.")
       return
@@ -165,7 +165,7 @@ export function NoticeTab() {
   }
 
   const renderHighlightedTitle = (title: string, keywords: any[]) => {
-    const kws = keywords.map(k => k.label || k.text).filter(Boolean)
+    const kws = (keywords || []).map((k: any) => k.label || k.text).filter(Boolean)
     if (kws.length === 0) return title
 
     const regex = new RegExp(`(${kws.join("|")})`, "gi")
@@ -182,7 +182,7 @@ export function NoticeTab() {
     )
   }
 
-  const kws = (interestKeywords || []).map(k => k.label || k.text).filter(Boolean)
+  const kws = (interestKeywords || []).map((k: any) => k.label || k.text).filter(Boolean)
 
   return (
     <div className="space-y-6 px-4 pb-6 pt-5 md:max-w-4xl md:mx-auto md:px-6">
@@ -219,7 +219,7 @@ export function NoticeTab() {
           <span className="text-[11px] font-semibold text-muted-foreground">{(interestKeywords || []).length}개 설정됨</span>
         </div>
         <div className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-1">
-          {(interestKeywords || []).map((k, idx) => {
+          {(interestKeywords || []).map((k: any, idx: number) => {
             const kw = k.label || k.text
             const isUrgent = k.urgent ?? false
 
@@ -302,11 +302,11 @@ export function NoticeTab() {
             </span>
           </div>
           <h3 className="text-[15px] font-bold text-foreground">{urgentNotice.title}</h3>
-          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{urgentNotice.desc || urgentNotice.content || ""}</p>
-          {urgentNotice.url && (
+          <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">{(urgentNotice as any).desc || (urgentNotice as any).content || ""}</p>
+          {(urgentNotice as any).url && (
             <div className="mt-3 pt-2.5 border-t border-[#e42939]/10 flex justify-end">
               <a
-                href={urgentNotice.url}
+                href={(urgentNotice as any).url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-[10.5px] font-bold text-[#e42939] hover:underline"

@@ -363,6 +363,16 @@ def _is_course_allowed_for_department(course: dict, student: dict) -> bool:
         except Exception:
             pass
 
+    # 추가 안전장치: "계열공통(FLOW)" 과목은 반드시 AISW 소속 과목인지 확인
+    # (개설 학과/주관 학부가 AISW가 아닌 경우 원천 차단)
+    if prefix in _COMMON_PREFIXES:
+        desc = (course.get("description") or "").lower()
+        name = (course.get("name") or "").lower()
+        dept = (course.get("department") or "").lower()
+        # 허용 기준: department가 'aisw' 이거나 설명/과목명에 AISW 관련 표기가 있는 경우에만 허용
+        if not (dept == "aisw" or "aisw" in desc or "ai·sw" in desc or "ai.sw" in desc or "ai sw" in desc or "aisw" in name):
+            return False
+
     # 1. 교양 과목은 항상 허용 (위 필터 통과 시)
     if prefix in _LIBERAL_PREFIXES:
         return True
@@ -443,7 +453,17 @@ def get_available_courses(student: dict, semester: str = None) -> list[dict]:
                 if not has_matching:
                     continue
 
-        filtered_courses.append(course)
+        # Mark zero-credit / schedulable flags for frontend
+        try:
+            c_copy = dict(course)
+            credits = float(c_copy.get("credits") or c_copy.get("credit") or 0.0)
+            schedules = c_copy.get("time_slots") or c_copy.get("schedules") or []
+            has_time = bool(schedules and len(schedules) > 0)
+            c_copy["zero_credit"] = (credits == 0.0)
+            c_copy["schedulable"] = (has_time and credits > 0.0)
+            filtered_courses.append(c_copy)
+        except Exception:
+            filtered_courses.append(course)
     return filtered_courses
 
 
@@ -493,6 +513,26 @@ def get_all_remaining_required_for_semester(student: dict, semester: str = None)
 
     is_chapel_satisfied = _is_chapel_completed(student)
 
+    # 학번에 부합하는 졸업 요건 allowed_codes 수집
+    allowed_codes = set()
+    if is_aisw:
+        try:
+            curriculum_info = get_track_curriculum(student)
+            id_to_code = _build_course_id_to_code_map()
+            for pid, courses_list in curriculum_info.get("courses_by_program", {}).items():
+                for entry in courses_list:
+                    cid = entry.get("course_id")
+                    if cid:
+                        mapped_code = id_to_code.get(cid)
+                        if mapped_code:
+                            allowed_codes.add(mapped_code.strip().upper())
+            for req in curriculum_info.get("requirements", []):
+                req_code = req.get("course_code")
+                if req_code:
+                    allowed_codes.add(req_code.strip().upper())
+        except Exception:
+            pass
+
     by_category = {}
     for code, course in COURSES.items():
         if _is_course_already_taken(course, student):
@@ -503,6 +543,21 @@ def get_all_remaining_required_for_semester(student: dict, semester: str = None)
         ctype = course.get("type", "")
         if ctype not in required_types:
             continue
+
+        # 학번별 커리큘럼 데이터를 우선 대조하여 진짜 필수과목만 필터링 (계열공통/교양필수 교차 매칭)
+        if is_aisw:
+            prefix = "".join(ch for ch in code if ch.isalpha())
+            is_exception_compulsory = (
+                "채플" in course.get("name", "")
+                or "진로와상담" in course.get("name", "")
+                or "사회생활길잡이" in course.get("name", "")
+                or "대학생활길잡이" in course.get("name", "")
+                or code in _CHAPEL_CODES
+            )
+            # 채플/진상 등이 아니고 교필 또는 계공인 경우, allowed_codes 에 매칭되지 않으면 필수에서 제외 (일반선택 취급하여 스킵)
+            if not is_exception_compulsory and (prefix in {"FLOW"} or ctype == "교양필수"):
+                if code.strip().upper() not in allowed_codes:
+                    continue
 
         is_available_this_sem = False
         if target_year and target_sem:

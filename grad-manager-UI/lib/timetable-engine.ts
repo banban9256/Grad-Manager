@@ -298,7 +298,7 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
         return
       }
 
-      scheduleBlocks.push({
+      scheduleBlocks.push({ 
         id: `block-${String(c.course_id || c.code || "")}-${s.day}-${s.start_time}-${scheduleBlocks.length}`,
         groupId: String(c.course_id || c.code || ""),
         name: cleanCourseName(c.title || c.name || String(c.course_id || c.code || "과목명 미정")),
@@ -308,7 +308,7 @@ export function generateTimetableFromChat(messages: any[], allCourses: any[]) {
         room: s.classroom || "미정",
         professor: s.professor || c.professor || c.professor_name || "미정",
         colorIndex: idx % pastelPalette.length
-      })
+      } as any)
     })
   })
 

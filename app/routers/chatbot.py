@@ -96,14 +96,31 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
         avoid_times = student.get("avoid_times", [])
         preferred_days = student.get("preferred_days", ["월", "화", "수", "목", "금"])
 
+        zero_credit_courses = []
         for idx, course_item in enumerate(structured_data.get("courses", [])):
             color = pastel_palette[idx % len(pastel_palette)]
             course_name = course_item.get("course_name", "")
             course_code = course_item.get("course_code", "")
             course_type = course_item.get("type", "")
-            credits = course_item.get("credits", 3.0)
+            credits = float(course_item.get("credits", 3.0))
             professor = course_item.get("professor", "미정")
             reason_desc = course_item.get("reason", "추천 과목")
+            
+            # 0학점 과목 수집 (시간표 블록에서는 제외)
+            if credits == 0.0 or "진로와상담" in course_name or course_code == "KY410":
+                zero_credit_courses.append({
+                    "code": course_code,
+                    "name": course_name,
+                    "credits": 0.0,
+                    "professor": professor,
+                    "type": course_type
+                })
+                reasons.append({
+                    "icon": "Sparkles",
+                    "title": f"{course_name} ({course_code})",
+                    "desc": reason_desc
+                })
+                continue
             
             reasons.append({
                 "icon": "Sparkles",
@@ -140,6 +157,7 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
             "scheduleDays": ["월", "화", "수", "목", "금"],
             "scheduleHours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
             "scheduleBlocks": schedule_blocks,
+            "zero_credit_courses": zero_credit_courses,
             "scheduleReasons": reasons,
             "pastelPalette": pastel_palette[:3],
             "totalCredits": structured_data.get("total_credits", 0.0),
@@ -168,9 +186,23 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
         ]
         day_map = {"월": 0, "화": 1, "수": 2, "목": 3, "금": 4}
         
+        zero_credit_courses = []
         if schedules:
             sched = schedules[0]
             for idx, c in enumerate(sched["courses"]):
+                credits = float(c.get("credits", 3.0))
+                cname = c.get("name", "")
+                ccode = c.get("code", "")
+                if credits == 0.0 or "진로와상담" in cname or ccode == "KY410":
+                    zero_credit_courses.append({
+                        "code": ccode,
+                        "name": cname,
+                        "credits": 0.0,
+                        "professor": c.get("professor", "미정"),
+                        "type": c.get("type", "교양필수")
+                    })
+                    continue
+
                 color = pastel_palette[idx % len(pastel_palette)]
                 for d, start, end in c.get("time_slots", []):
                     if d in day_map:
@@ -278,6 +310,29 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
             seen_course_codes = set()
             for c in sched.get("courses", []):
                 code = c.get("code", "")
+                
+                # 0학점 과목 수집
+                ctype = c.get("type", "")
+                if float(c.get("credits", 3)) == 0.0 or "진로와상담" in c.get("name", "") or code == "KY410":
+                    if code not in zero_credit_courses:
+                        zero_credit_courses.append({
+                            "code": code,
+                            "name": c.get("name", ""),
+                            "credits": 0.0,
+                            "professor": c.get("professor", "미정"),
+                            "type": ctype
+                        })
+                    continue
+
+                # AISW 계열공통 타 학과 과목 침범 원천 차단
+                if ctype == "계열공통":
+                    aisw_depts = ["aisw", "인공지능소프트웨어학부", "컴퓨터소프트웨어학과", "소프트웨어학과", "인공지능소프트웨어공학", "인공지능", "소프트웨어"]
+                    course_dept = str(c.get("department") or "").lower().replace(" ", "")
+                    is_aisw_dept = any(dept_keyword in course_dept for dept_keyword in aisw_depts)
+                    # department 조건이 아니면 계열공통 후보군에서 아예 삭제(Drop)
+                    if not is_aisw_dept:
+                        continue
+
                 if code in seen_course_codes:
                     continue
                 seen_course_codes.add(code)
@@ -317,6 +372,7 @@ def chat_message(req: ChatRequest, authorization: Optional[str] = Header(None)):
                 "scheduleDays": ["월", "화", "수", "목", "금"],
                 "scheduleHours": [9, 10, 11, 12, 13, 14, 15, 16, 17, 18],
                 "scheduleBlocks": schedule_blocks,
+                "zero_credit_courses": zero_credit_courses,
                 "scheduleReasons": reasons,
                 "pastelPalette": pastel_palette[:3],
                 "totalCredits": schedules[0]["total_credits"] if schedules else 0,

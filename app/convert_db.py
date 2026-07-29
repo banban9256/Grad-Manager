@@ -42,8 +42,48 @@ with open("gradmanager_dump.sql", "r", encoding="utf-8-sig") as f:
 sql_text = re.sub(r'--.*?\n', '\n', sql_text)
 sql_text = re.sub(r'/\*.*?\*/', '', sql_text, flags=re.DOTALL)
 
-# 4. 세미콜론 기준으로 문장 분리
-raw_statements = sql_text.split(';')
+def split_sql_statements(sql_text):
+    """문자열 리터럴 내의 세미콜론(;)을 무시하고 실제 SQL 구문 단위로 안전하게 분리합니다."""
+    statements = []
+    current = []
+    in_quote = False
+    quote_char = None
+    escaped = False
+    
+    for char in sql_text:
+        if escaped:
+            current.append(char)
+            escaped = False
+            continue
+            
+        if char == '\\':
+            current.append(char)
+            escaped = True
+            continue
+            
+        if char in ("'", '"'):
+            if not in_quote:
+                in_quote = True
+                quote_char = char
+            elif char == quote_char:
+                in_quote = False
+                quote_char = None
+            current.append(char)
+        elif char == ';' and not in_quote:
+            statements.append("".join(current))
+            current = []
+        else:
+            current.append(char)
+            
+    if current:
+        stmt = "".join(current).strip()
+        if stmt:
+            statements.append(stmt)
+            
+    return statements
+
+# 4. 세미콜론 기준으로 문장 분리 (문자열 보호 적용)
+raw_statements = split_sql_statements(sql_text)
 
 cleaned_statements = []
 

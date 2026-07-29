@@ -326,6 +326,43 @@ export function ScheduleTab() {
     }
   }
 
+  // 0학점 과목 상태 관리 (진로와상담 등)
+  const [zeroCreditCourses, setZeroCreditCourses] = useState<any[]>(() => {
+    if (typeof window !== "undefined") {
+      const activeSem = localStorage.getItem(`grad_last_viewed_semester_${studentId}`) || "2026-2학기"
+      const key = `grad_zero_credit_courses_${studentId}_${activeSem}`
+      const storedLocal = localStorage.getItem(key)
+      const storedSession = sessionStorage.getItem(key)
+      if (storedLocal) {
+        try {
+          const parsed = JSON.parse(storedLocal)
+          if (Array.isArray(parsed)) return parsed
+        } catch (e) {}
+      }
+      if (storedSession) {
+        try {
+          const parsed = JSON.parse(storedSession)
+          if (Array.isArray(parsed)) return parsed
+        } catch (e) {}
+      }
+    }
+    return []
+  })
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const key = `grad_zero_credit_courses_${studentId}_${selectedSemester}`
+      const stored = localStorage.getItem(key) || sessionStorage.getItem(key)
+      if (stored) {
+        try {
+          setZeroCreditCourses(JSON.parse(stored))
+          return
+        } catch (e) {}
+      }
+      setZeroCreditCourses([])
+    }
+  }, [studentId, selectedSemester])
+
   // 수동 커스텀 시간표 상태
   const [customBlocks, setCustomBlocks] = useState<any[]>(() => {
     if (typeof window !== "undefined") {
@@ -513,6 +550,24 @@ export function ScheduleTab() {
   const handleApplyAiTimetable = () => {
     if (simulatedSchedule?.scheduleBlocks) {
       saveBlocks(simulatedSchedule.scheduleBlocks)
+      
+      // 0학점 과목 적용
+      if (simulatedSchedule.zero_credit_courses) {
+        setZeroCreditCourses(simulatedSchedule.zero_credit_courses)
+        const key = `grad_zero_credit_courses_${studentId}_${selectedSemester}`
+        if (typeof window !== "undefined") {
+          localStorage.setItem(key, JSON.stringify(simulatedSchedule.zero_credit_courses))
+          sessionStorage.setItem(key, JSON.stringify(simulatedSchedule.zero_credit_courses))
+        }
+      } else {
+        setZeroCreditCourses([])
+        const key = `grad_zero_credit_courses_${studentId}_${selectedSemester}`
+        if (typeof window !== "undefined") {
+          localStorage.removeItem(key)
+          sessionStorage.removeItem(key)
+        }
+      }
+
       showToast("AI 추천 시간표가 현재 내 시간표로 성공적으로 반영되었습니다!")
       
       if (resetSimulation) {
@@ -546,6 +601,14 @@ export function ScheduleTab() {
       // 로컬 갱신, 로컬스토리지 정리, 백엔드 API 연동을 saveBlocks([])를 통해 일괄 처리
       saveBlocks([])
       
+      // 0학점 과목 초기화
+      setZeroCreditCourses([])
+      const key = `grad_zero_credit_courses_${studentId}_${selectedSemester}`
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
+      }
+      
       // AI 프리뷰/추천 임시 저장 데이터도 별도 삭제 처리
       if (typeof window !== "undefined") {
         const aiTimetableKey = `grad_manager_ai_recommended_timetable_${studentId}_${selectedSemester}`
@@ -565,7 +628,7 @@ export function ScheduleTab() {
   const uniqueCourses = Array.from(new Set(customBlocks.map((b) => b.name)))
   const courseCount = uniqueCourses.length
 
-  const prefsFreeDays = activeSchedule?.preferences?.freeDays
+  const prefsFreeDays = (activeSchedule as any)?.preferences?.freeDays
   const activeDays = new Set(customBlocks.map((b) => dayStringToNum(b.day)))
   const freeDays = Array.isArray(prefsFreeDays)
     ? prefsFreeDays
@@ -780,7 +843,8 @@ export function ScheduleTab() {
             <select
               value={selectedSemester}
               onChange={(e) => handleSemesterChange(e.target.value)}
-              className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer font-bold"
+              disabled
+              className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-not-allowed font-bold opacity-80"
             >
               {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -989,6 +1053,34 @@ export function ScheduleTab() {
           ))}
         </div>
       </section>
+
+      {/* 0학점 과목 (추가 이수 과목) 리스트 노출 영역 */}
+      {zeroCreditCourses && zeroCreditCourses.length > 0 && (
+        <div className="rounded-[20px] md:rounded-[24px] bg-secondary/20 border border-border/80 p-4.5 md:p-6 text-left shadow-sm space-y-2">
+          <h3 className="text-xs md:text-sm font-bold text-foreground flex items-center gap-1.5">
+            <Sparkles className="h-4 w-4 text-[#3182f6]" />
+            <span>추가 이수 과목 (시간외 0학점 과목)</span>
+          </h3>
+          <p className="text-[11px] md:text-xs text-muted-foreground leading-relaxed">
+            시간표 그리드에 표시되지 않는 추가 과목(예: 진로와상담 등) 목록입니다.
+          </p>
+          <div className="flex flex-wrap gap-2 pt-1.5">
+            {zeroCreditCourses.map((c, idx) => (
+              <span 
+                key={idx} 
+                className="bg-card border border-border/60 text-foreground text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-xl shadow-sm flex items-center gap-1.5 animate-fade-in"
+              >
+                🎓 {cleanCourseName(c.name)} ({c.code})
+                {c.professor && c.professor !== "미정" && (
+                  <span className="text-[9px] md:text-[10px] text-muted-foreground font-medium border-l border-border/80 pl-1.5">
+                    {c.professor}
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
 
 
 

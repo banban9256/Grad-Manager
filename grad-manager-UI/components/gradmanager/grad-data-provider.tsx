@@ -281,7 +281,7 @@ export function GradDataProvider({ children }: { children: React.ReactNode }) {
     if (data?.notice?.interestKeywords) {
       setInterestKeywords(data.notice.interestKeywords)
       if (typeof window !== "undefined") {
-        localStorage.setItem(keywordsKey, JSON.stringify(data.notice.interestKeywords.map((k) => k.label || k.text)))
+        localStorage.setItem(keywordsKey, JSON.stringify(data.notice.interestKeywords.map((k) => k.label || (k as any).text)))
       }
     } else {
       setInterestKeywords([])

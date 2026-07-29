@@ -437,6 +437,59 @@ def _build_available_courses_summary(available: list, limit: int = 40) -> str:
     return "\n".join(lines)
 
 
+def _is_track_course_loose(course: dict, spec: str) -> bool:
+    """학생의 희망 트랙명과 과목코드/과목명/설명을 느슨하게 대조하여 매칭합니다."""
+    if not spec:
+        return False
+    cname = course.get("name", "")
+    cdesc = course.get("description", "") or ""
+    code = course.get("code", "")
+    prefix = "".join(ch for ch in code if ch.isalpha())
+    
+    spec_lower = spec.lower()
+    
+    # 1) 소프트웨어 / SW / 풀스택 / 웹 / 모바일
+    if any(x in spec_lower for x in ["소프트웨어", "sw", "웹", "web", "모바일", "mobile", "풀스택", "full"]):
+        keywords = ["웹", "모바일", "앱", "안드로이드", "ios", "프론트", "백엔드", "네트워크", "서버", "웹프로그래밍", "모바일프로그래밍"]
+        if any(kw in cname.lower() or kw in cdesc.lower() for kw in keywords):
+            return True
+        if prefix in {"SH"}:
+            return True
+            
+    # 2) 인공지능 / AI
+    elif any(x in spec_lower for x in ["인공지능", "ai"]):
+        keywords = ["인공지능", "ai", "지능", "머신러닝", "딥러닝", "기계학습", "신경망"]
+        if any(kw in cname.lower() or kw in cdesc.lower() for kw in keywords):
+            return True
+        if prefix in {"AI", "SH"}:
+            return True
+            
+    # 3) 데이터사이언스 / 데이터 / DS
+    elif any(x in spec_lower for x in ["데이터", "data", "ds", "사이언스"]):
+        keywords = ["데이터", "data", "분석", "통계", "확률", "시각화", "빅데이터"]
+        if any(kw in cname.lower() or kw in cdesc.lower() for kw in keywords):
+            return True
+        if prefix in {"DS", "SH"}:
+            return True
+            
+    # 4) XR콘텐츠 / XR / 가상현실 / VR / AR
+    elif any(x in spec_lower for x in ["xr", "콘텐츠", "가상", "증강", "vr", "ar"]):
+        keywords = ["xr", "콘텐츠", "가상", "증강", "게임", "그래픽스", "3d", "메타버스"]
+        if any(kw in cname.lower() or kw in cdesc.lower() for kw in keywords):
+            return True
+        if prefix in {"SH"}:
+            return True
+            
+    # 5) 지능형IoT / IoT / 사물인터넷
+    elif any(x in spec_lower for x in ["iot", "지능형", "사물"]):
+        keywords = ["iot", "임베디드", "네트워크", "센서", "통신", "시스템", "하드웨어"]
+        if any(kw in cname.lower() or kw in cdesc.lower() for kw in keywords):
+            return True
+        if prefix in {"SH"}:
+            return True
+            
+    return False
+
 def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str:
     """원칙 1: 백엔드 사전 필터링 완료된 수강 가능 과목을 5단계 우선순위별로 그룹핑하여 JSON으로 구성합니다.
 
@@ -501,13 +554,34 @@ def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str
     if student.get("convergence_major"):
         preferred_tracks.add(student.get("convergence_major"))
 
-    # 3. 5단계 우선순위 가중치 계산 및 정렬
+    # 3. 이번 학기 개설된 미이수 필수 과목(교양필수, 전공필수, 계열공통) 리스트 교차 검증용으로 추출
+    from backend.core.data.courses import get_all_remaining_required_for_semester
+    target_semester = student.get("target_semester") or "2026-2학기"
+    remaining_required_this_sem = set()
+    try:
+        sem_req = get_all_remaining_required_for_semester(student, target_semester)
+        for cat, info in sem_req.items():
+            for c_item in info.get("available_now", []):
+                remaining_required_this_sem.add(c_item["code"])
+    except Exception as e:
+        print(f"Error loading remaining required courses for cross verification: {e}")
+
+    # 4. 5단계 우선순위 가중치 계산 및 정렬 (요구사항 3, 4 반영)
     scored_courses = []
     for c in available:
         code = c.get("code", "")
         ctype = c.get("type", "일반선택")
         cname = c.get("name", "")
         prefix = "".join(ch for ch in code if ch.isalpha())
+
+        # AISW 계열공통 타 학과 과목 침범 원천 차단 (요구사항 3)
+        if ctype == "계열공통":
+            aisw_depts = ["aisw", "인공지능소프트웨어학부", "컴퓨터소프트웨어학과", "소프트웨어학과", "인공지능", "소프트웨어"]
+            course_dept = str(c.get("department") or "").lower().replace(" ", "")
+            is_aisw_dept = any(dept_keyword in course_dept for dept_keyword in aisw_depts)
+            # department 조건이 아니면 계열공통 후보군에서 아예 삭제(Drop)
+            if not is_aisw_dept:
+                continue
 
         # AISW 학생인 경우 타 학과 전공(접두사가 SH, DS, AI 가 아니고 교양/계공이 아닌 경우)은 배제
         if is_aisw:
@@ -519,40 +593,43 @@ def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str
 
         score = 0
         
-        # 1순위: 진로와상담, 채플 등 필수 다회 이수 미달
+        # 1) 최우선 순위: 미이수 필수 과목(교필, 전필, 계공) 교차 검증 매칭
+        is_remaining_required_this_sem = code in remaining_required_this_sem
+        
+        # 다회 이수 미달 및 기초 필수 과목들
         is_chapel = code in _ALL_CHAPEL_CODES or "채플" in cname
         is_jinsang = "진로와상담" in cname or code == "KY410"
         is_sahoegil = "사회생활길잡이" in cname
         is_daehakgil = "대학생활길잡이" in cname
+        is_multitake_unsatisfied = False
         
-        if is_chapel or is_jinsang or is_sahoegil or is_daehakgil:
-            score += 5000
-        # 2순위: AISW 계열공통 미이수
-        elif ctype == "계열공통" and is_aisw:
-            score += 4000
-        # 3순위: AISW 교양필수 미이수
-        elif ctype == "교양필수" and is_aisw:
-            score += 3000
-        # 4순위: 트랙/특화/융합전공 (선호하는 트랙 매칭)
+        # 다회 이수 필요 과목이 아직 미이수라면 필수 과목으로 취급
+        if is_chapel and not _count_chapel_completed(student)["is_satisfied"]:
+            is_multitake_unsatisfied = True
+        elif is_jinsang or is_sahoegil or is_daehakgil:
+            # 수강 완료 기록에 없으면 미이수로 판정
+            is_multitake_unsatisfied = True
+
+        # 2) 2순위: 진행 중인 특화 트랙 전공 매칭 (느슨한 트랙명 대조 적용)
+        specialized_track = student.get("specialized_track") or ""
+        is_specialized_track_match = _is_track_course_loose(c, specialized_track)
+
+        # 3) 3순위: 나머지 AISW 전공
+        is_aisw_major = prefix in {"SH", "DS", "AI"}
+        
+        # 가중치 분기 최적화 (계공 최우선 -> 필수교필/전필 -> 트랙 전선 -> 일반전선 -> 일반과목)
+        if is_remaining_required_this_sem and ctype == "계열공통" and is_aisw:
+            score = 300000  # 1순위: 이번 학기 개설된 미이수 계열공통 최우선 추천 (30만점)
+        elif is_remaining_required_this_sem or is_multitake_unsatisfied:
+            score = 200000  # 2순위: 나머지 미이수 필수 및 채플/진상 (20만점)
+        elif ctype in ["교양필수", "계열공통"] and is_aisw:
+            score = 150000  # 미처 잡히지 않은 일반 교필/계공
+        elif is_specialized_track_match and ctype == "전공선택":
+            score = 100000  # 3순위: 희망 트랙 맞춤형 전공선택 과목 (10만점)
+        elif is_aisw_major and ctype in ["전공선택", "전공필수"]:
+            score = 60000   # 4순위: 나머지 일반 AISW 전공과목 (6만점)
         else:
-            meta = course_meta.get(code, {"recommended_grade": None, "programs": set()})
-            is_track_match = False
-            for prog in meta["programs"]:
-                if any(pt in prog for pt in preferred_tracks if pt):
-                    is_track_match = True
-                    break
-            
-            if is_track_match and ctype == "전공선택":
-                score += 2000
-            # 5순위: 학년 맞춤 전공 선택
-            elif ctype == "전공선택" and is_aisw:
-                rec_grade = meta["recommended_grade"]
-                if rec_grade == student_grade:
-                    score += 1000
-                else:
-                    score += 500
-            else:
-                score += 100
+            score = 10000   # 5순위: 일반 과목
 
         course_entry = {
             "code": code,
@@ -567,8 +644,8 @@ def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str
         scored_courses.append(course_entry)
 
     # 4. Score 기준 내림차순 정렬 및 그룹 분할
-    # Score 3000 이상 -> must_take_first (1~3순위)
-    # Score 3000 미만 -> electives (4~5순위 및 기타)
+    # Score 80000 이상 -> must_take_first
+    # Score 80000 미만 -> electives
     scored_courses.sort(key=lambda x: -x["score"])
 
     must_take_first = []
@@ -577,7 +654,7 @@ def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str
     for entry in scored_courses:
         # JSON 전송 시 score 필드는 제거
         score = entry.pop("score")
-        if score >= 3000:
+        if score >= 80000:
             must_take_first.append(entry)
         else:
             electives.append(entry)
@@ -669,6 +746,31 @@ def build_student_context(student_id: str, target_semester: str = None, full: bo
 
     credits_needed = student["required_credits"] - student["completed_credits"]
 
+    # 학번 파싱 (예: 20240001 -> '24학번', enrolled_year가 있으면 2024 -> '24학번')
+    raw_sid = student.get("student_id", "")
+    enrolled_yr = student.get("enrolled_year")
+    class_of = ""
+    if enrolled_yr:
+        class_of = f"{str(enrolled_yr)[-2:]}학번"
+    elif raw_sid and len(str(raw_sid)) >= 4:
+        digit_match = re.search(r'\d+', str(raw_sid))
+        if digit_match and len(digit_match.group()) >= 4:
+            class_of = f"{digit_match.group()[2:4]}학번"
+        else:
+            class_of = "학번 미정"
+    else:
+        class_of = "학번 미정"
+
+    # 학년 계산 (1학년: 1~2학기, 2학년: 3~4학기, 3학년: 5~6학기, 4학년: 7학기 이상)
+    curr_sem = student.get("current_semester", 1)
+    try:
+        curr_sem_int = int(curr_sem)
+        grade_num = (curr_sem_int + 1) // 2
+        grade_num = min(4, max(1, grade_num))
+        grade_str = f"{grade_num}학년"
+    except (ValueError, TypeError):
+        grade_str = "학년 미정"
+
     # 채플 이수 현황 (항상 포함)
     chapel_info = _count_chapel_completed(student)
     if chapel_info["is_satisfied"]:
@@ -702,8 +804,9 @@ def build_student_context(student_id: str, target_semester: str = None, full: bo
     track_common_ctx = _build_track_common_context(student, target_semester)
     context = f"""## 현재 학생 정보
 - 이름: {student['name']}
-- 학번: {student['student_id']}
+- 학번: {student['student_id']} ({class_of})
 - 학과: {student['department']}
+- 학년: {grade_str} (현재 {student['current_semester']}학기 이수 중)
 - 주전공: {', '.join(student['major_tracks'])}
 - 현재 학기: {student['current_semester']}학기
 - 이수 학점: {student['completed_credits']}/{student['required_credits']} (부족: {credits_needed}학점)

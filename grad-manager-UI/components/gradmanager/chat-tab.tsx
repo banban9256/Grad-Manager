@@ -310,6 +310,21 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
     }
     const nextBlocks = [...localSimData.scheduleBlocks]
     saveBlocks(nextBlocks)
+
+    // 0학점 과목이 있을 경우 캐시 저장 처리
+    const key = `grad_zero_credit_courses_${activeStudentId}_${selectedSemester}`
+    if (localSimData.zero_credit_courses) {
+      if (typeof window !== "undefined") {
+        localStorage.setItem(key, JSON.stringify(localSimData.zero_credit_courses))
+        sessionStorage.setItem(key, JSON.stringify(localSimData.zero_credit_courses))
+      }
+    } else {
+      if (typeof window !== "undefined") {
+        localStorage.removeItem(key)
+        sessionStorage.removeItem(key)
+      }
+    }
+
     showToast("추천 시간표 시뮬레이션 결과가 한 번에 적용되었습니다!")
   }
 
@@ -428,7 +443,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
       const blocks = localSimData.scheduleBlocks || []
       const days = localSimData.scheduleDays || ["월", "화", "수", "목", "금"]
       const actDays = new Set(blocks.map((b: any) => dayStringToNum(b.day)))
-      const freeD = days.filter((_, idx) => !actDays.has(idx))
+      const freeD = days.filter((_: any, idx: number) => !actDays.has(idx))
       freeDayText = freeD.length > 0 ? `${freeD.join(", ")} 공강` : "공강 없음"
     }
 
@@ -441,7 +456,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
     const blocks = schedule?.scheduleBlocks || []
     const days = schedule?.scheduleDays || ["월", "화", "수", "목", "금"]
     const actDays = new Set(blocks.map((b: any) => dayStringToNum(b.day)))
-    const freeD = days.filter((_, idx) => !actDays.has(idx))
+    const freeD = days.filter((_: any, idx: number) => !actDays.has(idx))
     freeDayText = freeD.length > 0 ? `${freeD.join(", ")} 공강` : "공강 없음"
 
     const uniqueC = Array.from(new Set(blocks.map((b: any) => b.name)))
@@ -502,7 +517,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
       const name = user?.userInfo?.name || ""
       const dept = user?.userInfo?.department || ""
       const mileage = user?.userInfo?.mileage || 0
-      const sem = user?.userInfo?.currentSemester || 8
+      const sem = (user?.userInfo as any)?.currentSemester || 8
       
       const tracks: string[] = []
       if (easyConv) tracks.push(easyConv)
@@ -698,7 +713,8 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
             <select
               value={selectedSemester}
               onChange={(e) => handleSemesterChange(e.target.value)}
-              className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer font-bold"
+              disabled
+              className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-not-allowed font-bold opacity-80"
             >
               {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
                 <option key={s} value={s}>{s}</option>
@@ -867,6 +883,17 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                     </div>
                   )}
 
+                  {/* 0학점 / 시간 미정 과목 하단 렌더링 */}
+                  {localSimData && (localSimData.courses || []).length > 0 && (() => {
+                    const zeroCredit = (localSimData.courses || []).filter((c: any) => (
+                      c.zero_credit === true || Number(c.credit) === 0 || !(c.schedules && c.schedules.length)
+                    ));
+                    if (zeroCredit.length === 0) return null;
+                    return (
+                      <div className="mt-3 text-sm text-muted-foreground">추가 이수 과목: {zeroCredit.map((c: any) => c.name || c.course_name || c.title).join(', ')}</div>
+                    )
+                  })()}
+
                   <ul className="space-y-2.5 border-t border-border pt-4">
                     {displayReasons.filter(r => r && r.title).map((r, i) => {
                       const Icon = reasonIconMap[r.icon] ?? Sparkles
@@ -907,7 +934,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
             >
               <p className="text-xs font-semibold text-muted-foreground">추천 과목 목록</p>
               <div className="grid grid-cols-1 gap-3.5 md:grid-cols-2">
-                {coursesToRender.map((course) => {
+                {coursesToRender.map((course: any) => {
                   const isAdded = customBlocks.some(b => b.name.trim().toLowerCase() === course.name.trim().toLowerCase())
                   return (
                     <div
@@ -956,7 +983,7 @@ export function ChatTab({ onOpenSchedule }: { onOpenSchedule?: () => void }) {
                         </div>
                       </div>
                       <div className="mt-4 flex flex-wrap gap-1.5">
-                        {course.tags.map((t) => (
+                        {course.tags.map((t: any) => (
                           <span
                             key={t}
                             className={`rounded px-2.5 py-0.5 text-[10px] font-bold ${tagStyle[t] ?? "bg-secondary text-muted-foreground"}`}

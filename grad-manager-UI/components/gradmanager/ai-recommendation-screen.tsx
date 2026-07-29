@@ -146,21 +146,22 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
 
   // 추천 과목 카드 시간표 추가 핸들러
   const handleAddToSchedule = (course: AiCourse) => {
-    // 1. 과목명 기준 중복 기입 차단
-    const courseName = course.name || matched?.title || matched?.name || course.code || "과목명 미정"
-    const cleanCourseName = courseName.trim().toLowerCase()
-    const isDuplicate = customBlocks.some(b => b.name.trim().toLowerCase() === cleanCourseName)
-    if (isDuplicate) {
-      showToast(`'${courseName}' 과목은 이미 시간표에 등록되어 있습니다.`)
-      return
-    }
-
+    // 매칭된 전체 과목 레코드 우선 탐색
     const matched = allCourses?.find(c => {
       const targetId = String(course.code || "");
       return String(c.course_id || "") === targetId ||
              String(c.code || "") === targetId ||
              String(c.id || "") === targetId;
     })
+
+    // 1. 과목명 기준 중복 기입 차단
+    const courseName = (course as any).name || matched?.title || matched?.name || course.code || "과목명 미정"
+    const cleanCourseName = courseName.trim().toLowerCase()
+    const isDuplicate = customBlocks.some(b => b.name.trim().toLowerCase() === cleanCourseName)
+    if (isDuplicate) {
+      showToast(`'${courseName}' 과목은 이미 시간표에 등록되어 있습니다.`)
+      return
+    }
 
     // 2. 추천 과목에 매칭되는 시뮬레이션 schedules 직접 상속
     let schedules = (course as any).schedules || []
@@ -221,7 +222,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
 
     // 4. 시간표 블록 생성 및 추가
     const newBlocks: any[] = []
-    const profName = course.professor || matched?.professor || matched?.professor_name || "미지정"
+    const profName = (course as any).professor || matched?.professor || matched?.professor_name || "미지정"
 
     normalizedSchedules.forEach((s: any, sIdx: number) => {
       const start = timeToHoursValue(s.start_time)
@@ -383,7 +384,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
   }
 
   // 프론트엔드 추천 과목 데이터 필터링 연산
-  const filteredCourses = aiCourses.filter((course) => {
+  const filteredCourses = aiCourses.filter((course: any) => {
     if (active === "all") return true
     
     // 전공 대분류 필터링
@@ -392,7 +393,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
         course.category === "전공필수" || 
         course.category === "전공선택" ||
         course.category === "계열공통" ||
-        course.tags.some(tag => tag === "전공필수" || tag === "전공선택" || tag === "계열공통")
+        course.tags.some((tag: any) => tag === "전공필수" || tag === "전공선택" || tag === "계열공통")
       )
     }
 
@@ -401,7 +402,7 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
       return (
         course.category.includes("교양") || 
         course.category === "일반선택" ||
-        course.tags.some(tag => tag.includes("교양") || tag.includes("일반"))
+        course.tags.some((tag: any) => tag.includes("교양") || tag.includes("일반"))
       )
     }
 
@@ -417,14 +418,14 @@ export function AiRecommendationScreen({ onBack }: { onBack: () => void }) {
 
     // 2. 오전 교시 기피 필터링 (09:00 시작 교과목 제외)
     if ((query.includes("오전") || query.includes("9시")) && query.includes("제외")) {
-      return !course.tags.some(t => t.includes("09:") || t.includes("1교시"))
+      return !course.tags.some((t: any) => t.includes("09:") || t.includes("1교시"))
     }
 
     // 3. 다차원 키워드 매칭
     return (
       course.name.toLowerCase().includes(query) ||
       course.code.toLowerCase().includes(query) ||
-      course.tags.some(tag => tag.toLowerCase().includes(query)) ||
+      course.tags.some((tag: any) => tag.toLowerCase().includes(query)) ||
       (course.professor && course.professor.toLowerCase().includes(query)) ||
       (course.reason && course.reason.toLowerCase().includes(query))
     )

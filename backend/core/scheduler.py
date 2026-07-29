@@ -98,7 +98,7 @@ def _is_track_course(course: dict, spec: str) -> bool:
 
 
 def _sort_courses_by_priority(courses: list, student: dict) -> list:
-    """시간표 내의 과목 리스트를 1순위(교필)->2순위(계공)->3순위(특화)->4순위(기타) 우선순위 순으로 정렬합니다."""
+    """시간표 내의 과목 리스트를 1순위(교필/계공 AISW)->2순위(특화 트랙 전공)->3순위(나머지 AISW 전공)->4순위(타학과 및 일선) 순으로 정렬합니다."""
     spec = student.get("specialized_track")
     
     # 계열공통 학점 부족 여부 파악
@@ -112,21 +112,28 @@ def _sort_courses_by_priority(courses: list, student: dict) -> list:
     def get_course_priority(c):
         name = c.get("name", "")
         ctype = c.get("type", "")
+        code = c.get("code", "")
+        prefix = "".join(ch for ch in code if ch.isalpha())
         
-        # 1순위 (교필): 진로와상담, 사회생활길잡이, 대학생활길잡이, 채플 등 남은 필수교양
+        # 1순위: 교필/계공(AISW)
         is_exception = "채플" in name or "진로와상담" in name or "사회생활길잡이" in name or "대학생활길잡이" in name
         if is_exception or ctype == "교양필수":
             return 1
             
-        # 2순위 (계열공통): 계열공통 학점 부족 시
-        if ctype == "계열공통" and gy_remaining > 0:
+        is_aisw_common = (ctype == "계열공통" and (prefix == "AS" or code.startswith("AS") or "AISW" in str(c.get("department", ""))))
+        if is_aisw_common:
+            return 1
+            
+        # 2순위: 특화 트랙 전공
+        if spec and _is_track_course(c, spec) and ctype == "전공선택":
             return 2
             
-        # 3순위 (특화과목): 트랙 특화 과목
-        if spec and _is_track_course(c, spec):
+        # 3순위: 나머지 AISW 전공
+        is_aisw_major = prefix in {"SH", "DS", "AI"} and ctype in {"전공선택", "전공필수"}
+        if is_aisw_major:
             return 3
             
-        # 4순위: 나머지 일반 전공선택, 일반선택 등
+        # 4순위: 타 학과 과목 및 일반선택 등 그 외 모든 과목
         return 4
 
     return sorted(courses, key=get_course_priority)
@@ -162,25 +169,25 @@ def _score_schedule(schedule: list[dict], student: dict) -> float:
         code = course["code"]
         course_name = course.get("name", "")
         ctype = course.get("type", "")
+        prefix = "".join(ch for ch in code if ch.isalpha())
         
-        # 1순위 (교필): 이수 횟수가 모자란 과목 (채플, 진로와상담, 사회생활길잡이 등) -> 가중치 대폭 상향 (+1000.0)
+        # 1순위: 교필 / 계공(AISW) 및 예외 필수과목 -> 대폭 상향 (+1000.0)
         is_exception_course = "채플" in course_name or "진로와상담" in course_name or "사회생활길잡이" in course_name or "대학생활길잡이" in course_name
-        if is_exception_course or ctype == "교양필수" or code in required_remain_codes:
+        is_aisw_common = (ctype == "계열공통" and (prefix == "AS" or code.startswith("AS") or "AISW" in str(course.get("department", ""))))
+        if is_exception_course or ctype == "교양필수" or code in required_remain_codes or is_aisw_common:
             score += 1000.0
             
-        # 2순위 (계열공통): 계열공통 학점 부족 시에만 가중치 부여 (+500.0)
-        elif (ctype == "계열공통" or "계열공통" in ctype) and gy_remaining > 0:
+        # 2순위: 특화 트랙 전공 과목 -> (+800.0)
+        elif spec and _is_track_course(course, spec) and ctype == "전공선택":
+            score += 800.0
+            
+        # 3순위: 나머지 AISW 전공 과목 -> (+500.0)
+        elif prefix in {"SH", "DS", "AI"} and ctype in {"전공선택", "전공필수"}:
             score += 500.0
             
-        # 3순위 (특화과목): 트랙 특화 과목 배치 (+300.0)
-        elif spec and _is_track_course(course, spec):
-            score += 300.0
-            
-        # 4순위 (기타 미이수 전선 등)
-        elif code in elective_remain_codes or ctype == "전공선택":
+        # 4순위: 타 학과 과목 및 일반선택 등 그 외 모든 과목 -> (+100.0)
+        else:
             score += 100.0
-        elif ctype == "전공필수":
-            score += 50.0
 
     # 대화 추천 과목 보너스 (과목당 +200.0점)
     rec_codes = student.get("chatbot_recommended_courses", [])
@@ -260,33 +267,8 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
             r["fallback_reason"] = None
         return results
 
-    # 2차 시도 (Fallback): 선호 요일 무시하고 전공 필수 우선 배치
-    all_days = ["월", "화", "수", "목", "금"]
-    fallback_results = _generate_timetable_with_preferences(
-        student, required_remaining, available,
-        all_days, preferred_times, avoid_times,
-        max_schedules, max_candidates, target_credits
-    )
-
-    # fallback 결과도 없으면 빈 리스트 반환
-    if not fallback_results:
-        return []
-
-    # fallback 결과에 플래그 추가
-    removed_days = [d for d in all_days if d not in preferred_days]
-    if removed_days:
-        fallback_reason = (
-            f"{', '.join(removed_days)}요일 공강을 맞추면 필수 과목을 배치할 수 없어 "
-            f"부득이하게 모든 요일을 포함하여 추천했습니다."
-        )
-    else:
-        fallback_reason = None
-
-    for r in fallback_results:
-        r["preference_applied"] = False
-        r["fallback_reason"] = fallback_reason
-
-    return fallback_results
+    # Fallback 탐색 제거: 선호 요일(공강)과 학점은 하드 제약이므로 충족 불가능 시 빈 리스트 반환
+    return []
 
 
 def _generate_timetable_with_preferences(
@@ -439,10 +421,14 @@ def _generate_timetable_with_preferences(
             return
         search_count += 1
 
-        # 기지 조건: 3과목 이상이고, 학점이 target_credits 에 부합하거나 한 학기 수강 가능 범위 내일 때 후보로 등록
+        # 학점 초과 시 즉시 가지치기(Pruning)
+        if current_credits > (target_credits + 0.1):
+            return
+
+        # 기지 조건: 3과목 이상이고, 학점이 target_credits 와 정확히 일치할 때
         if len(current_schedule) >= 3:
-            # target_credits가 지정된 경우 해당 목표에 근접하도록 타이트하게 제한(보통 target_credits - 2 이상 target_credits + 1 이하)
-            if (target_credits - 2) <= current_credits <= (target_credits + 1):
+            # target_credits가 지정된 경우 정확히 일치하도록 제한 (0학점 과목은 제외한 시간표 블록 총합)
+            if abs(current_credits - target_credits) < 0.1:
                 # 3순위 (특화과목) 강제: 특화 트랙이 지정되어 있고, 탐색 풀에 해당 트랙 과목이 2개 이상 있는 경우
                 # 후보 시간표에는 반드시 이 트랙 관련 특화 과목이 최소 2개(6학점) 이상 포함되어야 함
                 if spec:

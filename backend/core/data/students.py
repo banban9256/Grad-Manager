@@ -144,6 +144,46 @@ def get_student(student_id: str) -> dict | None:
             
             # 실시간으로 student_course_history 테이블을 조회하여 completed_courses와 completed_credits 동기화
             try:
+                # 1. students 테이블에서 입학연도(admission_year)와 학년(current_grade) 조회하여 병합
+                cursor.execute("""
+                    SELECT admission_year, current_grade 
+                    FROM students 
+                    WHERE student_number = ?;
+                """, (str(student_id),))
+                student_row = cursor.fetchone()
+                
+                if student_row:
+                    admission_year, current_grade = student_row
+                    student["enrolled_year"] = int(admission_year)
+                    student["admission_year"] = int(admission_year)
+                    student["current_grade"] = int(current_grade)
+                else:
+                    # DB에 없을 경우 학번(student_id)에서 앞 4자리를 추출하여 입학연도로 활용
+                    try:
+                        extracted_year = int(str(student_id)[:4])
+                        student["enrolled_year"] = extracted_year
+                        student["admission_year"] = extracted_year
+                    except:
+                        pass
+                
+                # 학번 문자열 파싱 (예: 20240001 -> '24학번')
+                enrolled_yr = student.get("enrolled_year")
+                if enrolled_yr:
+                    student["class_of"] = f"{str(enrolled_yr)[-2:]}학번"
+                else:
+                    student["class_of"] = "학번 미정"
+
+                # current_semester를 기반으로 학년 계산 보정
+                curr_sem = student.get("current_semester", 1)
+                try:
+                    curr_sem_int = int(curr_sem)
+                    grade_num = (curr_sem_int + 1) // 2
+                    grade_num = min(4, max(1, grade_num))
+                    student["current_grade"] = grade_num
+                    student["grade"] = f"{grade_num}학년"
+                except:
+                    student["grade"] = "학년 미정"
+
                 cursor.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='student_course_history';")
                 if cursor.fetchone():
                     # F학점(낙제)을 제외하고 통과한 과목들만 기수강 과목 코드로 수집

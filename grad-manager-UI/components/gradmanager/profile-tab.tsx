@@ -51,6 +51,29 @@ const SEMESTER_OPTIONS = [
   "2026-2학기",
 ]
 
+// 입학년도(학번)를 기준으로 동적 학기 목록 생성 (2026-2학기까지)
+const getSemestersForStudent = (studentId: string) => {
+  const currentYear = 2026
+  const currentSemester = 2
+  
+  let admissionYear = 2024 // 기본 디폴트 학번 년도
+  if (studentId && studentId.length >= 4) {
+    const yearPart = studentId.substring(0, 4)
+    if (!isNaN(Number(yearPart))) {
+      admissionYear = Number(yearPart)
+    }
+  }
+
+  const list: string[] = []
+  for (let year = admissionYear; year <= currentYear; year++) {
+    const maxSem = (year === currentYear) ? currentSemester : 2
+    for (let sem = 1; sem <= maxSem; sem++) {
+      list.push(`${year}-${sem}학기`)
+    }
+  }
+  return list
+}
+
 // 성적별 평점 환산 테이블
 const GRADE_POINTS: Record<string, number> = {
   "A+": 4.5,
@@ -122,6 +145,18 @@ export function ProfileTab() {
   const [isCustomSubmitting, setIsCustomSubmitting] = useState(false)
   const [bulkTargetSemester, setBulkTargetSemester] = useState("2026-2학기")
   const [customIsRetake, setCustomIsRetake] = useState(false)
+
+  // 학번 정보 로드 시 학기 입력 폼들의 기본 학기를 사용 가능한 최신 학기(2026-2학기 등)로 자동 초기화
+  useEffect(() => {
+    if (userInfo?.studentId) {
+      const sList = getSemestersForStudent(userInfo.studentId)
+      if (sList.length > 0) {
+        const latestSem = sList[sList.length - 1]
+        setCustomSemester(latestSem)
+        setBulkTargetSemester(latestSem)
+      }
+    }
+  }, [userInfo?.studentId])
 
   // 모달 오픈 시 혹은 대상 학기(bulkTargetSemester) 변경 시 개설 과목 비동기 로딩
   useEffect(() => {
@@ -1192,7 +1227,7 @@ export function ProfileTab() {
                           onChange={(e) => setBulkTargetSemester(e.target.value)}
                           className="rounded-lg bg-card border border-border px-1.5 py-0.5 text-[10px] text-foreground focus:outline-none cursor-pointer"
                         >
-                          {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
+                          {getSemestersForStudent(userInfo?.studentId).map((s) => (
                             <option key={s} value={s}>{s}</option>
                           ))}
                         </select>
@@ -1356,7 +1391,7 @@ export function ProfileTab() {
                         onChange={(e) => setCustomSemester(e.target.value)}
                         className="w-full rounded-xl bg-card border border-border px-3.5 py-2.5 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-[#3182f6] cursor-pointer"
                       >
-                        {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
+                        {getSemestersForStudent(userInfo?.studentId).map((s) => (
                           <option key={s} value={s}>{s}</option>
                         ))}
                       </select>
@@ -1497,7 +1532,7 @@ export function ProfileTab() {
                                   onChange={(e) => setEditSemester(e.target.value)}
                                   className="rounded-lg bg-card border border-border px-2 py-1 text-[10px] text-foreground focus:outline-none cursor-pointer"
                                 >
-                                  {(semesters.length > 0 ? semesters : SEMESTER_OPTIONS).map((s) => (
+                                  {getSemestersForStudent(userInfo?.studentId).map((s) => (
                                     <option key={s} value={s}>{s}</option>
                                   ))}
                                 </select>
