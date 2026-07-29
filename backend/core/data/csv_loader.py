@@ -163,17 +163,17 @@ def load_courses() -> dict[str, dict]:
             ]
             offering_details.append({
                 "offering_id": oid,
-                "section": o["section"],
-                "professor": o["professor_name"],
-                "academic_year": o["academic_year"],
-                "semester": o["semester"],
+                "section": o.get("section") or "A",
+                "professor": (o.get("professor_name") or "미정").strip() or "미정",
+                "academic_year": o.get("academic_year"),
+                "semester": o.get("semester"),
                 "time_slots": time_slots,
-                "classrooms": [s["classroom"] for s in scheds],
+                "classrooms": [(s.get("classroom") or "미정").strip() or "미정" for s in scheds],
             })
 
         # 기본 time_slots: 첫 번째 분반의 시간표
         default_time_slots = []
-        default_professor = ""
+        default_professor = "미정"
         default_room = "미정"
         if primary_offering:
             oid = int(primary_offering["offering_id"])
@@ -182,8 +182,8 @@ def load_courses() -> dict[str, dict]:
                 (s["day_of_week"], s["start_time"], s["end_time"])
                 for s in scheds
             ]
-            default_professor = primary_offering["professor_name"]
-            default_room = scheds[0]["classroom"] if scheds else "미정"
+            default_professor = (primary_offering.get("professor_name") or "미정").strip() or "미정"
+            default_room = (scheds[0].get("classroom") or "미정").strip() if (scheds and scheds[0].get("classroom")) else "미정"
 
         # 과목 타입 결정
         course_type = course_type_map.get(cid, _infer_type_from_code(code))

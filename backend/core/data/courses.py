@@ -18,7 +18,7 @@ COURSES = None
 # ==============================
 
 # AISW 학과 관련 과목 코드 접두사 (전공 과목)
-_AISW_MAJOR_PREFIXES = {"SH", "DS", "AI"}
+_AISW_MAJOR_PREFIXES = {"SH", "DS", "AI", "AS"}
 
 # 교양 과목 코드 접두사
 _LIBERAL_PREFIXES = {"KY", "KYC", "KYA", "KYD"}
@@ -72,11 +72,69 @@ def _run_pdf_pipeline_if_needed():
             print(f"[PIPELINE ERROR] Failed to run PDF data load pipeline: {e}")
 
 
+def _clean_ky410_offerings():
+    global COURSES
+    if not COURSES or "KY410" not in COURSES:
+        return
+        
+    ky410 = COURSES["KY410"]
+    offerings = ky410.get("offerings", [])
+    
+    # 1. AISW 관련 교수진 목록 동적 식별 (AS, SH, DS, AI 전공 과목을 강의하는 교수)
+    aisw_profs = set()
+    for code, course in COURSES.items():
+        if any(code.startswith(p) for p in ["AS", "SH", "DS", "AI"]):
+            for o in course.get("offerings", []):
+                prof = o.get("professor")
+                if prof and prof != "미정" and "신규" not in prof:
+                    aisw_profs.add(prof)
+    # 기본 교수 리스트 보완
+    aisw_profs.update([
+        "이양선", "손승일", "백수진", "안현", "조성호", "이용걸", "이형우", 
+        "임익수", "홍승필", "성낙준", "고병수", "강영경", "강민구", "김선만",
+        "류승택", "박성진", "여협구", "정승민"
+    ])
+    
+    # 배제할 명확한 타전공 교수 리스트
+    exclude_profs = ["김대오", "명왕성", "박상현", "조규청", "김수겸", "정해득", "이영남", "정무용"]
+    
+    # 허용할 학과 키워드 (비고 메타데이터 매칭용)
+    allowed_keywords = ['AI·SW전공', '컴공부', '소웨융', '아영콘', 'AISW학', 'AI·SW학', '컴퓨터소프트웨어', '소프트웨어', '인공지능소프트웨어']
+    
+    # 3. 엄격 필터링 수행 (김대오 등 타학과 교수 배제, AISW 교수 또는 비고 키워드 매칭 분반만 수용)
+    filtered = []
+    for o in offerings:
+        prof = o.get("professor", "")
+        if prof in exclude_profs:
+            continue
+            
+        is_aisw_prof = prof in aisw_profs
+        
+        # 비고란(description)이나 다른 메타데이터에 키워드 매칭
+        desc = ky410.get("description", "")
+        has_keyword = any(kw in desc for kw in allowed_keywords)
+        
+        if is_aisw_prof or has_keyword:
+            filtered.append(o)
+            
+    # 만약 필터링된 결과가 비어있지 않다면 적용
+    if filtered:
+        ky410["offerings"] = filtered
+        # 대표 분반 업데이트
+        primary = filtered[0]
+        ky410["professor"] = primary.get("professor", "미정")
+        ky410["room"] = primary.get("classrooms")[0] if primary.get("classrooms") else "미정"
+        if not primary.get("time_slots"):
+            primary["time_slots"] = [("월", "18:00", "19:00")]
+        ky410["time_slots"] = primary["time_slots"]
+
+
 def _ensure_loaded():
     global COURSES
     if COURSES is None:
         _run_pdf_pipeline_if_needed()
         COURSES = load_courses()
+        _clean_ky410_offerings()
 
 
 def get_course(course_code: str) -> dict | None:
@@ -369,8 +427,8 @@ def _is_course_allowed_for_department(course: dict, student: dict) -> bool:
         desc = (course.get("description") or "").lower()
         name = (course.get("name") or "").lower()
         dept = (course.get("department") or "").lower()
-        # 허용 기준: department가 'aisw' 이거나 설명/과목명에 AISW 관련 표기가 있는 경우에만 허용
-        if not (dept == "aisw" or "aisw" in desc or "ai·sw" in desc or "ai.sw" in desc or "ai sw" in desc or "aisw" in name):
+        # 허용 기준: department가 'aisw'/'계열공통' 이거나 설명/과목명에 AISW 관련 표기가 있는 경우에만 허용
+        if not (dept in ["aisw", "계열공통"] or "aisw" in desc or "ai·sw" in desc or "ai.sw" in desc or "ai sw" in desc or "aisw" in name):
             return False
 
     # 1. 교양 과목은 항상 허용 (위 필터 통과 시)
@@ -395,7 +453,13 @@ def _is_course_allowed_for_department(course: dict, student: dict) -> bool:
     if has_specialization or has_convergence:
         return False
 
-    # 전선/계공/교필/교양 학점이 모두 충족된 경우에만 타전공 허용
+    # AISW 학과 학생의 경우, 자사 졸업 요건을 100% 완비하기 전까지 타 학과 과목 원천 추천 차단
+    if is_aisw:
+        if _are_core_categories_satisfied(student):
+            return True
+        return False
+
+    # 전선/계공/교필/교양 학점이 모두 충족된 경우에만 타전공 허용 (기타 학과 학생)
     if _are_core_categories_satisfied(student):
         return True
 

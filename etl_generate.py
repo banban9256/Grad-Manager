@@ -56,31 +56,24 @@ def discover_xml_files():
 def parse_time_string(time_str):
     """Parse time strings like '금요일(16:00~17:15), 금요일(17:30~18:45)'"""
     results = []
-    if not time_str:
+    if not time_str or time_str.strip() == "-":
         return results
-    parts = [p.strip() for p in time_str.split(',')]
-    for part in parts:
-        part = part.strip()
-        if not part:
-            continue
-        m = re.match(r'(\S+?)\((\d{1,2}):(\d{2})~(\d{1,2}):(\d{2})\)', part)
-        if m:
-            day_str, sh, sm, eh, em = m.groups()
-            day_map = {
-                '\u6708\ub298': '\u6708', '\ud654\ub298': '\ud654',
-                '\uc218\ub298': '\uc218', '\ubaa9\ub298': '\ubaa9',
-                '\uae08\ub298': '\uae08', '\ud1a0\ub298': '\ud1a0',
-                '\uc77c\ub298': '\uc77c',
-                '\u6708': '\u6708', '\ud654': '\ud654', '\uc218': '\uc218',
-                '\ubaa9': '\ubaa9', '\uae08': '\uae08', '\ud1a0': '\ud1a0',
-                '\uc77c': '\uc77c',
-            }
-            day = day_map.get(day_str, day_str[:1])
-            results.append({
-                'day_of_week': day,
-                'start_time': '%02d:%s:00' % (int(sh), sm),
-                'end_time': '%02d:%s:00' % (int(eh), em),
-            })
+    
+    # 쉼표 구분 없이 연속된 형태도 re.findall을 사용해 모두 추출
+    pattern = r'([월화수목금토일])(?:요일)?\((\d{1,2}):(\d{2})~(\d{1,2}):(\d{2})\)'
+    matches = re.findall(pattern, time_str)
+    
+    day_map = {
+        '월': '월', '화': '화', '수': '수', '목': '목', '금': '금', '토': '토', '일': '일',
+    }
+    
+    for day_char, sh, sm, eh, em in matches:
+        day = day_map.get(day_char, day_char)
+        results.append({
+            'day_of_week': day,
+            'start_time': '%02d:%s:00' % (int(sh), sm),
+            'end_time': '%02d:%s:00' % (int(eh), em),
+        })
     return results
 
 

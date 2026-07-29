@@ -5,6 +5,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
+sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from core.data.csv_loader import load_courses, load_notices, load_academic_schedule
 from core.data.students import get_student, get_all_students
@@ -436,6 +437,193 @@ def test_chatbot_preferences():
     print("  [✓] 챗봇 선호도 분석 검증 완료!")
 
 
+def test_multiple_sections_search():
+    print("\n" + "=" * 60)
+    print("TEST: 다중 분반 탐색 및 Fallback 매핑 검증")
+    print("=" * 60)
+    
+    # 1. 테스트용 과목 설정
+    course_as004 = {
+        "code": "AS004",
+        "name": "AI·SW수학",
+        "type": "계열공통",
+        "credits": 3,
+        "professor": "대표교수",
+        "room": "대표실",
+        "time_slots": [("화", "09:00", "12:00")], 
+        "offerings": [
+            {
+                "offering_id": 1,
+                "section": "A",
+                "professor": "교수A",
+                "academic_year": "2026",
+                "semester": "2학기",
+                "time_slots": [("화", "09:00", "12:00")],
+                "classrooms": ["공학관101"]
+            },
+            {
+                "offering_id": 2,
+                "section": "B",
+                "professor": "교수B",
+                "academic_year": "2026",
+                "semester": "2학기",
+                "time_slots": [("월", "09:00", "12:00")],
+                "classrooms": ["공학관102"]
+            }
+        ]
+    }
+    course_dummy1 = {
+        "code": "DUMMY01",
+        "name": "더미과목1",
+        "type": "계열공통",
+        "credits": 3,
+        "professor": "더미교수1",
+        "room": "더미실1",
+        "time_slots": [("수", "09:00", "12:00")], 
+        "offerings": [
+            {
+                "offering_id": 3,
+                "section": "A",
+                "professor": "더미교수1",
+                "academic_year": "2026",
+                "semester": "2학기",
+                "time_slots": [("수", "09:00", "12:00")],
+                "classrooms": ["더미실1"]
+            }
+        ]
+    }
+    course_dummy2 = {
+        "code": "DUMMY02",
+        "name": "더미과목2",
+        "type": "계열공통",
+        "credits": 3,
+        "professor": "더미교수2",
+        "room": "더미실2",
+        "time_slots": [("목", "09:00", "12:00")], 
+        "offerings": [
+            {
+                "offering_id": 4,
+                "section": "A",
+                "professor": "더미교수2",
+                "academic_year": "2026",
+                "semester": "2학기",
+                "time_slots": [("목", "09:00", "12:00")],
+                "classrooms": ["더미실2"]
+            }
+        ]
+    }
+    
+    # 2. 테스트용 학생 설정 - 화요일 공강 원하는 학생 (화요일 기피)
+    student = {
+        "student_id": "test_student_1",
+        "department": "AISW",
+        "completed_courses": [],
+        "in_progress_courses": [],
+        "preferred_days": ["월", "수", "목", "금"],
+        "preferred_times": [],
+        "avoid_times": [],
+        "target_semester": "2026-2학기",
+        "chatbot_recommended_courses": ["AS004", "DUMMY01", "DUMMY02"]
+    }
+    
+    available = [course_as004, course_dummy1, course_dummy2]
+    from core.scheduler import _generate_timetable_with_preferences
+    
+    # 1차 검증: 화요일 공강이므로 화요일인 A반 대신 월요일인 B반으로 매핑되어야 함.
+    results = _generate_timetable_with_preferences(
+        student,
+        required_remaining=[],
+        available=available,
+        preferred_days=student["preferred_days"],
+        preferred_times=student["preferred_times"],
+        avoid_times=student["avoid_times"],
+        max_schedules=1,
+        max_candidates=10,
+        target_credits=9
+    )
+    
+    assert len(results) > 0, "시간표가 생성되지 않았습니다."
+    
+    # AS004 과목을 찾음
+    assigned_course = next((c for c in results[0]["courses"] if c["code"] == "AS004"), None)
+    assert assigned_course is not None, "AS004 과목이 시간표에 포함되지 않았습니다."
+    assert assigned_course["section"] == "B", f"B분반이 매핑되어야 하는데 {assigned_course.get('section')}가 매핑되었습니다."
+    assert assigned_course["professor"] == "교수B", f"교수B여야 하는데 {assigned_course.get('professor')}입니다."
+    assert assigned_course["time_slots"] == [("월", "09:00", "12:00")], f"월요일 시간표여야 하는데 {assigned_course.get('time_slots')}입니다."
+    
+    print("  [✓] 대체 분반 탐색 및 자동 매핑 성공 (화요일 공강 -> 월요일 B분반 자동 배정)")
+    
+    # 3. 2차 검증: 만약 모든 분반이 충돌하더라도 과목 배정이 누락되지 않고 첫 번째 분반(A반)으로 매핑되어야 함.
+    student_all_conflict = {
+        "student_id": "test_student_2",
+        "department": "AISW",
+        "completed_courses": [],
+        "in_progress_courses": [],
+        "preferred_days": ["수", "목", "금"],
+        "preferred_times": [],
+        "avoid_times": [],
+        "target_semester": "2026-2학기",
+        "chatbot_recommended_courses": ["AS004", "DUMMY01", "DUMMY02"]
+    }
+    
+    results_conflict = _generate_timetable_with_preferences(
+        student_all_conflict,
+        required_remaining=[],
+        available=available,
+        preferred_days=student_all_conflict["preferred_days"],
+        preferred_times=student_all_conflict["preferred_times"],
+        avoid_times=student_all_conflict["avoid_times"],
+        max_schedules=1,
+        max_candidates=10,
+        target_credits=9
+    )
+    
+    assert len(results_conflict) > 0, "모든 분반 충돌 시 시간표가 누락되었습니다."
+    assigned_course_conflict = next((c for c in results_conflict[0]["courses"] if c["code"] == "AS004"), None)
+    assert assigned_course_conflict is not None, "모든 분반 충돌 시 AS004 과목이 시간표에서 누락되었습니다."
+    assert assigned_course_conflict["section"] in ["A", ""], f"Fallback으로 첫 번째 분반이 배정되어야 하는데 {assigned_course_conflict.get('section')}가 배정되었습니다."
+    
+    print("  [✓] 모든 분반 충돌 시 누락 방지 및 Fallback 매핑 성공")
+
+
+def test_universal_parsing():
+    print("\n" + "=" * 60)
+    print("TEST: 전역 복합 시간표 문자열 파싱 (Universal Parsing) 검증")
+    print("=" * 60)
+    
+    test_cases = [
+        ("화(09:30~10:45)목(11:00~12:15)", [("화", "09:30", "10:45"), ("목", "11:00", "12:15")]),
+        ("화요일(09:30~10:45)목요일(11:00~12:15)", [("화", "09:30", "10:45"), ("목", "11:00", "12:15")]),
+        ("월(13:00~14:15), 수요일(13:00~14:15)", [("월", "13:00", "14:15"), ("수", "13:00", "14:15")]),
+    ]
+    
+    import parse_courses
+    for raw_time, expected in test_cases:
+        parsed = parse_courses.parse_time(raw_time)
+        assert len(parsed) == len(expected), f"파싱 결과 개수 불일치. 입력: {raw_time}, 결과: {parsed}"
+        for i, (day, start, end) in enumerate(parsed):
+            assert day == expected[i][0], f"요일 불일치. 입력: {raw_time}, 결과: {day}"
+            assert start == expected[i][1], f"시작시간 불일치. 입력: {raw_time}, 결과: {start}"
+            assert end == expected[i][2], f"종료시간 불일치. 입력: {raw_time}, 결과: {end}"
+            
+    print("  [✓] parse_courses.parse_time 전역 파싱 검증 완료")
+
+    import etl_generate
+    etl_test_cases = [
+        ("화(09:30~10:45)목(11:00~12:15)", [("화", "09:30:00", "10:45:00"), ("목", "11:00:00", "12:15:00")]),
+        ("월요일(13:00~14:15)수요일(13:00~14:15)", [("월", "13:00:00", "14:15:00"), ("수", "13:00:00", "14:15:00")]),
+    ]
+    for raw_time, expected in etl_test_cases:
+        parsed = etl_generate.parse_time_string(raw_time)
+        assert len(parsed) == len(expected), f"etl 파싱 결과 개수 불일치. 입력: {raw_time}, 결과: {parsed}"
+        for i, item in enumerate(parsed):
+            assert item["day_of_week"] == expected[i][0], f"etl 요일 불일치. 입력: {raw_time}, 결과: {item['day_of_week']}"
+            assert item["start_time"] == expected[i][1], f"etl 시작 불일치. 입력: {raw_time}, 결과: {item['start_time']}"
+            assert item["end_time"] == expected[i][2], f"etl 종료 불일치. 입력: {raw_time}, 결과: {item['end_time']}"
+
+    print("  [✓] etl_generate.parse_time_string 전역 파싱 검증 완료")
+
+
 if __name__ == "__main__":
     print("🎓 졸업을 부탁해 - CSV 기반 모듈 테스트\n")
 
@@ -454,6 +642,8 @@ if __name__ == "__main__":
     test_academic_schedule()
     test_deadline_triggers()
     test_keyword_registration()
+    test_multiple_sections_search()
+    test_universal_parsing()
 
     print("\n" + "=" * 60)
     print("✅ 모든 테스트 완료!")

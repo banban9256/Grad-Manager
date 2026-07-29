@@ -29,7 +29,7 @@ def parse_time(gyosi_str):
         return []
     results = []
     # 글로벌 매칭으로 요일(시작~종료) 패턴을 수에 관계없이 모두 추출 (수요일 [수] 누락 해결)
-    pattern = r'([월화수목금토일])\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)'
+    pattern = r'([월화수목금토일])(?:요일)?\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)'
     matches = re.findall(pattern, gyosi_str)
     for day_char, start, end in matches:
         day = DAY_MAP.get(day_char, day_char)

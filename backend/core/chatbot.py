@@ -578,7 +578,7 @@ def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str
         if ctype == "계열공통":
             aisw_depts = ["aisw", "인공지능소프트웨어학부", "컴퓨터소프트웨어학과", "소프트웨어학과", "인공지능", "소프트웨어"]
             course_dept = str(c.get("department") or "").lower().replace(" ", "")
-            is_aisw_dept = any(dept_keyword in course_dept for dept_keyword in aisw_depts)
+            is_aisw_dept = any(dept_keyword in course_dept for dept_keyword in aisw_depts) or prefix in {"AS", "FLOW"}
             # department 조건이 아니면 계열공통 후보군에서 아예 삭제(Drop)
             if not is_aisw_dept:
                 continue
@@ -618,10 +618,9 @@ def _build_strict_available_courses_json(student: dict, limit: int = 150) -> str
         is_aisw_major = prefix in {"SH", "DS", "AI"}
         
         # 가중치 분기 최적화 (계공 최우선 -> 필수교필/전필 -> 트랙 전선 -> 일반전선 -> 일반과목)
-        if is_remaining_required_this_sem and ctype == "계열공통" and is_aisw:
-            score = 300000  # 1순위: 이번 학기 개설된 미이수 계열공통 최우선 추천 (30만점)
-        elif is_remaining_required_this_sem or is_multitake_unsatisfied:
-            score = 200000  # 2순위: 나머지 미이수 필수 및 채플/진상 (20만점)
+        is_aisw_common_uncompleted = (is_remaining_required_this_sem and ctype == "계열공통" and is_aisw)
+        if is_aisw_common_uncompleted or is_remaining_required_this_sem or is_multitake_unsatisfied:
+            score = 200000  # 최우선 순위 추천 (20만점)
         elif ctype in ["교양필수", "계열공통"] and is_aisw:
             score = 150000  # 미처 잡히지 않은 일반 교필/계공
         elif is_specialized_track_match and ctype == "전공선택":

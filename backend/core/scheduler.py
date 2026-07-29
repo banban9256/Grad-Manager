@@ -3,6 +3,7 @@
 from itertools import combinations
 
 from .data.courses import get_required_remaining, get_available_courses, get_course
+from .data.csv_loader import _normalize_completion_type
 
 
 def _time_to_minutes(time_str: str) -> int:
@@ -71,6 +72,56 @@ def _fits_preferences(course: dict, preferred_days: list[str], preferred_times: 
                 return False
 
     return True
+
+
+def _find_compatible_offering(course: dict, preferred_days: list[str], preferred_times: list[str], avoid_times: list[str]) -> dict:
+    """
+    과목의 모든 분반(offerings)을 순회하며 사용자의 공강 제약 조건을 만족하는 첫 번째 분반을 선택합니다.
+    공강 조건을 만족하는 분반이 없다면 첫 번째 분반을 Fallback으로 강제 선택하여 과목이 시간표에서 누락되는 것을 방지합니다.
+    """
+    import copy
+    course_copy = copy.deepcopy(course)
+    offerings = course_copy.get("offerings", [])
+    if not offerings:
+        return course_copy
+
+    best_offering = None
+    for o in offerings:
+        o_time_slots = o.get("time_slots", [])
+        if not o_time_slots:
+            # 진로와상담(KY410)처럼 시간표가 비어있는 분반에 대한 예외 처리
+            fav_day = preferred_days[0] if preferred_days else "월"
+            o_time_slots = [(fav_day, "18:00", "19:00")]
+
+        # 가상으로 time_slots를 씌워서 _fits_preferences 평가
+        temp_c = dict(course_copy)
+        temp_c["time_slots"] = o_time_slots
+        if _fits_preferences(temp_c, preferred_days, preferred_times, avoid_times):
+            best_offering = o
+            break
+
+    # 공강 조건을 충족하는 분반이 없다면 첫 번째 분반을 fallback으로 지정
+    if not best_offering:
+        best_offering = offerings[0]
+
+    # 선택된 분반의 데이터로 최종 매핑
+    course_copy["professor"] = (best_offering.get("professor") or course_copy.get("professor") or "미정").strip() or "미정"
+    first_classroom = best_offering.get("classrooms")[0] if best_offering.get("classrooms") else None
+    course_copy["room"] = (first_classroom or course_copy.get("room") or "미정").strip() or "mijeong" # 영어 '미정' 방지용으로 안전하게
+    course_copy["room"] = "미정" if course_copy["room"] == "mijeong" else course_copy["room"]
+    
+    o_time_slots = best_offering.get("time_slots", [])
+    if not o_time_slots:
+        fav_day = preferred_days[0] if preferred_days else "월"
+        o_time_slots = [(fav_day, "18:00", "19:00")]
+    course_copy["time_slots"] = o_time_slots
+    
+    if "section" in best_offering:
+        course_copy["section"] = best_offering["section"]
+    else:
+        course_copy["section"] = ""
+
+    return course_copy
 
 
 def _is_track_course(course: dict, spec: str) -> bool:
@@ -267,7 +318,19 @@ def generate_timetable(student: dict, max_schedules: int = 3, max_candidates: in
             r["fallback_reason"] = None
         return results
 
-    # Fallback 탐색 제거: 선호 요일(공강)과 학점은 하드 제약이므로 충족 불가능 시 빈 리스트 반환
+    # 2차 시도 (Fallback): 선호 요일 제약을 전체 요일로 완화하여 재탐색
+    fallback_days = ["월", "화", "수", "목", "금"]
+    results = _generate_timetable_with_preferences(
+        student, required_remaining, available,
+        fallback_days, preferred_times, avoid_times,
+        max_schedules, max_candidates, target_credits
+    )
+    if results:
+        for r in results:
+            r["preference_applied"] = False
+            r["fallback_reason"] = "선호하시는 공강 요일 조건으로는 학점 요건을 충족하는 시간표를 구성할 수 없어, 공강 요일을 조정하여 시간표를 구성했습니다."
+        return results
+
     return []
 
 
@@ -283,6 +346,36 @@ def _generate_timetable_with_preferences(
     target_credits: int,
 ) -> list[dict]:
     """지정된 선호 요일/시간대로 시간표 조합을 생성합니다."""
+
+    # 0단계: AISW 소속 교수진 동적 수집 및 KY410(진로와상담) 분반 필터링, 가상 시간표 할당
+    try:
+        from .data.csv_loader import load_courses
+        courses_db = load_courses()
+    except Exception:
+        courses_db = {}
+
+    aisw_profs = set()
+    for c_code, c_info in courses_db.items():
+        if any(c_code.startswith(p) for p in ["AS", "SH", "DS", "AI"]):
+            for o in c_info.get("offerings", []):
+                prof = o.get("professor")
+                if prof and prof != "미정" and "신규" not in prof:
+                    aisw_profs.add(prof)
+    # 기본 예비 교수 리스트 추가
+    aisw_profs.update(["이양선", "손승일", "백수진", "안현", "조성호", "이용걸", "이형우", "임익수", "홍승필", "성낙준", "고병수", "강영경"])
+
+    for c in available:
+        if c.get("code") == "KY410":
+            aisw_offerings = [o for o in c.get("offerings", []) if o.get("professor") in aisw_profs]
+            if aisw_offerings:
+                c["offerings"] = aisw_offerings
+                primary = aisw_offerings[0]
+                c["professor"] = primary.get("professor", "미정")
+                c["room"] = primary.get("classrooms")[0] if primary.get("classrooms") else "미정"
+                if not primary.get("time_slots"):
+                    fav_day = preferred_days[0] if preferred_days else "월"
+                    primary["time_slots"] = [(fav_day, "18:00", "19:00")]
+                c["time_slots"] = primary["time_slots"]
 
     # 1단계: 시간표가 있는 과목만 필터링
     available_with_schedule = [c for c in available if c.get("time_slots")]
@@ -400,10 +493,34 @@ def _generate_timetable_with_preferences(
             course_pool.append(c)
             seen_codes.add(c["code"])
 
-    # 탐색 풀 제한 (765과목 중 효율적 탐색)
-    MAX_POOL = 60
-    if len(course_pool) > MAX_POOL:
-        course_pool = course_pool[:MAX_POOL]
+    # 필수/우선 추천 과목 강제 배정 처리 준비 (교필/계공/전필 필수 과목 자동 수집)
+    hard_core_courses = []
+    seen_hard_codes = set()
+
+    # 1) 챗봇 추천 과목 (Must-Have) 중 교필/계공/전필 수집
+    rec_codes = student.get("chatbot_recommended_courses", [])
+    for code in rec_codes:
+        matched_c = next((c for c in available if c.get("code") == code), None)
+        if matched_c and code not in seen_hard_codes:
+            c_type = _normalize_completion_type(matched_c.get("type", ""))
+            if c_type in ["교양필수", "계열공통", "전공필수"]:
+                # 다중 분반 탐색 (Iterative Section Search) 및 Fallback 매핑
+                resolved_c = _find_compatible_offering(matched_c, preferred_days, preferred_times, avoid_times)
+                hard_core_courses.append(resolved_c)
+                seen_hard_codes.add(code)
+
+    # 2) 핵심 필수과목 (KY410, AS004, KYC56) 자동 포함
+    for hc_code in ["KY410", "AS004", "KYC56"]:
+        if hc_code not in seen_hard_codes:
+            matched_c = next((c for c in available if c.get("code") == hc_code), None)
+            if matched_c:
+                # 다중 분반 탐색 (Iterative Section Search) 및 Fallback 매핑
+                resolved_c = _find_compatible_offering(matched_c, preferred_days, preferred_times, avoid_times)
+                hard_core_courses.append(resolved_c)
+                seen_hard_codes.add(hc_code)
+
+    # 강제 배정 과목은 탐색 풀에서 제외하여 백트래킹 시 중복 선택 방지
+    course_pool = [c for c in course_pool if c["code"] not in seen_hard_codes]
 
     # 필수 과목 세트
     required_codes = {c["code"] for c in required_remaining}
@@ -504,7 +621,8 @@ def _generate_timetable_with_preferences(
             current_schedule.pop()
 
     # 백트래킹 탐색 수행
-    backtrack(0, [], 0)
+    initial_credits = sum(c.get("credits", 0) for c in hard_core_courses)
+    backtrack(0, list(hard_core_courses), initial_credits)
 
     # 점수 기반 정렬
     candidates.sort(key=lambda s: _score_schedule(s["courses"], student), reverse=True)

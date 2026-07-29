@@ -96,9 +96,9 @@ def parse_credit(raw: str) -> float:
 
 def parse_time_range(time_str: str):
     """Parse '금요일(16:00~17:15)' into (day_kr, start, end)."""
-    m = re.match(r"(\S+요일)\((\d{2}:\d{2})~(\d{2}:\d{2})\)", time_str.strip())
+    m = re.search(r"([월화수목금토일])(?:요일)?\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)", time_str.strip())
     if m:
-        return m.group(1), m.group(2), m.group(3)
+        return m.group(1) + "요일", m.group(2), m.group(3)
     return None, None, None
 
 
@@ -114,12 +114,14 @@ DAY_MAP = {
 
 def parse_schedule(raw: str):
     """Parse LISTAGG_TEHIN into list of (day, start, end)."""
+    if not raw or raw.strip() == "-":
+        return []
     entries = []
-    parts = [p.strip() for p in raw.split(",") if p.strip()]
-    for part in parts:
-        day, start, end = parse_time_range(part)
-        if day:
-            entries.append((DAY_MAP.get(day, day), start, end))
+    pattern = r'([월화수목금토일])(?:요일)?\((\d{1,2}:\d{2})~(\d{1,2}:\d{2})\)'
+    matches = re.findall(pattern, raw)
+    for day_char, start, end in matches:
+        day = DAY_MAP.get(day_char + "요일", day_char)
+        entries.append((day, start, end))
     return entries
 
 

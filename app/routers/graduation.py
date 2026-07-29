@@ -837,6 +837,13 @@ def get_graduation_summary(
             
         # 미이수 필수 과목은 가산
         is_remaining = any(r["code"] == code for r in remaining_req)
+        
+        # AISW '미이수 계열 공통 과목' 및 '미이수 교양필수' 과목을 동일한 최우선 순위(Top Priority) 그룹으로 지정
+        prefix = "".join(ch for ch in code if ch.isalpha())
+        is_aisw_common = (category == "계열공통" and (prefix == "AS" or code.startswith("AS") or "AISW" in str(info.get("department", ""))))
+        if student_dept in aisw_depts and (category == "교양필수" or is_aisw_common):
+            is_remaining = True
+            
         if is_remaining:
             score += 200
             is_match = True
@@ -853,6 +860,28 @@ def get_graduation_summary(
         # 타학과 전공필수 과목은 추천에서 제외 (AISW 학생 기준)
         if is_match and category == "전공필수" and course_dept not in aisw_depts:
             is_match = False
+            
+        # [Strict Rule 3] AISW 학생 타 학과 과목 추천 제한 및 페널티 부여
+        if is_match:
+            from backend.core.data.courses import _are_core_categories_satisfied
+            is_aisw_student = (
+                student_dept in ["인공지능소프트웨어학부", "컴퓨터소프트웨어학과", "소프트웨어학과", "AI.SW학"]
+                or "소프트웨어" in student_dept
+                or "aisw" in student_dept.lower()
+            )
+            if is_aisw_student:
+                is_other_dept_course = False
+                prefix = "".join(ch for ch in code if ch.isalpha())
+                if category not in ("교양필수", "교양선택") and prefix not in ("FLOW", "SH", "DS", "AI", "AS") and code not in track_course_codes:
+                    is_other_dept_course = True
+                    
+                if is_other_dept_course:
+                    if not _are_core_categories_satisfied(student):
+                        # 자사 요건 불충족 시 타학과 과목 추천 원천 차단
+                        is_match = False
+                    else:
+                        # 완비 시에는 허용하되 최하위 후순위가 되도록 페널티 대폭 감점
+                        score -= 1000
             
         # 매칭되는 과목(주전공, 계열공통, 융합/특화, 교양)만 추천 풀에 포함 (타학과 무관 전공 완전 배제)
         if is_match:
