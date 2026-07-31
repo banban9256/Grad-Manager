@@ -30,7 +30,11 @@ def copy_csv_files_to_output():
     print(f"Copying CSV files from {DATA_DIR} to {dest_dir}...")
     for fname in os.listdir(DATA_DIR):
         if fname.endswith(".csv"):
-            shutil.copy(os.path.join(DATA_DIR, fname), os.path.join(dest_dir, fname))
+            src = os.path.join(DATA_DIR, fname)
+            dst = os.path.join(dest_dir, fname)
+            if os.path.abspath(src) == os.path.abspath(dst):
+                continue
+            shutil.copy(src, dst)
     print("CSV files copied successfully.")
 
 def main():
