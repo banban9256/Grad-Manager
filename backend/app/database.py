@@ -1,10 +1,14 @@
-# app/database.py
+import os
+from pathlib import Path
 from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-# 프로젝트 루트의 gradmanager.db 파일 연결
-SQLALCHEMY_DATABASE_URL = "sqlite:///./gradmanager.db"
+# backend/app/database.py 파일 위치 기준으로 상위 디렉토리(backend)의 gradmanager.db 경로 계산
+BASE_DIR = Path(__file__).resolve().parent.parent
+DB_PATH = BASE_DIR / "gradmanager.db"
+
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{DB_PATH}"
 
 engine = create_engine(
     SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
