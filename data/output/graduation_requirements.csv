@@ -1,0 +1,56 @@
+﻿requirement_id,admission_year,program_id,requirement_category,required_credits,requirement_text,source_url
+1,2023,,총 이수학점,130,교양+계열공통+전공+타전공 합계 130학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+2,2023,,교양 최소학점,35,교양 최소 35학점 이상 이수 필요,https://www.hs.ac.kr/sce/11212/subview.do
+3,2023,,교양 최대학점(인정한도),45,교양 최대 45학점까지 인정,https://www.hs.ac.kr/sce/11212/subview.do
+4,2023,,계열공통,36,AI SW 계열공통 36학점 이수 필요,https://www.hs.ac.kr/sce/11212/subview.do
+5,2023,1,전공(전공필수+전공선택),24,AI·SW학 전공 전필+전선 합계 최소 24학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+6,2023,5,특화전공,21,인지감성컴퓨팅 특화전공: 21학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+7,2023,6,특화전공,21,앰비언트컴퓨팅 특화전공: 21학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+8,2023,,기독교 관련 교양필수,,기독교와문화(A) 또는 성서의세계(A) 1과목 이상 이수 필수,https://www.hs.ac.kr/sce/11212/subview.do
+9,2023,,채플,,채플 매 학기 0.5학점 이상 이수,https://www.hs.ac.kr/sce/11212/subview.do
+10,2023,,타전공,,"타전공 이수는 필수사항이 아니나, 이수 시 추가 학점 인정 가능",https://www.hs.ac.kr/sce/11212/subview.do
+11,2024,,총 이수학점,130,교양+계열공통+전공+타전공 합계 130학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+12,2024,,교양 최소학점,35,교양 최소 35학점 이상 이수 필요,https://www.hs.ac.kr/sce/11212/subview.do
+13,2024,,교양 최대학점(인정한도),45,교양 최대 45학점까지 인정,https://www.hs.ac.kr/sce/11212/subview.do
+14,2024,,계열공통,36,AI SW 계열공통 36학점 이수 필요,https://www.hs.ac.kr/sce/11212/subview.do
+15,2024,1,전공(전공필수+전공선택),24,AI·SW학 전공 전필+전선 합계 최소 24학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+16,2024,5,특화전공,21,인지감성컴퓨팅 특화전공: 21학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+17,2024,6,특화전공,21,앰비언트컴퓨팅 특화전공: 21학점 이상,https://www.hs.ac.kr/sce/11212/subview.do
+18,2024,,기독교 관련 교양필수,,기독교와문화(A) 또는 성서의세계(A) 1과목 이상 이수 필수,https://www.hs.ac.kr/sce/11212/subview.do
+19,2024,,채플,,채플 매 학기 0.5학점 이상 이수,https://www.hs.ac.kr/sce/11212/subview.do
+20,2024,,타전공,,"타전공 이수는 필수사항이 아니나, 이수 시 추가 학점 인정 가능",https://www.hs.ac.kr/sce/11212/subview.do
+21,2023,13,전공기초,6.0,프로그래밍 기초 이수,https://swuniv.hs.ac.kr/02/02.php
+22,2023,13,전공필수,9.0,소프트웨어 개발 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+23,2023,13,전공선택,9.0,심화 소프트웨어 과목,https://swuniv.hs.ac.kr/02/02.php
+24,2023,14,전공기초,6.0,AI 기초 이수,https://swuniv.hs.ac.kr/02/02.php
+25,2023,14,전공필수,9.0,인공지능 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+26,2023,14,전공선택,9.0,심화 AI 과목,https://swuniv.hs.ac.kr/02/02.php
+27,2023,15,전공기초,6.0,데이터 기초 이수,https://swuniv.hs.ac.kr/02/02.php
+28,2023,15,전공필수,9.0,데이터사이언스 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+29,2023,15,전공선택,9.0,심화 데이터 분석 과목,https://swuniv.hs.ac.kr/02/02.php
+30,2023,16,전공기초,6.0,XR 기초 이수,https://swuniv.hs.ac.kr/02/02.php
+31,2023,16,전공필수,9.0,XR콘텐츠 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+32,2023,16,전공선택,9.0,심화 XR 과목,https://swuniv.hs.ac.kr/02/02.php
+33,2023,17,전공기초,6.0,IoT 기초 이수,https://swuniv.hs.ac.kr/02/02.php
+34,2023,17,전공필수,9.0,지능형IoT 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+35,2023,17,전공선택,9.0,심화 IoT 과목,https://swuniv.hs.ac.kr/02/02.php
+36,2023,18,전공기초,6.0,AI시스템 기초 이수,https://swuniv.hs.ac.kr/02/02.php
+37,2023,18,전공필수,9.0,AI시스템 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+38,2023,18,전공선택,9.0,심화 AI시스템 과목,https://swuniv.hs.ac.kr/02/02.php
+39,2023,5,전공필수,12.0,인지감성컴퓨팅 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+40,2023,5,전공선택,9.0,심화 인지감성 과목,https://swuniv.hs.ac.kr/02/02.php
+41,2023,6,전공필수,12.0,앰비언트컴퓨팅 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+42,2023,6,전공선택,9.0,심화 앰비언트 과목,https://swuniv.hs.ac.kr/02/02.php
+43,2023,19,전공필수,12.0,장애인라이프케어 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+44,2023,19,전공선택,9.0,심화 장애인케어 과목,https://swuniv.hs.ac.kr/02/02.php
+45,2023,20,전공필수,12.0,시니어라이프케어 핵심 과목,https://swuniv.hs.ac.kr/02/02.php
+46,2023,20,전공선택,9.0,심화 시니어케어 과목,https://swuniv.hs.ac.kr/02/02.php
+47,2026,5,특화전공 최소 이수학점,54,인지감성컴퓨팅 특화전공: 전공선택 54학점 이상 이수 필요,https://swuniv.hs.ac.kr/02/02.php
+48,2026,6,특화전공 최소 이수학점,54,앰비언트컴퓨팅 특화전공: 전공선택 54학점 이상 이수 필요,https://swuniv.hs.ac.kr/02/02.php
+49,2026,19,융합전공 최소 이수학점,120,AI융합장애인라이프케어: 전공선택 120학점 이상 이수 필요,https://swuniv.hs.ac.kr/02/02.php
+50,2026,20,융합전공 최소 이수학점,111,AI융합시니어라이프케어: 전공선택 111학점 이상 이수 필요,https://swuniv.hs.ac.kr/02/02.php
+51,2023,8,전공(전공필수+전공선택),48,소프트웨어전공: 전공필수+전공선택 합계 48학점,https://swuniv.hs.ac.kr/02/02.php
+52,2023,9,전공(전공필수+전공선택),42,인공지능전공: 전공필수+전공선택 합계 42학점,https://swuniv.hs.ac.kr/02/02.php
+53,2023,10,전공(전공필수+전공선택),45,데이터사이언스전공: 전공필수+전공선택 합계 45학점,https://swuniv.hs.ac.kr/02/02.php
+54,2023,11,전공(전공필수+전공선택),42,XR콘텐츠전공: 전공필수+전공선택 합계 42학점,https://swuniv.hs.ac.kr/02/02.php
+55,2023,12,전공(전공필수+전공선택),42,지능형IoT전공: 전공필수+전공선택 합계 42학점,https://swuniv.hs.ac.kr/02/02.php

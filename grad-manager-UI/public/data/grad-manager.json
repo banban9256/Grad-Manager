@@ -1,0 +1,251 @@
+{
+  "user": {
+    "userInfo": {
+      "name": "김한신",
+      "university": "한신대학교",
+      "department": "AI.SW학과",
+      "track": "본전공 + 특화전공(융합)",
+      "studentId": "2022115xxx",
+      "semester": "3학년 2학기",
+      "mileage": 1280,
+      "overallProgress": 72,
+      "remainingCredits": 37,
+      "totalRequired": 132,
+      "earnedCredits": 95
+    },
+    "creditCategories": [
+      { "key": "major", "label": "전공", "current": 48, "required": 66, "tone": "chart-1" },
+      { "key": "liberal", "label": "교양", "current": 30, "required": 36, "tone": "chart-2" },
+      { "key": "convergence", "label": "특화(융합)", "current": 17, "required": 30, "tone": "chart-3" }
+    ],
+    "quickMenus": [
+      { "key": "recommend", "label": "AI 과목 추천", "icon": "Sparkles" },
+      { "key": "requirements", "label": "졸업 요건", "icon": "GraduationCap" },
+      { "key": "enroll", "label": "수강신청", "icon": "PencilLine" },
+      { "key": "grades", "label": "성적 조회", "icon": "BarChart3" },
+      { "key": "mileage", "label": "마일리지", "icon": "Trophy" },
+      { "key": "counsel", "label": "학사 일정", "icon": "Calendar" }
+    ]
+  },
+  "schedule": {
+    "scheduleDays": ["월", "화", "수", "목", "금"],
+    "scheduleHours": [9, 10, 11, 12, 13, 14, 15, 16],
+    "scheduleBlocks": [
+      { "id": "s1", "name": "머신러닝", "day": 0, "start": 1, "span": 2, "room": "율곡관 302", "colorIndex": 0 },
+      { "id": "s2", "name": "머신러닝", "day": 2, "start": 0, "span": 2, "room": "율곡관 302", "colorIndex": 0 },
+      { "id": "s3", "name": "데이터베이스", "day": 1, "start": 4, "span": 2, "room": "만우관 111", "colorIndex": 1 },
+      { "id": "s4", "name": "데이터베이스", "day": 3, "start": 4, "span": 2, "room": "만우관 111", "colorIndex": 1 },
+      { "id": "s5", "name": "융합캡스톤", "day": 3, "start": 6, "span": 2, "room": "장공관 210", "colorIndex": 2 },
+      { "id": "s6", "name": "확률과 통계", "day": 0, "start": 4, "span": 2, "room": "필헌관 405", "colorIndex": 3 },
+      { "id": "s7", "name": "확률과 통계", "day": 2, "start": 4, "span": 2, "room": "필헌관 405", "colorIndex": 3 }
+    ],
+    "scheduleReasons": [
+      { "icon": "CalendarOff", "title": "금요일 공강 유지", "desc": "요청하신 금요일 전면 공강을 확보했어요." },
+      { "icon": "BrainCircuit", "title": "AI/데이터 관심분야 매칭", "desc": "관심 키워드와 87% 이상 일치하는 과목 위주로 편성." },
+      { "icon": "GraduationCap", "title": "졸업요건 충족", "desc": "전공 6학점 + 특화 3학점으로 남은 요건을 반영." },
+      { "icon": "Clock", "title": "1교시 최소화", "desc": "오전 9시 수업을 주 1회로 줄였어요." }
+    ],
+    "pastelPalette": [
+      { "bg": "bg-blue-100", "text": "text-blue-700", "bar": "bg-blue-500" },
+      { "bg": "bg-emerald-100", "text": "text-emerald-700", "bar": "bg-emerald-500" },
+      { "bg": "bg-amber-100", "text": "text-amber-700", "bar": "bg-amber-500" },
+      { "bg": "bg-rose-100", "text": "text-rose-700", "bar": "bg-rose-500" },
+      { "bg": "bg-violet-100", "text": "text-violet-700", "bar": "bg-violet-500" }
+    ]
+  },
+  "notice": {
+    "interestKeywords": [
+      { "key": "special", "label": "특화", "urgent": true },
+      { "key": "scholarship", "label": "장학금" },
+      { "key": "internship", "label": "인턴십" },
+      { "key": "contest", "label": "공모전" },
+      { "key": "capstone", "label": "캡스톤" },
+      { "key": "exchange", "label": "교환학생" }
+    ],
+    "urgentNotice": {
+      "id": "n0",
+      "date": "D-2",
+      "title": "[특화전공] 융합트랙 신청 마감 임박",
+      "desc": "특화(융합)전공 이수 신청이 12월 19일 18시에 마감됩니다. 미신청 시 이번 학기 인정 불가.",
+      "type": "urgent",
+      "keyword": "특화"
+    },
+    "academicCalendar": [
+      {
+        "id": "n5",
+        "date": "7월 28일",
+        "endDate": "7월 31일",
+        "title": "2026-2학기 예비 수강신청",
+        "desc": "예비 수강신청 기간입니다. 원하는 과목을 미리 담아두세요.",
+        "type": "info",
+        "isMandatory": true
+      },
+      {
+        "id": "n6",
+        "date": "8월 4일",
+        "endDate": "8월 8일",
+        "title": "2026-2학기 본 수강신청",
+        "desc": "2026학년도 2학기 본 수강신청 기간입니다. 시간표를 확인하고 신청하세요.",
+        "type": "warning",
+        "isMandatory": true
+      },
+      {
+        "id": "n7",
+        "date": "8월 11일",
+        "endDate": "8월 13일",
+        "title": "2026-2학기 등록금 납부",
+        "desc": "2026학년도 2학기 등록금 납부 기간입니다. 기한 내에 납부해 주세요.",
+        "type": "warning",
+        "isMandatory": true
+      },
+      {
+        "id": "n8",
+        "date": "8월 25일",
+        "endDate": "8월 27일",
+        "title": "2026-2학기 수강신청 변경기간",
+        "desc": "수강신청 정정 및 변경 기간입니다.",
+        "type": "info",
+        "isMandatory": true
+      },
+      {
+        "id": "n1",
+        "date": "12월 20일",
+        "title": "기말 강의 평가 시작",
+        "desc": "미완료 시 성적 조회 불가. 전 과목 평가를 완료해 주세요.",
+        "type": "warning"
+      },
+      {
+        "id": "n2",
+        "date": "12월 23일",
+        "title": "겨울 계절학기 수강신청",
+        "desc": "재수강 및 학점 보충 대상자는 신청 기간을 확인하세요.",
+        "type": "info"
+      },
+      {
+        "id": "n3",
+        "date": "12월 26일",
+        "title": "기말고사 기간 종료",
+        "desc": "성적 입력 마감은 1월 3일까지입니다.",
+        "type": "info"
+      },
+      {
+        "id": "n4",
+        "date": "1월 6일",
+        "title": "성적 공시 및 이의신청",
+        "desc": "성적 확인 후 3일 이내 이의신청 가능합니다.",
+        "type": "info"
+      }
+    ]
+  },
+  "chat": {
+    "recommendedCourses": [
+      {
+        "id": "c1",
+        "name": "머신러닝",
+        "code": "AISW3021",
+        "credit": 3,
+        "match": 96,
+        "tags": ["필수", "관심사 매칭"],
+        "retake": false,
+        "professor": "이정민",
+        "time": "월 10:30 / 수 09:00"
+      },
+      {
+        "id": "c2",
+        "name": "데이터베이스 시스템",
+        "code": "AISW2044",
+        "credit": 3,
+        "match": 91,
+        "tags": ["필수", "특화전공 인정"],
+        "retake": false,
+        "professor": "박서준",
+        "time": "화 13:00 / 목 13:00"
+      },
+      {
+        "id": "c3",
+        "name": "빅데이터 융합캡스톤",
+        "code": "CONV3110",
+        "credit": 3,
+        "match": 88,
+        "tags": ["특화전공 인정", "관심사 매칭"],
+        "retake": false,
+        "professor": "최유나",
+        "time": "목 15:00"
+      },
+      {
+        "id": "c4",
+        "name": "확률과 통계",
+        "code": "MATH2010",
+        "credit": 3,
+        "match": 74,
+        "tags": ["관심사 매칭"],
+        "retake": true,
+        "professor": "정하늘",
+        "time": "월 13:00 / 수 13:00"
+      }
+    ],
+    "chatSimSummary": {
+      "freeDay": "금요일",
+      "totalCredits": 12,
+      "courseCount": 4,
+      "avgMatch": 89,
+      "reasons": [
+        { "icon": "CalendarOff", "text": "금요일 공강 유지" },
+        { "icon": "BrainCircuit", "text": "AI/데이터 관심분야 매칭" },
+        { "icon": "GraduationCap", "text": "졸업요건(전공 6학점) 충족" }
+      ]
+    }
+  },
+  "digitalTwin": {
+    "name": "김한신",
+    "progress": 72,
+    "remainingCredits": 18,
+    "aiProbability": 97,
+    "expectedGraduation": "2025.02",
+    "completedCourses": 42,
+    "majorCourses": 28,
+    "liberalCourses": 14,
+    "scenarioCount": 5,
+    "scenarioStatus": "최적 경로 분석 완료"
+  },
+  "aiRecommendation": {
+    "aiFilters": [
+      { "key": "ai", "label": "AI" },
+      { "key": "data", "label": "데이터" },
+      { "key": "ux", "label": "UX" },
+      { "key": "settings", "label": "설정", "addOnly": true }
+    ],
+    "aiCourses": [
+      {
+        "id": "ai1",
+        "name": "딥러닝과 응용",
+        "code": "AI301",
+        "credit": 3,
+        "match": 93,
+        "tags": ["AI", "특화"],
+        "reason": "AI 관심분야 · 특화 학점 인정 가능",
+        "color": "violet"
+      },
+      {
+        "id": "ai2",
+        "name": "UX/UI 디자인",
+        "code": "DS210",
+        "credit": 3,
+        "match": 88,
+        "tags": ["UX", "융합"],
+        "reason": "관심 키워드 UX 매칭 · 포트폴리오 강화",
+        "color": "pink"
+      },
+      {
+        "id": "ai3",
+        "name": "데이터 시각화",
+        "code": "DA305",
+        "credit": 3,
+        "match": 90,
+        "tags": ["데이터", "특화"],
+        "reason": "데이터 관심분야 · 캡스톤 선수과목 인정",
+        "color": "teal"
+      }
+    ]
+  }
+}
